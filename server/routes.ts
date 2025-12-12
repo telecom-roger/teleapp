@@ -5598,7 +5598,14 @@ export function startCampaignScheduler() {
             }
 
             console.log(`📤 Campanha ${campaign.id}: ${clientsList.length} clientes do usuário ${ownerId}`);
-            await whatsappService.executeCampaign(campaign, db, clientsList);
+            
+            // ✅ EXECUÇÃO CONCORRENTE: Não bloqueia o scheduler com await
+            // Cada campanha roda em background de forma independente
+            whatsappService.executeCampaign(campaign, db, clientsList)
+              .catch((err) => {
+                console.error(`❌ Erro na execução da campanha ${campaign.id}:`, err);
+              });
+            
           } catch (campaignError) {
             console.error(`❌ Erro ao executar campanha ${campaign.id}:`, campaignError);
           }
