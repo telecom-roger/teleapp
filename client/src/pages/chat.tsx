@@ -1232,6 +1232,34 @@ Email: ${email}`;
     setShowQuickReplies(false);
   };
 
+  // Format date separator label
+  const formatDateSeparatorLabel = (messageDate: dayjs.Dayjs): string => {
+    const today = dayjs().tz("America/Sao_Paulo").startOf("day");
+    const msgDay = messageDate.startOf("day");
+
+    const diffDays = today.diff(msgDay, "day");
+    const sameYear = today.year() === messageDate.year();
+
+    if (diffDays === 0) {
+      return "Hoje";
+    } else if (diffDays === 1) {
+      return sameYear ? messageDate.format("DD/MM") : messageDate.format("DD/MM/YYYY");
+    } else {
+      // Nome do dia da semana + data
+      const weekdays = [
+        "Domingo",
+        "Segunda-feira",
+        "Terça-feira",
+        "Quarta-feira",
+        "Quinta-feira",
+        "Sexta-feira",
+        "Sábado",
+      ];
+      const dateFormat = sameYear ? "DD/MM" : "DD/MM/YYYY";
+      return `${weekdays[messageDate.day()]} ${messageDate.format(dateFormat)}`;
+    }
+  };
+
   return (
     <div className="flex h-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       {/* Left Sidebar - Conversations List */}
@@ -1497,7 +1525,8 @@ Email: ${email}`;
                               )}
                             {conv.ultimaMensagemEm && (
                               <p className="text-xs text-slate-600 dark:text-slate-400 flex-shrink-0">
-                                {dayjs.utc(conv.ultimaMensagemEm)
+                                {dayjs
+                                  .utc(conv.ultimaMensagemEm)
                                   .tz("America/Sao_Paulo")
                                   .format("HH:mm")}
                               </p>
@@ -1729,7 +1758,8 @@ Email: ${email}`;
                               data-testid={`button-search-result-${result.id}`}
                             >
                               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
-                                {dayjs.utc(result.createdAt)
+                                {dayjs
+                                  .utc(result.createdAt)
                                   .tz("America/Sao_Paulo")
                                   .format("HH:mm:ss")}
                               </p>
@@ -1846,217 +1876,260 @@ Email: ${email}`;
                     Nenhuma mensagem ainda
                   </p>
                 ) : (
-                  messages.map((msg: Message) => (
-                    <div
-                      key={msg.id}
-                      ref={(el) => {
-                        if (el) messageSearchResultsRef.current[msg.id] = el;
-                      }}
-                      className={`flex items-start gap-2 ${
-                        msg.sender === "user" ? "justify-end" : "justify-start"
-                      } group ${
-                        messageSearchTerm &&
-                        normalizeText(msg.conteudo).includes(
-                          normalizeText(messageSearchTerm)
-                        )
-                          ? "bg-blue-200 dark:bg-blue-900 px-2 py-1 rounded-lg"
-                          : ""
-                      } ${
-                        selectedMessageIds.has(msg.id)
-                          ? "bg-blue-100 dark:bg-blue-900/50 rounded-lg"
-                          : ""
-                      }`}
-                      data-testid={`message-${msg.id}`}
-                      onClick={
-                        selectMode
-                          ? () => {
-                              setSelectedMessageIds((prev) => {
-                                const next = new Set(prev);
-                                if (next.has(msg.id)) {
-                                  next.delete(msg.id);
-                                } else {
-                                  next.add(msg.id);
-                                }
-                                return next;
-                              });
-                            }
-                          : undefined
-                      }
-                    >
-                      {selectMode && (
-                        <div
-                          className={`flex-shrink-0 mt-2 ${
-                            msg.sender === "user"
-                              ? "order-last ml-1"
-                              : "order-first mr-1"
-                          }`}
-                        >
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
-                              selectedMessageIds.has(msg.id)
-                                ? "bg-blue-500 border-blue-500 text-white"
-                                : "border-slate-300 dark:border-slate-600"
-                            }`}
-                          >
-                            {selectedMessageIds.has(msg.id) && (
-                              <span className="text-xs">✓</span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      <div
-                        className={`relative max-w-xs px-3 py-2 rounded-lg shadow-sm ${
-                          msg.tipo === "deletada"
-                            ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 italic"
-                            : msg.sender === "user"
-                            ? "bg-blue-100 dark:bg-blue-950 text-slate-900 dark:text-blue-100 shadow-blue-100/20"
-                            : "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-600"
-                        }`}
-                      >
-                        {msg.tipo !== "deletada" && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className={`absolute top-1 ${
-                                  msg.sender === "user" ? "right-1" : "left-1"
-                                } invisible group-hover:visible p-0.5 rounded hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors`}
-                                data-testid={`button-message-menu-${msg.id}`}
-                              >
-                                <ChevronDown className="h-3 w-3 text-slate-500" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align={msg.sender === "user" ? "end" : "start"}
-                              className="w-44"
-                            >
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setForwardingMessage(msg);
-                                  setShowForwardModal(true);
-                                  setForwardSearchTerm("");
-                                  setForwardCustomNumber("");
-                                }}
-                                className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 hover:text-inherit focus:text-inherit"
-                                data-testid={`button-forward-message-${msg.id}`}
-                              >
-                                <Forward className="h-4 w-4 mr-2" />
-                                Encaminhar
-                              </DropdownMenuItem>
-                              {msg.sender === "user" && (
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    apiRequest(
-                                      "DELETE",
-                                      `/api/chat/messages/${msg.id}`
-                                    )
-                                      .then(() => {
-                                        refetchMessages();
-                                        toast({
-                                          title: "Mensagem apagada",
-                                          description:
-                                            "Apagada para você e para o cliente",
-                                        });
-                                      })
-                                      .catch((err) => {
-                                        console.error("Erro ao deletar:", err);
-                                        toast({
-                                          title: "Erro",
-                                          description:
-                                            "Não foi possível apagar a mensagem",
-                                          variant: "destructive",
-                                        });
-                                      });
-                                  }}
-                                  className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 hover:text-inherit focus:text-inherit"
-                                  data-testid={`button-delete-message-${msg.id}`}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Apagar para Todos
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                        {msg.tipo === "deletada" && (
-                          <p className="text-sm break-words italic opacity-70">
-                            {msg.conteudo}
-                          </p>
-                        )}
-                        {msg.tipo === "texto" && (
-                          <p className="text-sm break-words">
-                            {renderTextWithLinks(msg.conteudo)}
-                          </p>
-                        )}
+                  (() => {
+                    let lastDateKey = "";
+                    return messages.map((msg: Message, index: number) => {
+                      const msgDate = dayjs
+                        .utc(msg.createdAt)
+                        .tz("America/Sao_Paulo");
+                      const dateKey = msgDate.format("YYYY-MM-DD");
+                      const showSeparator = dateKey !== lastDateKey;
+                      if (showSeparator) lastDateKey = dateKey;
 
-                        {msg.tipo === "imagem" && msg.arquivo && (
-                          <button
-                            onClick={() => setSelectedImage(msg.arquivo!)}
-                            className="cursor-pointer hover:opacity-90 transition-opacity rounded-md overflow-hidden"
-                            data-testid={`button-open-image-${msg.id}`}
-                          >
-                            <img
-                              src={msg.arquivo}
-                              alt="Imagem"
-                              className="max-w-xs rounded-md max-h-56 object-cover"
-                            />
-                          </button>
-                        )}
-
-                        {msg.tipo === "audio" && msg.arquivo && (
-                          <div className="w-48 py-0.5">
-                            <audio controls className="w-full h-8 rounded-full">
-                              <source src={msg.arquivo} type={msg.mimeType} />
-                            </audio>
-                          </div>
-                        )}
-
-                        {msg.tipo === "documento" && msg.arquivo && (
-                          <button
-                            onClick={() => {
-                              const link = document.createElement("a");
-                              link.href = msg.arquivo!;
-                              link.download = msg.nomeArquivo || "documento";
-                              link.click();
-                            }}
-                            className="flex items-center gap-2 text-xs hover:underline cursor-pointer transition-opacity hover:opacity-80 p-1 rounded hover-elevate"
-                            data-testid={`button-download-document-${msg.id}`}
-                          >
-                            <File className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{msg.nomeArquivo}</span>
-                          </button>
-                        )}
-
-                        <div className="flex items-center justify-between gap-2 mt-1 pt-0.5">
-                          <div className="flex items-center gap-1">
-                            <p className="text-xs opacity-70">
-                              {dayjs.utc(msg.createdAt)
-                                .tz("America/Sao_Paulo")
-                                .format("HH:mm")}
-                            </p>
-                            {msg.origem === "automation" && (
-                              <span
-                                className="text-xs opacity-60 italic"
-                                data-testid={`badge-ai-${msg.id}`}
-                              >
-                                - enviado por IA
-                              </span>
-                            )}
-                            {msg.origem === "forward" && (
-                              <span
-                                className="text-xs opacity-60 italic"
-                                data-testid={`badge-forward-${msg.id}`}
-                              >
-                                - encaminhada
-                              </span>
-                            )}
-                          </div>
-                          {msg.sender === "user" && (
-                            <DeliveryStatusTicks status={msg.statusEntrega} />
+                      return (
+                        <div key={`wrap-${msg.id}`}>
+                          {showSeparator && (
+                            <div className="flex justify-center my-2">
+                              <div className="px-3 py-1 bg-slate-200 dark:bg-slate-700 text-xs text-slate-700 dark:text-slate-100 rounded-full">
+                                {formatDateSeparatorLabel(msgDate)}
+                              </div>
+                            </div>
                           )}
+                          <div
+                            key={msg.id}
+                            ref={(el) => {
+                              if (el)
+                                messageSearchResultsRef.current[msg.id] = el;
+                            }}
+                            className={`flex items-start gap-2 ${
+                              msg.sender === "user"
+                                ? "justify-end"
+                                : "justify-start"
+                            } group ${
+                              messageSearchTerm &&
+                              normalizeText(msg.conteudo).includes(
+                                normalizeText(messageSearchTerm)
+                              )
+                                ? "bg-blue-200 dark:bg-blue-900 px-2 py-1 rounded-lg"
+                                : ""
+                            } ${
+                              selectedMessageIds.has(msg.id)
+                                ? "bg-blue-100 dark:bg-blue-900/50 rounded-lg"
+                                : ""
+                            }`}
+                            data-testid={`message-${msg.id}`}
+                            onClick={
+                              selectMode
+                                ? () => {
+                                    setSelectedMessageIds((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(msg.id)) {
+                                        next.delete(msg.id);
+                                      } else {
+                                        next.add(msg.id);
+                                      }
+                                      return next;
+                                    });
+                                  }
+                                : undefined
+                            }
+                          >
+                            {selectMode && (
+                              <div
+                                className={`flex-shrink-0 mt-2 ${
+                                  msg.sender === "user"
+                                    ? "order-last ml-1"
+                                    : "order-first mr-1"
+                                }`}
+                              >
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors ${
+                                    selectedMessageIds.has(msg.id)
+                                      ? "bg-blue-500 border-blue-500 text-white"
+                                      : "border-slate-300 dark:border-slate-600"
+                                  }`}
+                                >
+                                  {selectedMessageIds.has(msg.id) && (
+                                    <span className="text-xs">✓</span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                            <div
+                              className={`relative max-w-xs px-3 py-2 rounded-lg shadow-sm ${
+                                msg.tipo === "deletada"
+                                  ? "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 italic"
+                                  : msg.sender === "user"
+                                  ? "bg-blue-100 dark:bg-blue-950 text-slate-900 dark:text-blue-100 shadow-blue-100/20"
+                                  : "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 border border-slate-200 dark:border-slate-600"
+                              }`}
+                            >
+                              {msg.tipo !== "deletada" && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      className={`absolute top-1 ${
+                                        msg.sender === "user"
+                                          ? "right-1"
+                                          : "left-1"
+                                      } invisible group-hover:visible p-0.5 rounded hover:bg-blue-200 dark:hover:bg-blue-900 transition-colors`}
+                                      data-testid={`button-message-menu-${msg.id}`}
+                                    >
+                                      <ChevronDown className="h-3 w-3 text-slate-500" />
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align={
+                                      msg.sender === "user" ? "end" : "start"
+                                    }
+                                    className="w-44"
+                                  >
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setForwardingMessage(msg);
+                                        setShowForwardModal(true);
+                                        setForwardSearchTerm("");
+                                        setForwardCustomNumber("");
+                                      }}
+                                      className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 hover:text-inherit focus:text-inherit"
+                                      data-testid={`button-forward-message-${msg.id}`}
+                                    >
+                                      <Forward className="h-4 w-4 mr-2" />
+                                      Encaminhar
+                                    </DropdownMenuItem>
+                                    {msg.sender === "user" && (
+                                      <DropdownMenuItem
+                                        onClick={() => {
+                                          apiRequest(
+                                            "DELETE",
+                                            `/api/chat/messages/${msg.id}`
+                                          )
+                                            .then(() => {
+                                              refetchMessages();
+                                              toast({
+                                                title: "Mensagem apagada",
+                                                description:
+                                                  "Apagada para você e para o cliente",
+                                              });
+                                            })
+                                            .catch((err) => {
+                                              console.error(
+                                                "Erro ao deletar:",
+                                                err
+                                              );
+                                              toast({
+                                                title: "Erro",
+                                                description:
+                                                  "Não foi possível apagar a mensagem",
+                                                variant: "destructive",
+                                              });
+                                            });
+                                        }}
+                                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 focus:bg-slate-100 dark:focus:bg-slate-700 hover:text-inherit focus:text-inherit"
+                                        data-testid={`button-delete-message-${msg.id}`}
+                                      >
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Apagar para Todos
+                                      </DropdownMenuItem>
+                                    )}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                              {msg.tipo === "deletada" && (
+                                <p className="text-sm break-words italic opacity-70">
+                                  {msg.conteudo}
+                                </p>
+                              )}
+                              {msg.tipo === "texto" && (
+                                <p className="text-sm break-words">
+                                  {renderTextWithLinks(msg.conteudo)}
+                                </p>
+                              )}
+
+                              {msg.tipo === "imagem" && msg.arquivo && (
+                                <button
+                                  onClick={() => setSelectedImage(msg.arquivo!)}
+                                  className="cursor-pointer hover:opacity-90 transition-opacity rounded-md overflow-hidden"
+                                  data-testid={`button-open-image-${msg.id}`}
+                                >
+                                  <img
+                                    src={msg.arquivo}
+                                    alt="Imagem"
+                                    className="max-w-xs rounded-md max-h-56 object-cover"
+                                  />
+                                </button>
+                              )}
+
+                              {msg.tipo === "audio" && msg.arquivo && (
+                                <div className="w-48 py-0.5">
+                                  <audio
+                                    controls
+                                    className="w-full h-8 rounded-full"
+                                  >
+                                    <source
+                                      src={msg.arquivo}
+                                      type={msg.mimeType}
+                                    />
+                                  </audio>
+                                </div>
+                              )}
+
+                              {msg.tipo === "documento" && msg.arquivo && (
+                                <button
+                                  onClick={() => {
+                                    const link = document.createElement("a");
+                                    link.href = msg.arquivo!;
+                                    link.download =
+                                      msg.nomeArquivo || "documento";
+                                    link.click();
+                                  }}
+                                  className="flex items-center gap-2 text-xs hover:underline cursor-pointer transition-opacity hover:opacity-80 p-1 rounded hover-elevate"
+                                  data-testid={`button-download-document-${msg.id}`}
+                                >
+                                  <File className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {msg.nomeArquivo}
+                                  </span>
+                                </button>
+                              )}
+
+                              <div className="flex items-center justify-between gap-2 mt-1 pt-0.5">
+                                <div className="flex items-center gap-1">
+                                  <p className="text-xs opacity-70">
+                                    {dayjs
+                                      .utc(msg.createdAt)
+                                      .tz("America/Sao_Paulo")
+                                      .format("HH:mm")}
+                                  </p>
+                                  {msg.origem === "automation" && (
+                                    <span
+                                      className="text-xs opacity-60 italic"
+                                      data-testid={`badge-ai-${msg.id}`}
+                                    >
+                                      - enviado por IA
+                                    </span>
+                                  )}
+                                  {msg.origem === "forward" && (
+                                    <span
+                                      className="text-xs opacity-60 italic"
+                                      data-testid={`badge-forward-${msg.id}`}
+                                    >
+                                      - encaminhada
+                                    </span>
+                                  )}
+                                </div>
+                                {msg.sender === "user" && (
+                                  <DeliveryStatusTicks
+                                    status={msg.statusEntrega}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  ))
+                      );
+                    });
+                  })()
                 )}
                 <div ref={messagesEndRef} />
               </div>
