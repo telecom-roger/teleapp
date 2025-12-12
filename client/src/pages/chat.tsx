@@ -1243,7 +1243,9 @@ Email: ${email}`;
     if (diffDays === 0) {
       return "Hoje";
     } else if (diffDays === 1) {
-      return sameYear ? messageDate.format("DD/MM") : messageDate.format("DD/MM/YYYY");
+      return sameYear
+        ? messageDate.format("DD/MM")
+        : messageDate.format("DD/MM/YYYY");
     } else {
       // Nome do dia da semana + data
       const weekdays = [
