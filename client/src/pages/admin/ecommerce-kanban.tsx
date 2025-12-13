@@ -3,18 +3,37 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, User, MapPin, Phone, Mail, Calendar, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Package,
+  User,
+  MapPin,
+  Phone,
+  Mail,
+  Calendar,
+  Loader2,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 // Helper para mapear operadoras
 const mapOperadora = (operadora: string | undefined): string => {
   if (!operadora) return "N/A";
   const map: Record<string, string> = {
-    "C": "CLARO",
-    "T": "TIM",
-    "V": "VIVO",
+    C: "CLARO",
+    T: "TIM",
+    V: "VIVO",
   };
   return map[operadora.toUpperCase()] || operadora;
 };
@@ -23,9 +42,9 @@ const mapOperadora = (operadora: string | undefined): string => {
 const getOperadoraColor = (operadora: string | undefined): string => {
   if (!operadora) return "text-gray-600";
   const colors: Record<string, string> = {
-    "C": "text-red-600",
-    "T": "text-blue-600",
-    "V": "text-purple-600",
+    C: "text-red-600",
+    T: "text-blue-600",
+    V: "text-purple-600",
   };
   return colors[operadora.toUpperCase()] || "text-gray-600";
 };
@@ -68,19 +87,25 @@ export default function AdminKanban() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  
+
   const { data: stages = [] } = useQuery<Stage[]>({
     queryKey: ["/api/ecommerce/stages"],
   });
-  
+
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ["/api/ecommerce/orders"],
     refetchInterval: 5000, // Atualizar a cada 5 segundos
     refetchOnWindowFocus: true, // Atualizar ao focar na janela
   });
-  
+
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, status }: { orderId: number; status: string }) => {
+    mutationFn: async ({
+      orderId,
+      status,
+    }: {
+      orderId: number;
+      status: string;
+    }) => {
       const response = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -97,14 +122,14 @@ export default function AdminKanban() {
       });
     },
   });
-  
+
   const formatPreco = (centavos: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(centavos / 100);
   };
-  
+
   const formatData = (isoDate: string) => {
     return new Date(isoDate).toLocaleDateString("pt-BR", {
       day: "2-digit",
@@ -112,11 +137,11 @@ export default function AdminKanban() {
       year: "numeric",
     });
   };
-  
+
   const getOrdersByStage = (stageName: string) => {
     return orders.filter((order) => order.status === stageName);
   };
-  
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -128,11 +153,11 @@ export default function AdminKanban() {
           {orders.length} pedidos
         </Badge>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stages.map((stage) => {
           const stageOrders = getOrdersByStage(stage.nome);
-          
+
           return (
             <div key={stage.id} className="flex flex-col">
               <div
@@ -144,7 +169,7 @@ export default function AdminKanban() {
                   {stageOrders.length}
                 </Badge>
               </div>
-              
+
               <div className="bg-slate-50 p-2 space-y-2 rounded-b-lg min-h-[400px]">
                 {stageOrders.map((order) => (
                   <Card
@@ -154,13 +179,17 @@ export default function AdminKanban() {
                   >
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-sm">#{order.id}</span>
+                        <span className="font-semibold text-sm">
+                          #{order.id}
+                        </span>
                         <Badge variant="outline" className="text-xs">
                           {order.tipoPessoa}
                         </Badge>
                       </div>
                       <p className="text-sm font-medium mb-1">{order.nome}</p>
-                      <p className="text-xs text-slate-600 mb-2">{order.email}</p>
+                      <p className="text-xs text-slate-600 mb-2">
+                        {order.email}
+                      </p>
                       <div className="flex items-center text-xs text-slate-500">
                         <Calendar className="h-3 w-3 mr-1" />
                         {formatData(order.createdAt)}
@@ -173,14 +202,17 @@ export default function AdminKanban() {
           );
         })}
       </div>
-      
+
       {/* Dialog de detalhes do pedido */}
-      <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
+      <Dialog
+        open={!!selectedOrder}
+        onOpenChange={() => setSelectedOrder(null)}
+      >
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Detalhes do Pedido #{selectedOrder?.id}</DialogTitle>
           </DialogHeader>
-          
+
           {selectedOrder && (
             <div className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
@@ -214,7 +246,7 @@ export default function AdminKanban() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-base flex items-center">
@@ -226,14 +258,18 @@ export default function AdminKanban() {
                     <p className="font-semibold">
                       {selectedOrder.logradouro}, {selectedOrder.numero}
                     </p>
-                    {selectedOrder.complemento && <p>{selectedOrder.complemento}</p>}
+                    {selectedOrder.complemento && (
+                      <p>{selectedOrder.complemento}</p>
+                    )}
                     <p>{selectedOrder.bairro}</p>
-                    <p>{selectedOrder.cidade} - {selectedOrder.estado}</p>
+                    <p>
+                      {selectedOrder.cidade} - {selectedOrder.estado}
+                    </p>
                     <p>CEP: {selectedOrder.cep}</p>
                   </CardContent>
                 </Card>
               </div>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center">
@@ -245,15 +281,26 @@ export default function AdminKanban() {
                   {selectedOrder.items && selectedOrder.items.length > 0 ? (
                     <div className="space-y-3">
                       {selectedOrder.items.map((item) => (
-                        <div key={item.id} className="flex justify-between items-start border-b pb-2">
+                        <div
+                          key={item.id}
+                          className="flex justify-between items-start border-b pb-2"
+                        >
                           <div className="flex-1">
-                            <p className="font-semibold text-sm">{item.productNome}</p>
-                            <p className={`text-xs font-medium ${getOperadoraColor(item.productOperadora)}`}>
-                              {item.productVelocidade} • {mapOperadora(item.productOperadora)}
+                            <p className="font-semibold text-sm">
+                              {item.productNome}
+                            </p>
+                            <p
+                              className={`text-xs font-medium ${getOperadoraColor(
+                                item.productOperadora
+                              )}`}
+                            >
+                              {item.productVelocidade} •{" "}
+                              {mapOperadora(item.productOperadora)}
                             </p>
                             <p className="text-xs text-slate-600">
                               Quantidade: {item.quantidade}
-                              {item.linhasAdicionais > 0 && ` (+${item.linhasAdicionais} linhas)`}
+                              {item.linhasAdicionais > 0 &&
+                                ` (+${item.linhasAdicionais} linhas)`}
                             </p>
                           </div>
                           <div className="font-bold text-sm">
@@ -263,11 +310,13 @@ export default function AdminKanban() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-600">Nenhum produto encontrado</p>
+                    <p className="text-sm text-slate-600">
+                      Nenhum produto encontrado
+                    </p>
                   )}
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Alterar Status</CardTitle>
@@ -294,7 +343,7 @@ export default function AdminKanban() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
+
                   {updateStatusMutation.isPending && (
                     <div className="flex items-center mt-2 text-sm text-slate-600">
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />

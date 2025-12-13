@@ -11,6 +11,7 @@
 ## ✅ CONCLUÍDO - SESSÃO 1
 
 ### 🗄️ **Database & Schema**
+
 - ✅ Todas as tabelas já existiam e estavam migradas
 - ✅ `ecommerceProducts` - Produtos/planos
 - ✅ `ecommerceOrders` - Pedidos
@@ -30,6 +31,7 @@
 **Registrado em:** `server/routes.ts` (linha ~149)
 
 #### Produtos
+
 - ✅ `GET /api/ecommerce/products` - Listar produtos (público, com filtros)
 - ✅ `GET /api/ecommerce/products/:id` - Detalhes produto (público)
 - ✅ `POST /api/ecommerce/products` - Criar produto (admin)
@@ -37,12 +39,14 @@
 - ✅ `DELETE /api/ecommerce/products/:id` - Deletar produto (admin)
 
 **Filtros disponíveis:**
+
 - `categoria` (fibra, movel, tv, combo, office)
 - `operadora` (V, C, T)
 - `tipoPessoa` (PF, PJ, ambos)
 - `ativo` (true/false)
 
 #### Pedidos (Orders)
+
 - ✅ `GET /api/ecommerce/orders` - Listar pedidos (admin)
 - ✅ `GET /api/ecommerce/orders/:id` - Detalhes pedido com items + documentos (admin)
 - ✅ `POST /api/ecommerce/orders` - Criar pedido (público)
@@ -55,16 +59,19 @@
 - ✅ `DELETE /api/ecommerce/orders/:id` - Deletar pedido (admin)
 
 #### Stages (Kanban)
+
 - ✅ `GET /api/ecommerce/stages` - Listar etapas (admin)
 - ✅ `POST /api/ecommerce/stages` - Criar etapa (admin)
 - ✅ `PUT /api/ecommerce/stages/:id` - Atualizar etapa (admin)
 - ✅ `DELETE /api/ecommerce/stages/:id` - Deletar etapa (admin)
 
 #### Utilidades
+
 - ✅ `GET /api/cep/:cep` - Buscar endereço via ViaCEP (público)
 - ✅ `POST /api/ecommerce/orders/:id/documents` - Upload documento (em desenvolvimento)
 
 #### Funções Helper
+
 - ✅ `validarCPF()` - Validação completa
 - ✅ `validarCNPJ()` - Validação completa
 - ✅ `gerarSenhaAleatoria()` - Gera senha de 8 caracteres
@@ -74,9 +81,11 @@
 ### 🎨 **Frontend Público**
 
 #### Componentes Base
+
 **Arquivo:** `client/src/components/ecommerce/`
 
 - ✅ `EcommerceHeader.tsx` - Header com menu e navegação
+
   - Logo TelePlanos
   - Menu: Início, Fibra, Móvel, TV, Combo, Comparador
   - CTA "Contratar Agora"
@@ -90,9 +99,11 @@
   - Aviso sobre comparação de operadoras
 
 #### Páginas Públicas
+
 **Arquivo:** `client/src/pages/ecommerce/`
 
 - ✅ `home.tsx` - Página inicial
+
   - Hero section com gradiente
   - Cards de categorias (Fibra, Móvel, TV, Combos)
   - Seção de vantagens
@@ -110,11 +121,13 @@
   - Responsivo mobile
 
 **Operadoras (Sem logos oficiais):**
+
 - Operadora V - Roxo (`#9333ea`)
 - Operadora C - Vermelho (`#dc2626`)
 - Operadora T - Azul (`#2563eb`)
 
 **Rotas registradas em:** `client/src/App.tsx`
+
 - `/ecommerce` → Home
 - `/ecommerce/planos` → Lista de planos
 
@@ -125,6 +138,7 @@
 **Arquivo:** `client/src/pages/admin/`
 
 - ✅ `ecommerce-produtos.tsx` - CRUD completo de produtos
+
   - Listagem em grid
   - Dialog para criar/editar com formulário completo:
     - Nome, descrição, categoria, operadora
@@ -142,6 +156,7 @@
   - Botão "Ver" para detalhes (preparado)
 
 **Rotas registradas em:** `client/src/App.tsx`
+
 - `/admin/ecommerce-produtos` → Gerenciar produtos
 - `/admin/ecommerce-pedidos` → Ver pedidos
 
@@ -160,11 +175,13 @@
    - Ver pedidos via `/admin/ecommerce-pedidos`
 
 ### ✅ **Validações**
+
 - CPF: algoritmo completo de validação
 - CNPJ: algoritmo completo de validação
 - CEP: integração com ViaCEP
 
 ### ✅ **Criação Automática de Cliente e Usuário**
+
 - Verifica se cliente já existe (CPF/CNPJ ou email)
 - Se não existir:
   - Cria cliente com `origin: "ecommerce"`
@@ -177,6 +194,7 @@
 ## ⏳ **PENDENTE - SESSÃO 2**
 
 ### Checkout Completo
+
 - ❌ Sidebar/Resumo da contratação (desktop + mobile)
 - ❌ Página de identificação PF/PJ
 - ❌ Formulário de dados cadastrais adaptativo
@@ -186,17 +204,20 @@
 - ❌ Página de obrigado/confirmação
 
 ### Kanban E-commerce
+
 - ❌ Visualização Kanban separada no admin
 - ❌ Drag & drop entre etapas
 - ❌ Inicializar etapas padrão
 
 ### Emails Automáticos
+
 - ❌ Template de boas-vindas
 - ❌ Template de pedido recebido
 - ❌ Template de mudança de status
 - ❌ Envio via SMTP configurado
 
 ### Refinamentos
+
 - ❌ Dashboard com métricas
 - ❌ Comparador lado a lado (3 planos)
 - ❌ Filtros avançados (range de preço, velocidade)
@@ -220,16 +241,16 @@ client/src/
     ecommerce/
       EcommerceHeader.tsx      ← Header público
       EcommerceFooter.tsx      ← Footer público
-  
+
   pages/
     ecommerce/
       home.tsx                 ← Home pública
       planos.tsx               ← Lista de planos
-    
+
     admin/
       ecommerce-produtos.tsx   ← Admin CRUD produtos
       ecommerce-pedidos.tsx    ← Admin lista pedidos
-  
+
   App.tsx                      ← Rotas registradas
 
 migrations/
@@ -241,20 +262,24 @@ migrations/
 ## 🔧 **Configurações Importantes**
 
 ### Operadoras (Identidade Visual)
+
 - **Não usar logos oficiais**
 - Usar labels: "Operadora V", "Operadora C", "Operadora T"
 - Cores aproximadas sem menção de marcas
 
 ### LGPD
+
 - Footer com link de Política de Privacidade
 - Aviso: "Esta plataforma realiza comparação de planos"
 - Campo `origin` para rastreio de fonte de dados
 
 ### Preços
+
 - Salvos em **centavos** no banco
 - Convertidos para BRL na exibição
 
 ### Senha Temporária
+
 - Gerada com 8 caracteres (letras + números + especiais)
 - Hash bcrypt antes de salvar
 - TODO: Enviar por email
@@ -264,6 +289,7 @@ migrations/
 ## 🚀 **Como Testar (MVP)**
 
 ### 1. Backend (APIs)
+
 ```bash
 # Produtos
 GET http://localhost:5000/api/ecommerce/products
@@ -286,12 +312,14 @@ GET http://localhost:5000/api/cep/01310100
 ```
 
 ### 2. Frontend Público
+
 ```
 http://localhost:5000/ecommerce
 http://localhost:5000/ecommerce/planos
 ```
 
 ### 3. Frontend Admin (precisa login)
+
 ```
 http://localhost:5000/admin/ecommerce-produtos
 http://localhost:5000/admin/ecommerce-pedidos
@@ -302,17 +330,20 @@ http://localhost:5000/admin/ecommerce-pedidos
 ## 📝 **Observações Técnicas**
 
 1. **Reutilização de Código:**
+
    - Tabelas clients, users já existentes
    - Sistema de autenticação reaproveitado
    - Componentes UI (shadcn/ui) compartilhados
 
 2. **Isolamento:**
+
    - Rotas `/api/ecommerce/*` separadas
    - Páginas em `/ecommerce/*` públicas
    - Admin em `/admin/ecommerce-*`
    - Não afeta Kanban/Clientes atuais
 
 3. **Performance:**
+
    - Queries otimizadas com índices
    - Filtros aplicados no backend
    - Paginação preparada (limit/offset)

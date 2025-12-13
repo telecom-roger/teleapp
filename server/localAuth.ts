@@ -6,9 +6,12 @@ import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import * as storage from "./storage";
 
-async function createSessionStoreWithRetry(maxRetries = 3, retryDelayMs = 1000): Promise<any> {
+async function createSessionStoreWithRetry(
+  maxRetries = 3,
+  retryDelayMs = 1000
+): Promise<any> {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       const pgStore = connectPg(session);
@@ -18,35 +21,42 @@ async function createSessionStoreWithRetry(maxRetries = 3, retryDelayMs = 1000):
         ttl: sessionTtl,
         tableName: "sessions",
       });
-      
+
       // Add error handler for session store connection issues
-      sessionStore.on?.('error', (err) => {
+      sessionStore.on?.("error", (err) => {
         console.error("⚠️ Session store error:", err);
         // Don't crash - session store errors should not bring down the server
       });
-      
-      console.log(`✅ PostgreSQL session store connected (attempt ${attempt}/${maxRetries})`);
+
+      console.log(
+        `✅ PostgreSQL session store connected (attempt ${attempt}/${maxRetries})`
+      );
       return sessionStore;
     } catch (err) {
-      console.error(`❌ Failed to create session store (attempt ${attempt}/${maxRetries}):`, err);
-      
+      console.error(
+        `❌ Failed to create session store (attempt ${attempt}/${maxRetries}):`,
+        err
+      );
+
       if (attempt < maxRetries) {
         const delay = retryDelayMs * attempt; // Exponential backoff
         console.log(`⏳ Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
-        console.warn("⚠️ Max retries reached. Falling back to in-memory session store (sessions will not persist across restarts)");
+        console.warn(
+          "⚠️ Max retries reached. Falling back to in-memory session store (sessions will not persist across restarts)"
+        );
         throw err; // Final attempt failed, throw to trigger fallback
       }
     }
   }
-  
+
   return null; // Should never reach here
 }
 
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  
+
   // Return session middleware immediately
   // Store will be created asynchronously during setupAuth
   return session({
@@ -65,18 +75,21 @@ export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+export async function verifyPassword(
+  password: string,
+  hash: string
+): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 
 export async function setupAuth(app: Express) {
   try {
     app.set("trust proxy", 1);
-    
+
     // Try to create PostgreSQL session store with retry/backoff
     const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
     let sessionMiddleware;
-    
+
     try {
       const sessionStore = await createSessionStoreWithRetry(3, 1000);
       sessionMiddleware = session({
@@ -104,7 +117,7 @@ export async function setupAuth(app: Express) {
         },
       });
     }
-    
+
     app.use(sessionMiddleware);
     app.use(passport.initialize());
     app.use(passport.session());
@@ -127,7 +140,10 @@ export async function setupAuth(app: Express) {
             return done(null, false, { message: "Usuário não encontrado" });
           }
 
-          const passwordMatch = await verifyPassword(password, user.passwordHash);
+          const passwordMatch = await verifyPassword(
+            password,
+            user.passwordHash
+          );
           if (!passwordMatch) {
             return done(null, false, { message: "Senha incorreta" });
           }
@@ -141,7 +157,7 @@ export async function setupAuth(app: Express) {
   );
 
   passport.serializeUser((user: any, cb) => cb(null, user?.id));
-  
+
   passport.deserializeUser(async (id: string, cb) => {
     try {
       if (!id) {
@@ -183,7 +199,9 @@ export async function setupAuth(app: Express) {
       const { email, password, firstName, lastName } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ error: "Email e senha são obrigatórios" });
+        return res
+          .status(400)
+          .json({ error: "Email e senha são obrigatórios" });
       }
 
       const existingUser = await storage.getUserByEmail(email);

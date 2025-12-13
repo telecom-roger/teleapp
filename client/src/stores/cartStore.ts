@@ -15,7 +15,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[];
   isOpen: boolean;
-  
+
   // Actions
   addItem: (product: any, quantidade?: number) => void;
   removeItem: (productId: string) => void;
@@ -23,12 +23,12 @@ interface CartStore {
   updateLinhas: (productId: string, linhas: number) => void;
   duplicateItem: (productId: string) => void;
   clearCart: () => void;
-  
+
   // UI
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
-  
+
   // Computed
   getTotal: () => number;
   getSubtotal: () => number;
@@ -43,7 +43,9 @@ export const useCartStore = create<CartStore>()(
 
       addItem: (product, quantidade = 1) => {
         const { items } = get();
-        const existingItem = items.find((item) => item.product.id === product.id);
+        const existingItem = items.find(
+          (item) => item.product.id === product.id
+        );
 
         if (existingItem) {
           set({
@@ -57,17 +59,18 @@ export const useCartStore = create<CartStore>()(
         } else {
           set({
             items: [
-              ...items, 
-              { 
-                product, 
-                quantidade, 
+              ...items,
+              {
+                product,
+                quantidade,
                 linhasAdicionais: 0,
                 categoria: product.categoria,
                 // Incluir campos de upsell do produto
                 svasUpsell: product.svasUpsell || [],
                 textosUpsell: product.textosUpsell || [], // Array agora
-                permiteCalculadoraLinhas: product.permiteCalculadoraLinhas || false,
-              }
+                permiteCalculadoraLinhas:
+                  product.permiteCalculadoraLinhas || false,
+              },
             ],
             isOpen: true,
           });
@@ -95,7 +98,9 @@ export const useCartStore = create<CartStore>()(
       updateLinhas: (productId, linhas) => {
         set({
           items: get().items.map((item) =>
-            item.product.id === productId ? { ...item, linhasAdicionais: linhas } : item
+            item.product.id === productId
+              ? { ...item, linhasAdicionais: linhas }
+              : item
           ),
         });
       },
@@ -119,7 +124,8 @@ export const useCartStore = create<CartStore>()(
         return get().items.reduce((total, item) => {
           const basePrice = item.product.preco * item.quantidade;
           const linhasPrice =
-            (item.linhasAdicionais || 0) * (item.product.valorPorLinhaAdicional || 0);
+            (item.linhasAdicionais || 0) *
+            (item.product.valorPorLinhaAdicional || 0);
           return total + basePrice + linhasPrice;
         }, 0);
       },

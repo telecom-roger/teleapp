@@ -1,12 +1,21 @@
 import { useMultiLinhaStore } from "@/stores/multiLinhaStore";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { X, ShoppingCart, Plus } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const OPERADORA_COLORS: Record<string, { bg: string; text: string; name: string }> = {
+const OPERADORA_COLORS: Record<
+  string,
+  { bg: string; text: string; name: string }
+> = {
   V: { bg: "bg-purple-500", text: "text-purple-700", name: "VIVO" },
   C: { bg: "bg-red-500", text: "text-red-700", name: "CLARO" },
   T: { bg: "bg-blue-500", text: "text-blue-700", name: "TIM" },
@@ -44,8 +53,14 @@ export default function ResumoMultiLinhaMobile() {
                   <ShoppingCart className="w-5 h-5" />
                   <div className="text-left">
                     <div className="text-xs font-normal opacity-90">
-                      {resumo.numeroLinhas} {resumo.numeroLinhas === 1 ? "linha" : "linhas"}
-                      {resumo.totalGB > 0 && ` • ${resumo.totalGB >= 999999 ? "Ilimitado" : `${resumo.totalGB}GB`}`}
+                      {resumo.numeroLinhas}{" "}
+                      {resumo.numeroLinhas === 1 ? "linha" : "linhas"}
+                      {resumo.totalGB > 0 &&
+                        ` • ${
+                          resumo.totalGB >= 999999
+                            ? "Ilimitado"
+                            : `${resumo.totalGB}GB`
+                        }`}
                     </div>
                     <div className="text-lg font-bold">
                       {formatPreco(resumo.totalPreco)}
@@ -77,10 +92,11 @@ export default function ResumoMultiLinhaMobile() {
                 Limpar tudo
               </Button>
             </div>
-            
+
             {resumo.numeroLinhas > 0 && (
               <Badge variant="secondary" className="w-fit">
-                {resumo.numeroLinhas} {resumo.numeroLinhas === 1 ? "linha" : "linhas"}
+                {resumo.numeroLinhas}{" "}
+                {resumo.numeroLinhas === 1 ? "linha" : "linhas"}
               </Badge>
             )}
           </SheetHeader>
@@ -89,9 +105,7 @@ export default function ResumoMultiLinhaMobile() {
             <div className="text-center py-12 text-slate-500">
               <ShoppingCart className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-sm">Nenhum plano selecionado</p>
-              <p className="text-xs mt-1">
-                Adicione planos para ver o resumo
-              </p>
+              <p className="text-xs mt-1">Adicione planos para ver o resumo</p>
             </div>
           ) : (
             <>
@@ -99,7 +113,9 @@ export default function ResumoMultiLinhaMobile() {
                 <div className="space-y-4 pr-4">
                   {resumo.linhas.map((linha, index) => {
                     const linhaCompleta = linhas[index];
-                    const operadoraConfig = OPERADORA_COLORS[linha.operadora] || {
+                    const operadoraConfig = OPERADORA_COLORS[
+                      linha.operadora
+                    ] || {
                       bg: "bg-slate-500",
                       text: "text-slate-700",
                       name: linha.operadora,
@@ -117,11 +133,15 @@ export default function ResumoMultiLinhaMobile() {
                               <Badge variant="outline">
                                 Linha {linha.numero}
                               </Badge>
-                              <Badge className={`${operadoraConfig.bg} text-white`}>
+                              <Badge
+                                className={`${operadoraConfig.bg} text-white`}
+                              >
                                 {operadoraConfig.name}
                               </Badge>
                             </div>
-                            <h4 className="font-semibold text-base">{linha.plano}</h4>
+                            <h4 className="font-semibold text-base">
+                              {linha.plano}
+                            </h4>
                           </div>
                           <Button
                             variant="ghost"
@@ -178,7 +198,10 @@ export default function ResumoMultiLinhaMobile() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() =>
-                                      removeAdicional(linhaCompleta.id, adicional.nome)
+                                      removeAdicional(
+                                        linhaCompleta.id,
+                                        adicional.nome
+                                      )
                                     }
                                     className="h-6 w-6 p-0 text-slate-400 hover:text-red-600"
                                   >
@@ -200,7 +223,10 @@ export default function ResumoMultiLinhaMobile() {
                             </span>
                             {linha.subtotalGB > 0 && (
                               <span className="text-slate-600 ml-2 text-sm">
-                                • {linha.subtotalGB >= 999999 ? "Ilimitado" : `${linha.subtotalGB}GB`}
+                                •{" "}
+                                {linha.subtotalGB >= 999999
+                                  ? "Ilimitado"
+                                  : `${linha.subtotalGB}GB`}
                               </span>
                             )}
                           </div>
@@ -217,17 +243,21 @@ export default function ResumoMultiLinhaMobile() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-slate-600">Total de GB</span>
                     <span className="text-xl font-bold text-primary">
-                      {resumo.totalGB >= 999999 ? "Ilimitado" : `${resumo.totalGB}GB`}
+                      {resumo.totalGB >= 999999
+                        ? "Ilimitado"
+                        : `${resumo.totalGB}GB`}
                     </span>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
-                    <span className="text-base text-slate-600">Valor Total</span>
+                    <span className="text-base text-slate-600">
+                      Valor Total
+                    </span>
                     <span className="text-3xl font-bold text-primary">
                       {formatPreco(resumo.totalPreco)}
                     </span>
                   </div>
-                  
+
                   <p className="text-xs text-slate-500 text-center">
                     Valor mensal para {resumo.numeroLinhas}{" "}
                     {resumo.numeroLinhas === 1 ? "linha" : "linhas"}

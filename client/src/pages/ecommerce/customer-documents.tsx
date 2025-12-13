@@ -1,9 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CustomerHeader, CustomerSidebar, CustomerMobileNav } from "@/components/ecommerce/CustomerLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CustomerHeader,
+  CustomerSidebar,
+  CustomerMobileNav,
+} from "@/components/ecommerce/CustomerLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, File, CheckCircle2, AlertCircle, Loader2, Download, X } from "lucide-react";
+import {
+  Upload,
+  File,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Download,
+  X,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +52,11 @@ export default function CustomerDocuments() {
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
 
-  const { data: customerData, isLoading: loadingAuth, isError } = useQuery({
+  const {
+    data: customerData,
+    isLoading: loadingAuth,
+    isError,
+  } = useQuery({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
@@ -51,13 +73,21 @@ export default function CustomerDocuments() {
     enabled: !!customerData?.client,
   });
 
-  const { data: documents, isLoading: loadingDocuments } = useQuery<Document[]>({
-    queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`],
-    enabled: !!selectedOrder,
-  });
+  const { data: documents, isLoading: loadingDocuments } = useQuery<Document[]>(
+    {
+      queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`],
+      enabled: !!selectedOrder,
+    }
+  );
 
   const uploadMutation = useMutation({
-    mutationFn: async ({ orderId, files }: { orderId: string; files: File[] }) => {
+    mutationFn: async ({
+      orderId,
+      files,
+    }: {
+      orderId: string;
+      files: File[];
+    }) => {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append("documents", file);
@@ -81,7 +111,9 @@ export default function CustomerDocuments() {
         description: "Seus documentos foram enviados com sucesso.",
       });
       setUploadingFiles([]);
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`] });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -120,17 +152,18 @@ export default function CustomerDocuments() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   };
 
-  const ordersNeedingDocs = orders?.filter(o => 
-    o.etapa === "aguardando_documentos" || o.etapa === "novo_pedido"
-  ) || [];
+  const ordersNeedingDocs =
+    orders?.filter(
+      (o) => o.etapa === "aguardando_documentos" || o.etapa === "novo_pedido"
+    ) || [];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <CustomerHeader />
-      
+
       <div className="flex">
         <CustomerSidebar />
-        
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
@@ -164,14 +197,26 @@ export default function CustomerDocuments() {
                         }`}
                       >
                         <div>
-                          <p className="font-medium">Pedido #{order.id.slice(0, 8)}</p>
+                          <p className="font-medium">
+                            Pedido #{order.id.slice(0, 8)}
+                          </p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(order.createdAt).toLocaleDateString("pt-BR")} • 
-                            R$ {(order.total / 100).toFixed(2)}
+                            {new Date(order.createdAt).toLocaleDateString(
+                              "pt-BR"
+                            )}{" "}
+                            • R$ {(order.total / 100).toFixed(2)}
                           </p>
                         </div>
-                        <Badge variant={order.etapa === "aguardando_documentos" ? "warning" : "secondary"}>
-                          {order.etapa === "aguardando_documentos" ? "Aguardando Docs" : "Novo Pedido"}
+                        <Badge
+                          variant={
+                            order.etapa === "aguardando_documentos"
+                              ? "warning"
+                              : "secondary"
+                          }
+                        >
+                          {order.etapa === "aguardando_documentos"
+                            ? "Aguardando Docs"
+                            : "Novo Pedido"}
                         </Badge>
                       </button>
                     ))}
@@ -308,8 +353,10 @@ export default function CustomerDocuments() {
                                 {doc.originalName}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {formatFileSize(doc.size)} • 
-                                Enviado em {new Date(doc.uploadedAt).toLocaleDateString("pt-BR")}
+                                {formatFileSize(doc.size)} • Enviado em{" "}
+                                {new Date(doc.uploadedAt).toLocaleDateString(
+                                  "pt-BR"
+                                )}
                               </p>
                             </div>
                           </div>

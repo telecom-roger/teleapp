@@ -33,31 +33,34 @@ export function EcommerceOrderNotifications() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
-  const { data = { orders: [], count: 0 } as NewOrdersResponse, isLoading } = useQuery<NewOrdersResponse>({
-    queryKey: ["/api/admin/ecommerce/notifications/new-orders"],
-    refetchInterval: 5000, // Atualiza a cada 5 segundos
-  });
+  const { data = { orders: [], count: 0 } as NewOrdersResponse, isLoading } =
+    useQuery<NewOrdersResponse>({
+      queryKey: ["/api/admin/ecommerce/notifications/new-orders"],
+      refetchInterval: 5000, // Atualiza a cada 5 segundos
+    });
 
   const markAsReadMutation = useMutation<any, Error, string | undefined>({
     mutationFn: async (orderId?: string) => {
-      const endpoint = orderId 
+      const endpoint = orderId
         ? `/api/admin/ecommerce/orders/${orderId}/mark-viewed`
         : `/api/admin/ecommerce/orders/mark-all-viewed`;
-      const res = await fetch(endpoint, { method: 'POST' });
-      if (!res.ok) throw new Error('Erro ao marcar como lido');
+      const res = await fetch(endpoint, { method: "POST" });
+      if (!res.ok) throw new Error("Erro ao marcar como lido");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/notifications/new-orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/notifications/new-orders"],
+      });
     },
   });
 
   const orderCount = data.count || 0;
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value / 100);
   };
 
@@ -109,7 +112,8 @@ export function EcommerceOrderNotifications() {
                 <h3 className="font-semibold text-sm">Pedidos E-commerce</h3>
                 {orderCount > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {orderCount} novo{orderCount > 1 ? 's' : ''} pedido{orderCount > 1 ? 's' : ''}
+                    {orderCount} novo{orderCount > 1 ? "s" : ""} pedido
+                    {orderCount > 1 ? "s" : ""}
                   </p>
                 )}
               </div>
@@ -152,18 +156,22 @@ export function EcommerceOrderNotifications() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm truncate">
-                            {order.nomeCompleto || order.razaoSocial || order.email}
+                            {order.nomeCompleto ||
+                              order.razaoSocial ||
+                              order.email}
                           </p>
-                          <p className="text-xs text-muted-foreground truncate">{order.email}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {order.email}
+                          </p>
                         </div>
                         <p className="text-xs text-muted-foreground flex-shrink-0">
-                          {formatDistanceToNow(new Date(order.createdAt), { 
-                            addSuffix: false, 
-                            locale: ptBR 
+                          {formatDistanceToNow(new Date(order.createdAt), {
+                            addSuffix: false,
+                            locale: ptBR,
                           })}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-green-600">
                           {formatCurrency(order.total)}
@@ -173,7 +181,7 @@ export function EcommerceOrderNotifications() {
                         </span>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={() => handleViewOrder(order.id)}
                       data-testid={`button-view-order-${order.id}`}

@@ -103,50 +103,72 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/admin/usuarios" component={AdminUsuarios} />
       <Route path="/admin/templates" component={AdminTemplates} />
       <Route path="/admin/automacao" component={AdminAutomacao} />
-      <Route path="/admin/automacao-avancado" component={AdminAutomacaoAdvanced} />
+      <Route
+        path="/admin/automacao-avancado"
+        component={AdminAutomacaoAdvanced}
+      />
       <Route path="/admin/import-partners" component={ImportPartners} />
       <Route path="/admin/ecommerce-produtos" component={AdminProdutos} />
       <Route path="/admin/ecommerce-categorias" component={AdminCategorias} />
       <Route path="/admin/ecommerce-pedidos" component={AdminPedidos} />
       <Route path="/admin/ecommerce-kanban" component={AdminKanban} />
-      <Route path="/admin/ecommerce-listagem" component={AdminListagemPedidos} />
+      <Route
+        path="/admin/ecommerce-listagem"
+        component={AdminListagemPedidos}
+      />
       <Route path="/test/automation" component={TestAutomation} />
       <Route path="/test/chat" component={TestChat} />
-      
+
       {/* E-commerce Routes */}
       <Route path="/ecommerce" component={EcommerceHome} />
       <Route path="/ecommerce/test" component={TestPage} />
       <Route path="/ecommerce/planos" component={EcommercePlanos} />
       <Route path="/ecommerce/login" component={CustomerLogin} />
-      
+
       {/* E-commerce Checkout Routes (public) - ANTES do :slug */}
       <Route path="/ecommerce/checkout" component={CheckoutTipoCliente} />
       <Route path="/ecommerce/checkout/dados" component={CheckoutDados} />
       <Route path="/ecommerce/checkout/endereco" component={CheckoutEndereco} />
-      <Route path="/ecommerce/checkout/documentos" component={CheckoutDocumentos} />
-      <Route path="/ecommerce/checkout/confirmacao" component={CheckoutConfirmacao} />
+      <Route
+        path="/ecommerce/checkout/documentos"
+        component={CheckoutDocumentos}
+      />
+      <Route
+        path="/ecommerce/checkout/confirmacao"
+        component={CheckoutConfirmacao}
+      />
       <Route path="/ecommerce/checkout/obrigado" component={CheckoutObrigado} />
-      
+
       {/* E-commerce Protected Routes (require customer authentication) */}
       <Route path="/ecommerce/painel">
-        {(params) => <EcommerceProtectedRoute component={CustomerDashboard} {...params} />}
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerDashboard} {...params} />
+        )}
       </Route>
       <Route path="/ecommerce/painel/pedidos/:orderId">
-        {(params) => <EcommerceProtectedRoute component={CustomerOrders} {...params} />}
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerOrders} {...params} />
+        )}
       </Route>
       <Route path="/ecommerce/painel/pedidos">
-        {(params) => <EcommerceProtectedRoute component={CustomerOrders} {...params} />}
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerOrders} {...params} />
+        )}
       </Route>
       <Route path="/ecommerce/painel/perfil">
-        {(params) => <EcommerceProtectedRoute component={CustomerProfile} {...params} />}
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerProfile} {...params} />
+        )}
       </Route>
       <Route path="/ecommerce/painel/documentos">
-        {(params) => <EcommerceProtectedRoute component={CustomerDocuments} {...params} />}
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerDocuments} {...params} />
+        )}
       </Route>
-      
+
       {/* Rota genérica :slug DEVE ser a ÚLTIMA */}
       <Route path="/ecommerce/:slug" component={EcommerceCategoria} />
-      
+
       <Route component={NotFound} />
     </Switch>
   );
@@ -155,7 +177,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
-  
+
   // Sidebar width configuration - responsive
   const style = {
     "--sidebar-width": "16rem",
@@ -163,7 +185,7 @@ function AppContent() {
   } as React.CSSProperties;
 
   // Check if current route is an e-commerce page (public facing)
-  const isEcommercePage = location.startsWith('/ecommerce');
+  const isEcommercePage = location.startsWith("/ecommerce");
 
   if (isLoading) {
     return (

@@ -9,7 +9,11 @@ interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: EcommerceProduct, quantidade?: number, linhasAdicionais?: number) => void;
+  addItem: (
+    product: EcommerceProduct,
+    quantidade?: number,
+    linhasAdicionais?: number
+  ) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantidade: number) => void;
   updateLinhas: (productId: string, linhas: number) => void;
@@ -29,32 +33,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     return [];
   });
-  
+
   // Salvar no localStorage quando mudar
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("ecommerce-cart", JSON.stringify(items));
     }
   }, [items]);
-  
-  const addItem = (product: EcommerceProduct, quantidade = 1, linhasAdicionais = 0) => {
+
+  const addItem = (
+    product: EcommerceProduct,
+    quantidade = 1,
+    linhasAdicionais = 0
+  ) => {
     setItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
-            ? { ...item, quantidade: item.quantidade + quantidade, linhasAdicionais }
+            ? {
+                ...item,
+                quantidade: item.quantidade + quantidade,
+                linhasAdicionais,
+              }
             : item
         );
       }
       return [...prev, { product, quantidade, linhasAdicionais }];
     });
   };
-  
+
   const removeItem = (productId: string) => {
     setItems((prev) => prev.filter((item) => item.product.id !== productId));
   };
-  
+
   const updateQuantity = (productId: string, quantidade: number) => {
     if (quantidade <= 0) {
       removeItem(productId);
@@ -66,19 +78,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       )
     );
   };
-  
+
   const updateLinhas = (productId: string, linhas: number) => {
     setItems((prev) =>
       prev.map((item) =>
-        item.product.id === productId ? { ...item, linhasAdicionais: linhas } : item
+        item.product.id === productId
+          ? { ...item, linhasAdicionais: linhas }
+          : item
       )
     );
   };
-  
+
   const clearCart = () => {
     setItems([]);
   };
-  
+
   const total = items.reduce((sum, item) => {
     let itemTotal = item.product.preco * item.quantidade;
     // Adicionar custo de linhas adicionais para PJ
@@ -87,9 +101,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     return sum + itemTotal;
   }, 0);
-  
+
   const itemCount = items.reduce((sum, item) => sum + item.quantidade, 0);
-  
+
   return (
     <CartContext.Provider
       value={{

@@ -35,13 +35,13 @@ export default function CheckoutConfirmacao() {
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
   const [dados, setDados] = useState<any>({});
   const [endereco, setEndereco] = useState<any>({});
-  
+
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
-  
+
   useEffect(() => {
     // Se estiver logado, usar os dados do cliente
     if (customerData?.client) {
@@ -66,27 +66,27 @@ export default function CheckoutConfirmacao() {
       });
       return;
     }
-    
+
     console.log("⚠️ Cliente não logado, carregando do localStorage");
     // Se não estiver logado, carregar do localStorage
     const params = new URLSearchParams(window.location.search);
     const tipo = params.get("tipo") as "PF" | "PJ";
     if (tipo) setTipoPessoa(tipo);
-    
+
     const dadosStr = localStorage.getItem("checkout-dados");
     const enderecoStr = localStorage.getItem("checkout-endereco");
-    
+
     if (dadosStr) setDados(JSON.parse(dadosStr));
     if (enderecoStr) setEndereco(JSON.parse(enderecoStr));
   }, [customerData]);
-  
+
   const formatPreco = (centavos: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
     }).format(centavos / 100);
   };
-  
+
   const criarPedidoMutation = useMutation({
     mutationFn: async () => {
       // Validar se há itens no carrinho
@@ -96,16 +96,27 @@ export default function CheckoutConfirmacao() {
 
       // Garantir que os dados essenciais existam
       if (!dados.email || !dados.telefone) {
-        throw new Error("Dados incompletos. Por favor, preencha todos os campos.");
+        throw new Error(
+          "Dados incompletos. Por favor, preencha todos os campos."
+        );
       }
 
       const orderData = {
         tipoPessoa,
         // Dados pessoais
         nomeCompleto: tipoPessoa === "PF" ? dados.nome : undefined,
-        razaoSocial: tipoPessoa === "PJ" ? (dados.razaoSocial || dados.nome) : undefined,
-        cpf: tipoPessoa === "PF" && dados.documento ? dados.documento.replace(/\D/g, "") : undefined,
-        cnpj: tipoPessoa === "PJ" && dados.cnpj ? dados.cnpj.replace(/\D/g, "") : (tipoPessoa === "PJ" && dados.documento ? dados.documento.replace(/\D/g, "") : undefined),
+        razaoSocial:
+          tipoPessoa === "PJ" ? dados.razaoSocial || dados.nome : undefined,
+        cpf:
+          tipoPessoa === "PF" && dados.documento
+            ? dados.documento.replace(/\D/g, "")
+            : undefined,
+        cnpj:
+          tipoPessoa === "PJ" && dados.cnpj
+            ? dados.cnpj.replace(/\D/g, "")
+            : tipoPessoa === "PJ" && dados.documento
+            ? dados.documento.replace(/\D/g, "")
+            : undefined,
         email: dados.email,
         telefone: dados.telefone.replace(/\D/g, ""),
         // Endereço
@@ -117,7 +128,7 @@ export default function CheckoutConfirmacao() {
         cidade: endereco.cidade || "",
         uf: endereco.estado || endereco.uf || "",
         // Itens do pedido
-        items: items.map(item => ({
+        items: items.map((item) => ({
           productId: item.product.id,
           productNome: item.product.nome,
           productDescricao: item.product.descricao,
@@ -134,13 +145,13 @@ export default function CheckoutConfirmacao() {
         total: total,
         termosAceitos: true,
       };
-      
+
       const response = await fetch("/api/ecommerce/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
-      
+
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.error || "Erro ao criar pedido");
@@ -159,7 +170,7 @@ export default function CheckoutConfirmacao() {
       alert(`Erro ao criar pedido: ${error.message}`);
     },
   });
-  
+
   const voltar = () => {
     // Se for cliente logado, voltar para planos
     if (customerData?.client) {
@@ -168,7 +179,7 @@ export default function CheckoutConfirmacao() {
       setLocation(`/ecommerce/checkout/documentos?tipo=${tipoPessoa}`);
     }
   };
-  
+
   const confirmar = () => {
     // Validar dados antes de enviar
     if (!dados.email || !dados.telefone) {
@@ -176,16 +187,16 @@ export default function CheckoutConfirmacao() {
       setLocation("/ecommerce/checkout");
       return;
     }
-    
+
     if (items.length === 0) {
       alert("Seu carrinho está vazio.");
       setLocation("/ecommerce/planos");
       return;
     }
-    
+
     criarPedidoMutation.mutate();
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
@@ -193,7 +204,7 @@ export default function CheckoutConfirmacao() {
           <h1 className="text-3xl font-bold mb-2">Confirmar Pedido</h1>
           <p className="text-slate-600">Etapa 5 de 5 • Revisão Final</p>
         </div>
-        
+
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <Card>
@@ -203,15 +214,21 @@ export default function CheckoutConfirmacao() {
               <CardContent className="space-y-2">
                 <div>
                   <span className="text-sm text-slate-600">Tipo:</span>
-                  <p className="font-semibold">{tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}</p>
+                  <p className="font-semibold">
+                    {tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+                  </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Nome:</span>
-                  <p className="font-semibold">{dados.nome || dados.razaoSocial}</p>
+                  <p className="font-semibold">
+                    {dados.nome || dados.razaoSocial}
+                  </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">Documento:</span>
-                  <p className="font-semibold">{dados.documento || dados.cnpj}</p>
+                  <p className="font-semibold">
+                    {dados.documento || dados.cnpj}
+                  </p>
                 </div>
                 <div>
                   <span className="text-sm text-slate-600">E-mail:</span>
@@ -223,7 +240,7 @@ export default function CheckoutConfirmacao() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>Endereço de Instalação</CardTitle>
@@ -234,12 +251,14 @@ export default function CheckoutConfirmacao() {
                   {endereco.complemento && ` - ${endereco.complemento}`}
                 </p>
                 <p>{endereco.bairro}</p>
-                <p>{endereco.cidade} - {endereco.estado}</p>
+                <p>
+                  {endereco.cidade} - {endereco.estado}
+                </p>
                 <p>CEP: {endereco.cep}</p>
               </CardContent>
             </Card>
           </div>
-          
+
           <div className="space-y-6">
             <Card>
               <CardHeader>
@@ -247,9 +266,14 @@ export default function CheckoutConfirmacao() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex justify-between items-start">
+                  <div
+                    key={item.product.id}
+                    className="flex justify-between items-start"
+                  >
                     <div className="flex-1">
-                      <p className="font-semibold text-sm">{item.product.nome}</p>
+                      <p className="font-semibold text-sm">
+                        {item.product.nome}
+                      </p>
                       <p className="text-xs text-slate-600">
                         Qtd: {item.quantidade} • Op. {item.product.operadora}
                       </p>
@@ -264,7 +288,7 @@ export default function CheckoutConfirmacao() {
                     </div>
                   </div>
                 ))}
-                
+
                 <div className="border-t pt-3 mt-3">
                   <div className="flex justify-between items-center text-xl font-bold">
                     <span>Total</span>
@@ -273,9 +297,14 @@ export default function CheckoutConfirmacao() {
                 </div>
               </CardContent>
             </Card>
-            
+
             <div className="flex gap-3">
-              <Button variant="outline" onClick={voltar} className="flex-1" disabled={criarPedidoMutation.isPending}>
+              <Button
+                variant="outline"
+                onClick={voltar}
+                className="flex-1"
+                disabled={criarPedidoMutation.isPending}
+              >
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Voltar
               </Button>

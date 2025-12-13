@@ -73,7 +73,10 @@ export function CustomerHeader() {
 
           <div className="hidden md:flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              Olá, <span className="font-medium text-foreground">{data?.client?.nome || data?.user?.email}</span>
+              Olá,{" "}
+              <span className="font-medium text-foreground">
+                {data?.client?.nome || data?.user?.email}
+              </span>
             </span>
             <CustomerOrderNotifications />
             <Button variant="ghost" size="sm" onClick={handleLogout}>
@@ -118,8 +121,16 @@ export function CustomerSidebar() {
 
   const menuItems = [
     { href: "/ecommerce/painel", icon: Home, label: "Dashboard" },
-    { href: "/ecommerce/painel/pedidos", icon: ShoppingBag, label: "Meus Pedidos" },
-    { href: "/ecommerce/painel/documentos", icon: FileText, label: "Documentos" },
+    {
+      href: "/ecommerce/painel/pedidos",
+      icon: ShoppingBag,
+      label: "Meus Pedidos",
+    },
+    {
+      href: "/ecommerce/painel/documentos",
+      icon: FileText,
+      label: "Documentos",
+    },
     { href: "/ecommerce/painel/perfil", icon: User, label: "Meu Perfil" },
     {
       href: "https://wa.me/5519999999999",
@@ -197,9 +208,7 @@ export function CustomerMobileNav() {
               <a
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 px-3 py-2 text-xs font-medium transition-colors",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                  isActive ? "text-primary" : "text-muted-foreground"
                 )}
               >
                 <Icon className="h-5 w-5" />

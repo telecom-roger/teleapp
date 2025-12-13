@@ -7,7 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -23,7 +28,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Edit2, Trash2, Folder, Search, Eye, EyeOff, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Folder,
+  Search,
+  Eye,
+  EyeOff,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { EcommerceCategory } from "@shared/schema";
 
@@ -59,7 +74,9 @@ export default function AdminCategorias() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/manage/categories"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/manage/categories"],
+      });
       toast({ title: "Categoria criada com sucesso!" });
       setDialogOpen(false);
       resetForm();
@@ -77,7 +94,9 @@ export default function AdminCategorias() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/manage/categories"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/manage/categories"],
+      });
       toast({ title: "Categoria atualizada com sucesso!" });
       setDialogOpen(false);
       resetForm();
@@ -96,14 +115,16 @@ export default function AdminCategorias() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/manage/categories"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/manage/categories"],
+      });
       toast({ title: "Categoria deletada com sucesso!" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Erro ao deletar categoria", 
+      toast({
+        title: "Erro ao deletar categoria",
         description: error.message,
-        variant: "destructive" 
+        variant: "destructive",
       });
     },
   });
@@ -151,35 +172,39 @@ export default function AdminCategorias() {
   // Categorias filtradas
   const categoriasFiltradas = useMemo(() => {
     let resultado = categorias;
-    
+
     // Busca
     if (busca) {
-      resultado = resultado.filter(c => 
-        c.nome.toLowerCase().includes(busca.toLowerCase()) ||
-        c.slug.toLowerCase().includes(busca.toLowerCase()) ||
-        c.descricao?.toLowerCase().includes(busca.toLowerCase())
+      resultado = resultado.filter(
+        (c) =>
+          c.nome.toLowerCase().includes(busca.toLowerCase()) ||
+          c.slug.toLowerCase().includes(busca.toLowerCase()) ||
+          c.descricao?.toLowerCase().includes(busca.toLowerCase())
       );
     }
-    
+
     // Filtro por status
     if (filtroStatus === "ativo") {
-      resultado = resultado.filter(c => c.ativo);
+      resultado = resultado.filter((c) => c.ativo);
     } else if (filtroStatus === "inativo") {
-      resultado = resultado.filter(c => !c.ativo);
+      resultado = resultado.filter((c) => !c.ativo);
     }
-    
+
     // Ordenar por ordem
     return [...resultado].sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
   }, [categorias, busca, filtroStatus]);
-  
+
   const atualizarOrdem = (categoriaId: string, direcao: "up" | "down") => {
-    const categoria = categorias.find(c => c.id === categoriaId);
+    const categoria = categorias.find((c) => c.id === categoriaId);
     if (!categoria) return;
-    
-    const novaOrdem = direcao === "up" ? (categoria.ordem || 0) - 1 : (categoria.ordem || 0) + 1;
-    atualizarMutation.mutate({ 
-      id: categoriaId, 
-      data: { ...categoria, ordem: novaOrdem } 
+
+    const novaOrdem =
+      direcao === "up"
+        ? (categoria.ordem || 0) - 1
+        : (categoria.ordem || 0) + 1;
+    atualizarMutation.mutate({
+      id: categoriaId,
+      data: { ...categoria, ordem: novaOrdem },
     });
   };
 
@@ -197,7 +222,7 @@ export default function AdminCategorias() {
           Nova Categoria
         </Button>
       </div>
-      
+
       {/* Estatísticas */}
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
@@ -211,25 +236,29 @@ export default function AdminCategorias() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Categorias Ativas</p>
-                <p className="text-2xl font-bold">{categorias.filter(c => c.ativo).length}</p>
+                <p className="text-2xl font-bold">
+                  {categorias.filter((c) => c.ativo).length}
+                </p>
               </div>
               <Eye className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-slate-600">Categorias Inativas</p>
-                <p className="text-2xl font-bold">{categorias.filter(c => !c.ativo).length}</p>
+                <p className="text-2xl font-bold">
+                  {categorias.filter((c) => !c.ativo).length}
+                </p>
               </div>
               <EyeOff className="h-8 w-8 text-slate-400" />
             </div>
@@ -252,7 +281,7 @@ export default function AdminCategorias() {
                 />
               </div>
             </div>
-            
+
             <div>
               <Select value={filtroStatus} onValueChange={setFiltroStatus}>
                 <SelectTrigger>
@@ -266,15 +295,20 @@ export default function AdminCategorias() {
               </Select>
             </div>
           </div>
-          
+
           <div className="mt-4">
             <p className="text-sm text-slate-600">
-              Mostrando <span className="font-semibold">{categoriasFiltradas.length}</span> de <span className="font-semibold">{categorias.length}</span> categorias
+              Mostrando{" "}
+              <span className="font-semibold">
+                {categoriasFiltradas.length}
+              </span>{" "}
+              de <span className="font-semibold">{categorias.length}</span>{" "}
+              categorias
             </p>
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Tabela */}
       <Card>
         <CardContent className="pt-6">
@@ -293,7 +327,10 @@ export default function AdminCategorias() {
             <TableBody>
               {categoriasFiltradas.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-slate-500 py-8">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center text-slate-500 py-8"
+                  >
                     Nenhuma categoria encontrada
                   </TableCell>
                 </TableRow>
@@ -310,7 +347,9 @@ export default function AdminCategorias() {
                         >
                           <ChevronUp className="h-3 w-3" />
                         </Button>
-                        <span className="text-xs text-center font-medium">{categoria.ordem}</span>
+                        <span className="text-xs text-center font-medium">
+                          {categoria.ordem}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -337,8 +376,8 @@ export default function AdminCategorias() {
                         <code className="bg-slate-100 px-2 py-1 rounded text-xs">
                           {categoria.icone}
                         </code>
-                        <div 
-                          className="w-6 h-6 rounded-full border-2 border-slate-300" 
+                        <div
+                          className="w-6 h-6 rounded-full border-2 border-slate-300"
                           style={{ backgroundColor: categoria.cor || "blue" }}
                         />
                       </div>
@@ -374,7 +413,11 @@ export default function AdminCategorias() {
                           variant="ghost"
                           size="icon"
                           onClick={() => {
-                            if (confirm("Tem certeza que deseja deletar esta categoria?")) {
+                            if (
+                              confirm(
+                                "Tem certeza que deseja deletar esta categoria?"
+                              )
+                            ) {
                               deletarMutation.mutate(categoria.id);
                             }
                           }}
@@ -420,7 +463,9 @@ export default function AdminCategorias() {
               <Label>Descrição</Label>
               <Textarea
                 value={form.descricao}
-                onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, descricao: e.target.value })
+                }
                 rows={3}
               />
             </div>
@@ -448,13 +493,17 @@ export default function AdminCategorias() {
                 <Input
                   type="number"
                   value={form.ordem}
-                  onChange={(e) => setForm({ ...form, ordem: parseInt(e.target.value) })}
+                  onChange={(e) =>
+                    setForm({ ...form, ordem: parseInt(e.target.value) })
+                  }
                 />
               </div>
               <div className="flex items-center space-x-2 pt-6">
                 <Switch
                   checked={form.ativo}
-                  onCheckedChange={(checked) => setForm({ ...form, ativo: checked })}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, ativo: checked })
+                  }
                 />
                 <Label>Ativo</Label>
               </div>
@@ -467,9 +516,7 @@ export default function AdminCategorias() {
               >
                 Cancelar
               </Button>
-              <Button type="submit">
-                {editando ? "Atualizar" : "Criar"}
-              </Button>
+              <Button type="submit">{editando ? "Atualizar" : "Criar"}</Button>
             </div>
           </form>
         </DialogContent>

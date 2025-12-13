@@ -39,7 +39,7 @@ export function CustomerOrderNotifications() {
     eventSource.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         if (data.type === "connected") {
           console.log("SSE conectado para notificações");
           return;
@@ -48,17 +48,25 @@ export function CustomerOrderNotifications() {
         // Nova notificação recebida
         if (data.tipo === "order_stage_change") {
           // Atualizar TODAS as queries relacionadas a pedidos para atualizar o dashboard em tempo real
-          queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/order-updates"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
-          
+          queryClient.invalidateQueries({
+            queryKey: ["/api/ecommerce/customer/order-updates"],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["/api/ecommerce/customer/orders"],
+          });
+
           // Se temos o orderId, também invalida a query específica desse pedido e documentos
           const orderId = data.orderId || data.metadata?.orderId;
           if (orderId) {
-            queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/orders/${orderId}`] });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
+            });
             // Invalida documentos do pedido caso a etapa tenha mudado para aguardando_documentos
-            queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/documents/${orderId}`] });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/ecommerce/customer/documents/${orderId}`],
+            });
           }
-          
+
           // Mostrar toast clicável
           toast({
             title: data.titulo,
@@ -88,30 +96,33 @@ export function CustomerOrderNotifications() {
     };
   }, [queryClient, navigate, toast]);
 
-  const { data = { orders: [], count: 0 } as OrderUpdatesResponse, isLoading } = useQuery<OrderUpdatesResponse>({
-    queryKey: ["/api/ecommerce/customer/order-updates"],
-  });
+  const { data = { orders: [], count: 0 } as OrderUpdatesResponse, isLoading } =
+    useQuery<OrderUpdatesResponse>({
+      queryKey: ["/api/ecommerce/customer/order-updates"],
+    });
 
   const markAsReadMutation = useMutation<any, Error, string | undefined>({
     mutationFn: async (orderId?: string) => {
-      const endpoint = orderId 
+      const endpoint = orderId
         ? `/api/ecommerce/customer/orders/${orderId}/mark-viewed`
         : `/api/ecommerce/customer/orders/mark-all-viewed`;
-      const res = await fetch(endpoint, { method: 'POST' });
-      if (!res.ok) throw new Error('Erro ao marcar como lido');
+      const res = await fetch(endpoint, { method: "POST" });
+      if (!res.ok) throw new Error("Erro ao marcar como lido");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/order-updates"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/ecommerce/customer/order-updates"],
+      });
     },
   });
 
   const updateCount = data.count || 0;
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
     }).format(value / 100);
   };
 
@@ -181,10 +192,12 @@ export function CustomerOrderNotifications() {
           <div className="px-4 py-3 border-b bg-slate-50 dark:bg-slate-900/50">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-sm">Atualizações de Pedidos</h3>
+                <h3 className="font-semibold text-sm">
+                  Atualizações de Pedidos
+                </h3>
                 {updateCount > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {updateCount} atualiza{updateCount > 1 ? 'ções' : 'ção'}
+                    {updateCount} atualiza{updateCount > 1 ? "ções" : "ção"}
                   </p>
                 )}
               </div>
@@ -230,27 +243,32 @@ export function CustomerOrderNotifications() {
                             Pedido #{order.id.slice(0, 8)}...
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {order.itemsCount} {order.itemsCount === 1 ? 'item' : 'itens'}
+                            {order.itemsCount}{" "}
+                            {order.itemsCount === 1 ? "item" : "itens"}
                           </p>
                         </div>
                         <p className="text-xs text-muted-foreground flex-shrink-0">
-                          {formatDistanceToNow(new Date(order.updatedAt), { 
-                            addSuffix: false, 
-                            locale: ptBR 
+                          {formatDistanceToNow(new Date(order.updatedAt), {
+                            addSuffix: false,
+                            locale: ptBR,
                           })}
                         </p>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold">
                           {formatCurrency(order.total)}
                         </span>
-                        <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(order.etapa)}`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                            order.etapa
+                          )}`}
+                        >
                           {getStatusLabel(order.etapa)}
                         </span>
                       </div>
                     </div>
-                    
+
                     <button
                       onClick={() => handleViewOrder(order.id)}
                       data-testid={`button-view-order-${order.id}`}

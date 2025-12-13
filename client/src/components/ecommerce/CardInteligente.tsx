@@ -35,7 +35,8 @@ export default function CardInteligente({
   posicao = 0,
 }: CardInteligenteProps) {
   const colors = OPERADORA_COLORS[produto.operadora];
-  const formatPrice = (cents: number) => `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
+  const formatPrice = (cents: number) =>
+    `R$ ${(cents / 100).toFixed(2).replace(".", ",")}`;
   const addLinha = useMultiLinhaStore((state) => state.addLinha);
 
   const handleAddLinha = () => {
@@ -60,7 +61,6 @@ export default function CardInteligente({
         getCardStyle()
       )}
     >
-
       {/* Badge de recomendação flutuante */}
       {produto.badgeRecomendacao && (
         <div className="absolute top-4 right-4 z-10">
@@ -91,7 +91,9 @@ export default function CardInteligente({
           <h3 className="text-xl font-bold text-[#111111] mb-2 line-clamp-2 group-hover:text-[#0D1B2A] transition-colors">
             {produto.nome}
           </h3>
-          <p className="text-sm text-[#555555] line-clamp-2">{produto.descricao}</p>
+          <p className="text-sm text-[#555555] line-clamp-2">
+            {produto.descricao}
+          </p>
         </div>
 
         {/* Razão da recomendação (texto inteligente) */}
@@ -109,13 +111,17 @@ export default function CardInteligente({
           {produto.velocidade && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 rounded-lg">
               <Zap className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-slate-900">{produto.velocidade}</span>
+              <span className="text-sm font-semibold text-slate-900">
+                {produto.velocidade}
+              </span>
             </div>
           )}
           {produto.franquia && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 rounded-lg">
               <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-slate-900">{produto.franquia}</span>
+              <span className="text-sm font-semibold text-slate-900">
+                {produto.franquia}
+              </span>
             </div>
           )}
         </div>
@@ -136,12 +142,17 @@ export default function CardInteligente({
         {/* Benefícios (top 3) */}
         {produto.beneficios && produto.beneficios.length > 0 && (
           <ul className="space-y-2">
-            {produto.beneficios.slice(0, 3).map((beneficio: string, i: number) => (
-              <li key={i} className="flex items-start gap-2 text-sm text-[#222222]">
-                <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                <span>{beneficio}</span>
-              </li>
-            ))}
+            {produto.beneficios
+              .slice(0, 3)
+              .map((beneficio: string, i: number) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-2 text-sm text-[#222222]"
+                >
+                  <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                  <span>{beneficio}</span>
+                </li>
+              ))}
           </ul>
         )}
 
@@ -158,22 +169,30 @@ export default function CardInteligente({
         {/* Preço */}
         <div className="pt-4 border-t border-slate-200">
           <div className="flex items-baseline gap-1 mb-2">
-            <span className="text-5xl font-bold text-[#111111]">{formatPrice(produto.preco)}</span>
+            <span className="text-5xl font-bold text-[#111111]">
+              {formatPrice(produto.preco)}
+            </span>
             <span className="text-sm text-[#666666]">/mês</span>
           </div>
           <div className="space-y-1">
             {(produto.precoInstalacao ?? 0) > 0 && (
-              <p className="text-xs text-[#666666]">+ {formatPrice(produto.precoInstalacao!)} instalação</p>
+              <p className="text-xs text-[#666666]">
+                + {formatPrice(produto.precoInstalacao!)} instalação
+              </p>
             )}
             {(produto.linhasInclusas ?? 0) > 1 && (
-              <p className="text-xs text-green-600 font-medium">✓ {produto.linhasInclusas} linhas inclusas</p>
+              <p className="text-xs text-green-600 font-medium">
+                ✓ {produto.linhasInclusas} linhas inclusas
+              </p>
             )}
           </div>
         </div>
 
         {/* Score (apenas para debug, remover em produção) */}
         {produto.scoreCalculado !== undefined && import.meta.env.DEV && (
-          <p className="text-xs text-slate-400">Score: {produto.scoreCalculado.toFixed(1)}</p>
+          <p className="text-xs text-slate-400">
+            Score: {produto.scoreCalculado.toFixed(1)}
+          </p>
         )}
 
         {/* CTA - Duplo botão */}
@@ -187,7 +206,7 @@ export default function CardInteligente({
             <Layers className="w-4 h-4" />
             <span className="text-sm">Nova Linha</span>
           </Button>
-          
+
           <Button
             size="lg"
             className={cn(

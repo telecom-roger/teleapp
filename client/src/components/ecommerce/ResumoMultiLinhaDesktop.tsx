@@ -8,7 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
 import ModalAdicionais from "./ModalAdicionais";
 
-const OPERADORA_COLORS: Record<string, { bg: string; text: string; name: string }> = {
+const OPERADORA_COLORS: Record<
+  string,
+  { bg: string; text: string; name: string }
+> = {
   V: { bg: "bg-purple-500", text: "text-purple-700", name: "VIVO" },
   C: { bg: "bg-red-500", text: "text-red-700", name: "CLARO" },
   T: { bg: "bg-blue-500", text: "text-blue-700", name: "TIM" },
@@ -20,9 +23,12 @@ export default function ResumoMultiLinhaDesktop() {
   const removeAdicional = useMultiLinhaStore((state) => state.removeAdicional);
   const linhas = useMultiLinhaStore((state) => state.linhas);
   const clearAll = useMultiLinhaStore((state) => state.clearAll);
-  
+
   const [modalAberto, setModalAberto] = useState(false);
-  const [linhaSelecionada, setLinhaSelecionada] = useState<{ id: string; numero: number } | null>(null);
+  const [linhaSelecionada, setLinhaSelecionada] = useState<{
+    id: string;
+    numero: number;
+  } | null>(null);
 
   const abrirModalAdicionais = (linhaId: string, numeroLinha: number) => {
     setLinhaSelecionada({ id: linhaId, numero: numeroLinha });
@@ -49,9 +55,7 @@ export default function ResumoMultiLinhaDesktop() {
           <div className="text-center py-8 text-slate-500">
             <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">Nenhum plano selecionado</p>
-            <p className="text-xs mt-1">
-              Adicione planos para ver o resumo
-            </p>
+            <p className="text-xs mt-1">Adicione planos para ver o resumo</p>
           </div>
         </CardContent>
       </Card>
@@ -75,7 +79,7 @@ export default function ResumoMultiLinhaDesktop() {
             Limpar tudo
           </Button>
         </div>
-        
+
         {/* Badge com número de linhas */}
         <Badge variant="secondary" className="w-fit mt-2">
           {resumo.numeroLinhas} {resumo.numeroLinhas === 1 ? "linha" : "linhas"}
@@ -105,7 +109,9 @@ export default function ResumoMultiLinhaDesktop() {
                         <Badge variant="outline" className="text-xs">
                           Linha {linha.numero}
                         </Badge>
-                        <Badge className={`${operadoraConfig.bg} text-white text-xs`}>
+                        <Badge
+                          className={`${operadoraConfig.bg} text-white text-xs`}
+                        >
                           {operadoraConfig.name}
                         </Badge>
                       </div>
@@ -130,7 +136,9 @@ export default function ResumoMultiLinhaDesktop() {
                       </span>
                       {linha.gbPlano > 0 && (
                         <span className="text-slate-500 ml-2">
-                          {linha.gbPlano >= 999999 ? "Ilimitado" : `${linha.gbPlano}GB`}
+                          {linha.gbPlano >= 999999
+                            ? "Ilimitado"
+                            : `${linha.gbPlano}GB`}
                         </span>
                       )}
                     </div>
@@ -165,7 +173,10 @@ export default function ResumoMultiLinhaDesktop() {
                               variant="ghost"
                               size="sm"
                               onClick={() =>
-                                removeAdicional(linhaCompleta.id, adicional.nome)
+                                removeAdicional(
+                                  linhaCompleta.id,
+                                  adicional.nome
+                                )
                               }
                               className="h-5 w-5 p-0 text-slate-400 hover:text-red-600"
                             >
@@ -187,7 +198,10 @@ export default function ResumoMultiLinhaDesktop() {
                       </span>
                       {linha.subtotalGB > 0 && (
                         <span className="text-slate-600 ml-2">
-                          • {linha.subtotalGB >= 999999 ? "Ilimitado" : `${linha.subtotalGB}GB`}
+                          •{" "}
+                          {linha.subtotalGB >= 999999
+                            ? "Ilimitado"
+                            : `${linha.subtotalGB}GB`}
                         </span>
                       )}
                     </div>
@@ -198,7 +212,9 @@ export default function ResumoMultiLinhaDesktop() {
                     variant="outline"
                     size="sm"
                     className="w-full mt-2 text-xs"
-                    onClick={() => abrirModalAdicionais(linhaCompleta.id, linha.numero)}
+                    onClick={() =>
+                      abrirModalAdicionais(linhaCompleta.id, linha.numero)
+                    }
                   >
                     <Plus className="w-3 h-3 mr-1" />
                     Adicionar extras
@@ -211,7 +227,7 @@ export default function ResumoMultiLinhaDesktop() {
 
         {/* Totais Gerais */}
         <Separator className="my-4" />
-        
+
         <div className="space-y-2">
           <div className="flex justify-between items-center">
             <span className="text-sm text-slate-600">Total de GB</span>
@@ -219,14 +235,14 @@ export default function ResumoMultiLinhaDesktop() {
               {resumo.totalGB >= 999999 ? "Ilimitado" : `${resumo.totalGB}GB`}
             </span>
           </div>
-          
+
           <div className="flex justify-between items-center">
             <span className="text-sm text-slate-600">Valor Total</span>
             <span className="text-2xl font-bold text-primary">
               {formatPreco(resumo.totalPreco)}
             </span>
           </div>
-          
+
           <p className="text-xs text-slate-500 mt-2">
             Valor mensal para {resumo.numeroLinhas}{" "}
             {resumo.numeroLinhas === 1 ? "linha" : "linhas"}

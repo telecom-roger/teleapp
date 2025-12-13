@@ -221,7 +221,10 @@ export default function EcommerceHome() {
       </section>
 
       {/* 3️⃣ COMPARADOR / SELETOR RÁPIDO */}
-      <section id="comparador" className="bg-white py-12 border-y border-slate-200">
+      <section
+        id="comparador"
+        className="bg-white py-12 border-y border-slate-200"
+      >
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <Badge className="mb-4 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white border-0 px-4 py-2">

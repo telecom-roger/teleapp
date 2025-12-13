@@ -12,7 +12,11 @@ async function runMigration() {
 
   try {
     const sql = fs.readFileSync(
-      path.join(process.cwd(), "migrations", "0001_add_calculadora_upsell_fields.sql"),
+      path.join(
+        process.cwd(),
+        "migrations",
+        "0001_add_calculadora_upsell_fields.sql"
+      ),
       "utf-8"
     );
 

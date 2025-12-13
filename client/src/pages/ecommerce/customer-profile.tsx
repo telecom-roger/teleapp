@@ -1,6 +1,16 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { CustomerHeader, CustomerSidebar, CustomerMobileNav } from "@/components/ecommerce/CustomerLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CustomerHeader,
+  CustomerSidebar,
+  CustomerMobileNav,
+} from "@/components/ecommerce/CustomerLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +48,12 @@ export default function CustomerProfile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { data: customerData, isLoading, refetch, isError } = useQuery<CustomerData>({
+  const {
+    data: customerData,
+    isLoading,
+    refetch,
+    isError,
+  } = useQuery<CustomerData>({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
@@ -88,7 +103,10 @@ export default function CustomerProfile() {
   });
 
   const changePasswordMutation = useMutation({
-    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+    mutationFn: async (data: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
       const res = await fetch("/api/ecommerce/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -155,10 +173,10 @@ export default function CustomerProfile() {
   return (
     <div className="min-h-screen bg-gray-50">
       <CustomerHeader />
-      
+
       <div className="flex">
         <CustomerSidebar />
-        
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <h1 className="text-3xl font-bold">Meu Perfil</h1>
@@ -200,7 +218,11 @@ export default function CustomerProfile() {
                         </Label>
                         <Input
                           id="document"
-                          value={customerData?.client?.cnpj || customerData?.client?.cpf || ""}
+                          value={
+                            customerData?.client?.cnpj ||
+                            customerData?.client?.cpf ||
+                            ""
+                          }
                           disabled
                         />
                       </div>
@@ -212,8 +234,17 @@ export default function CustomerProfile() {
                           <Input
                             id="email"
                             type="email"
-                            value={editMode ? formData.email : customerData?.client?.email || ""}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            value={
+                              editMode
+                                ? formData.email
+                                : customerData?.client?.email || ""
+                            }
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                email: e.target.value,
+                              })
+                            }
                             disabled={!editMode}
                             className="flex-1"
                           />
@@ -227,8 +258,17 @@ export default function CustomerProfile() {
                           <Input
                             id="telefone"
                             type="tel"
-                            value={editMode ? formData.telefone : customerData?.client?.telefone || ""}
-                            onChange={(e) => setFormData({ ...formData, telefone: e.target.value })}
+                            value={
+                              editMode
+                                ? formData.telefone
+                                : customerData?.client?.telefone || ""
+                            }
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                telefone: e.target.value,
+                              })
+                            }
                             disabled={!editMode}
                             className="flex-1"
                           />
@@ -267,7 +307,8 @@ export default function CustomerProfile() {
                           </div>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Para alterar o endereço, entre em contato com nosso suporte
+                          Para alterar o endereço, entre em contato com nosso
+                          suporte
                         </p>
                       </div>
                     )}
@@ -346,7 +387,9 @@ export default function CustomerProfile() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
+                    <Label htmlFor="confirmPassword">
+                      Confirmar Nova Senha
+                    </Label>
                     <Input
                       id="confirmPassword"
                       type="password"

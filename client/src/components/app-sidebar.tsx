@@ -197,7 +197,7 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Operações</SidebarGroupLabel>
@@ -322,7 +322,8 @@ export function AppSidebar() {
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.profileImageUrl || undefined} />
             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col flex-1 min-w-0">

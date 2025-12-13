@@ -4,16 +4,16 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Package, 
-  FileText, 
-  User, 
-  LogOut, 
+import {
+  Package,
+  FileText,
+  User,
+  LogOut,
   Menu,
   Clock,
   CheckCircle2,
   MessageSquare,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -24,7 +24,11 @@ export default function EcommercePainel() {
   const queryClient = useQueryClient();
 
   // Buscar dados do cliente
-  const { data: customerData, isLoading: loadingCustomer, isError } = useQuery({
+  const {
+    data: customerData,
+    isLoading: loadingCustomer,
+    isError,
+  } = useQuery({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
@@ -58,27 +62,27 @@ export default function EcommercePainel() {
   };
 
   const statusColors: Record<string, string> = {
-    "novo_pedido": "bg-blue-100 text-blue-700",
-    "dados_recebidos": "bg-cyan-100 text-cyan-700",
-    "aguardando_documentos": "bg-yellow-100 text-yellow-700",
-    "em_analise": "bg-orange-100 text-orange-700",
-    "pronto_contrato": "bg-purple-100 text-purple-700",
-    "contrato_enviado": "bg-indigo-100 text-indigo-700",
-    "instalando": "bg-blue-100 text-blue-700",
-    "concluido": "bg-green-100 text-green-700",
-    "cancelado": "bg-red-100 text-red-700",
+    novo_pedido: "bg-blue-100 text-blue-700",
+    dados_recebidos: "bg-cyan-100 text-cyan-700",
+    aguardando_documentos: "bg-yellow-100 text-yellow-700",
+    em_analise: "bg-orange-100 text-orange-700",
+    pronto_contrato: "bg-purple-100 text-purple-700",
+    contrato_enviado: "bg-indigo-100 text-indigo-700",
+    instalando: "bg-blue-100 text-blue-700",
+    concluido: "bg-green-100 text-green-700",
+    cancelado: "bg-red-100 text-red-700",
   };
 
   const statusLabels: Record<string, string> = {
-    "novo_pedido": "Novo Pedido",
-    "dados_recebidos": "Dados Recebidos",
-    "aguardando_documentos": "Aguardando Documentos",
-    "em_analise": "Em Análise",
-    "pronto_contrato": "Pronto para Contrato",
-    "contrato_enviado": "Contrato Enviado",
-    "instalando": "Instalando",
-    "concluido": "Concluído",
-    "cancelado": "Cancelado",
+    novo_pedido: "Novo Pedido",
+    dados_recebidos: "Dados Recebidos",
+    aguardando_documentos: "Aguardando Documentos",
+    em_analise: "Em Análise",
+    pronto_contrato: "Pronto para Contrato",
+    contrato_enviado: "Contrato Enviado",
+    instalando: "Instalando",
+    concluido: "Concluído",
+    cancelado: "Cancelado",
   };
 
   const formatPrice = (cents: number) => {
@@ -97,8 +101,17 @@ export default function EcommercePainel() {
   };
 
   const menuItems = [
-    { icon: Package, label: "Dashboard", path: "/ecommerce/painel", active: true },
-    { icon: FileText, label: "Meus Pedidos", path: "/ecommerce/painel/pedidos" },
+    {
+      icon: Package,
+      label: "Dashboard",
+      path: "/ecommerce/painel",
+      active: true,
+    },
+    {
+      icon: FileText,
+      label: "Meus Pedidos",
+      path: "/ecommerce/painel/pedidos",
+    },
     { icon: User, label: "Meu Perfil", path: "/ecommerce/painel/perfil" },
   ];
 
@@ -118,8 +131,8 @@ export default function EcommercePainel() {
     return null;
   }
 
-  const pendingOrders = orders.filter((o: any) => 
-    !["concluido", "cancelado"].includes(o.etapa)
+  const pendingOrders = orders.filter(
+    (o: any) => !["concluido", "cancelado"].includes(o.etapa)
   );
 
   const lastOrder = orders[0];
@@ -127,10 +140,12 @@ export default function EcommercePainel() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
-      <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-300 lg:translate-x-0",
-        menuOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-300 lg:translate-x-0",
+          menuOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
           <div className="p-6 border-b">
@@ -167,7 +182,9 @@ export default function EcommercePainel() {
             <Button
               variant="outline"
               className="w-full gap-2"
-              onClick={() => window.open("https://wa.me/5519999477404", "_blank")}
+              onClick={() =>
+                window.open("https://wa.me/5519999477404", "_blank")
+              }
             >
               <MessageSquare className="w-4 h-4" />
               Suporte WhatsApp
@@ -219,7 +236,8 @@ export default function EcommercePainel() {
               Olá, {customerData.client.nome.split(" ")[0]}! 👋
             </h1>
             <p className="text-white/90">
-              Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos e gerenciar sua conta.
+              Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos e
+              gerenciar sua conta.
             </p>
           </div>
 
@@ -228,7 +246,9 @@ export default function EcommercePainel() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Pedidos em Andamento</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Pedidos em Andamento
+                  </p>
                   <p className="text-3xl font-bold">{pendingOrders.length}</p>
                 </div>
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -240,7 +260,9 @@ export default function EcommercePainel() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total de Pedidos</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Total de Pedidos
+                  </p>
                   <p className="text-3xl font-bold">{orders.length}</p>
                 </div>
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -252,7 +274,9 @@ export default function EcommercePainel() {
             <Card className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Pedidos Concluídos</p>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Pedidos Concluídos
+                  </p>
                   <p className="text-3xl font-bold">
                     {orders.filter((o: any) => o.etapa === "concluido").length}
                   </p>
@@ -269,7 +293,9 @@ export default function EcommercePainel() {
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Último Pedido</h2>
-                <Badge className={statusColors[lastOrder.etapa] || "bg-gray-100"}>
+                <Badge
+                  className={statusColors[lastOrder.etapa] || "bg-gray-100"}
+                >
                   {statusLabels[lastOrder.etapa] || lastOrder.etapa}
                 </Badge>
               </div>
@@ -285,7 +311,9 @@ export default function EcommercePainel() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Total:</span>
-                  <span className="font-semibold">{formatPrice(lastOrder.total)}/mês</span>
+                  <span className="font-semibold">
+                    {formatPrice(lastOrder.total)}/mês
+                  </span>
                 </div>
 
                 <Button

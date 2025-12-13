@@ -1,6 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import { CustomerHeader, CustomerSidebar, CustomerMobileNav } from "@/components/ecommerce/CustomerLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  CustomerHeader,
+  CustomerSidebar,
+  CustomerMobileNav,
+} from "@/components/ecommerce/CustomerLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
 import {
@@ -51,8 +61,12 @@ interface Order {
 
 export default function CustomerDashboard() {
   const [, setLocation] = useLocation();
-  
-  const { data: customerData, isLoading: loadingCustomer, isError } = useQuery<CustomerData>({
+
+  const {
+    data: customerData,
+    isLoading: loadingCustomer,
+    isError,
+  } = useQuery<CustomerData>({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
@@ -73,19 +87,54 @@ export default function CustomerDashboard() {
   const getStatusInfo = (etapa: string) => {
     switch (etapa) {
       case "novo_pedido":
-        return { icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50", label: "Novo Pedido" };
+        return {
+          icon: Clock,
+          color: "text-yellow-600",
+          bg: "bg-yellow-50",
+          label: "Novo Pedido",
+        };
       case "aguardando_documentos":
-        return { icon: FileText, color: "text-orange-600", bg: "bg-orange-50", label: "Aguardando Docs" };
+        return {
+          icon: FileText,
+          color: "text-orange-600",
+          bg: "bg-orange-50",
+          label: "Aguardando Docs",
+        };
       case "em_analise":
-        return { icon: AlertCircle, color: "text-blue-600", bg: "bg-blue-50", label: "Em Análise" };
+        return {
+          icon: AlertCircle,
+          color: "text-blue-600",
+          bg: "bg-blue-50",
+          label: "Em Análise",
+        };
       case "aprovado":
-        return { icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50", label: "Aprovado" };
+        return {
+          icon: CheckCircle2,
+          color: "text-green-600",
+          bg: "bg-green-50",
+          label: "Aprovado",
+        };
       case "em_instalacao":
-        return { icon: Package, color: "text-purple-600", bg: "bg-purple-50", label: "Em Instalação" };
+        return {
+          icon: Package,
+          color: "text-purple-600",
+          bg: "bg-purple-50",
+          label: "Em Instalação",
+        };
       case "concluido":
-        return { icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50", label: "Concluído" };
+        return {
+          icon: CheckCircle2,
+          color: "text-green-600",
+          bg: "bg-green-50",
+          label: "Concluído",
+        };
       default:
-        return { icon: Package, color: "text-gray-600", bg: "bg-gray-50", label: etapa };
+        return {
+          icon: Package,
+          color: "text-gray-600",
+          bg: "bg-gray-50",
+          label: etapa,
+        };
     }
   };
 
@@ -96,23 +145,26 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <CustomerHeader />
-      
+
       <div className="flex">
         <CustomerSidebar />
-        
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="max-w-6xl mx-auto space-y-6">
             {/* Boas-vindas */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Olá, {loadingCustomer ? (
+                Olá,{" "}
+                {loadingCustomer ? (
                   <Skeleton className="inline-block w-32 h-8" />
                 ) : (
                   customerData?.client?.nome || "Cliente"
-                )}!
+                )}
+                !
               </h1>
               <p className="text-muted-foreground mt-1">
-                Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos e serviços.
+                Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos
+                e serviços.
               </p>
             </div>
 
@@ -129,7 +181,9 @@ export default function CustomerDashboard() {
                   {loadingOrders ? (
                     <Skeleton className="h-8 w-16" />
                   ) : (
-                    <div className="text-2xl font-bold">{orders?.length || 0}</div>
+                    <div className="text-2xl font-bold">
+                      {orders?.length || 0}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -139,7 +193,9 @@ export default function CustomerDashboard() {
                   <CardTitle className="text-sm font-medium">
                     Último Pedido
                   </CardTitle>
-                  {StatusIcon && <StatusIcon className={`h-4 w-4 ${statusInfo?.color}`} />}
+                  {StatusIcon && (
+                    <StatusIcon className={`h-4 w-4 ${statusInfo?.color}`} />
+                  )}
                 </CardHeader>
                 <CardContent>
                   {loadingOrders ? (
@@ -173,7 +229,9 @@ export default function CustomerDashboard() {
                     <Skeleton className="h-8 w-8" />
                   ) : (
                     <div className="text-2xl font-bold">
-                      {orders?.filter(o => o.etapa === "aguardando_documentos").length || 0}
+                      {orders?.filter(
+                        (o) => o.etapa === "aguardando_documentos"
+                      ).length || 0}
                     </div>
                   )}
                 </CardContent>
@@ -191,7 +249,8 @@ export default function CustomerDashboard() {
                     <Skeleton className="h-8 w-8" />
                   ) : (
                     <div className="text-2xl font-bold">
-                      {orders?.filter(o => o.etapa === "concluido").length || 0}
+                      {orders?.filter((o) => o.etapa === "concluido").length ||
+                        0}
                     </div>
                   )}
                 </CardContent>
@@ -208,28 +267,40 @@ export default function CustomerDashboard() {
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Link href="/ecommerce/planos">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-6 border-primary text-primary hover:bg-primary hover:text-white">
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-6 border-primary text-primary hover:bg-primary hover:text-white"
+                  >
                     <Search className="h-6 w-6" />
                     <span className="text-sm font-medium">Ver Planos</span>
                   </Button>
                 </Link>
 
                 <Link href="/ecommerce/painel/pedidos">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-6">
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-6"
+                  >
                     <ShoppingBag className="h-6 w-6" />
                     <span className="text-sm">Meus Pedidos</span>
                   </Button>
                 </Link>
 
                 <Link href="/ecommerce/painel/documentos">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-6">
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-6"
+                  >
                     <FileText className="h-6 w-6" />
                     <span className="text-sm">Enviar Documentos</span>
                   </Button>
                 </Link>
 
                 <Link href="/ecommerce/painel/perfil">
-                  <Button variant="outline" className="w-full h-auto flex-col gap-2 py-6">
+                  <Button
+                    variant="outline"
+                    className="w-full h-auto flex-col gap-2 py-6"
+                  >
                     <User className="h-6 w-6" />
                     <span className="text-sm">Meu Perfil</span>
                   </Button>
@@ -260,18 +331,25 @@ export default function CustomerDashboard() {
                     {orders.slice(0, 3).map((order) => {
                       const info = getStatusInfo(order.etapa);
                       const Icon = info.icon;
-                      
+
                       return (
-                        <Link key={order.id} href={`/ecommerce/painel/pedidos/${order.id}`}>
+                        <Link
+                          key={order.id}
+                          href={`/ecommerce/painel/pedidos/${order.id}`}
+                        >
                           <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
                             <div className="flex items-center gap-4">
                               <div className={`p-2 rounded-lg ${info.bg}`}>
                                 <Icon className={`h-5 w-5 ${info.color}`} />
                               </div>
                               <div>
-                                <p className="font-medium">Pedido #{order.id.slice(0, 8)}</p>
+                                <p className="font-medium">
+                                  Pedido #{order.id.slice(0, 8)}
+                                </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {new Date(order.createdAt).toLocaleDateString("pt-BR")}
+                                  {new Date(order.createdAt).toLocaleDateString(
+                                    "pt-BR"
+                                  )}
                                 </p>
                               </div>
                             </div>

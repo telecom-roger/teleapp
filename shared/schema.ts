@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { sql } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -23,12 +23,14 @@ export const sessions = pgTable(
     sess: jsonb("sess").notNull(),
     expire: timestamp("expire").notNull(),
   },
-  (table) => [index("IDX_session_expire").on(table.expire)],
+  (table) => [index("IDX_session_expire").on(table.expire)]
 );
 
 // ==================== USERS ====================
 export const users: any = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
@@ -36,7 +38,9 @@ export const users: any = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   role: varchar("role", { length: 20 }).notNull().default("agent"), // admin, agent, customer
   active: boolean("active").notNull().default(true),
-  clientId: varchar("client_id").references((): any => clients.id, { onDelete: "set null" }), // Link para cliente (quando role=customer)
+  clientId: varchar("client_id").references((): any => clients.id, {
+    onDelete: "set null",
+  }), // Link para cliente (quando role=customer)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -46,7 +50,9 @@ export type User = typeof users.$inferSelect;
 
 // ==================== CLIENTS ====================
 export const clients: any = pgTable("clients", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
   cnpj: varchar("cnpj", { length: 14 }),
   status: varchar("status", { length: 50 }).notNull().default("base_frio"), // base_frio, lead_quente, engajado, em_negociacao, em_fechamento, ativo, perdido, remarketing
@@ -67,7 +73,9 @@ export const clients: any = pgTable("clients", {
   uf: varchar("uf", { length: 2 }),
   dataUltimoPedido: varchar("data_ultimo_pedido", { length: 20 }),
   observacoes: text("observacoes"),
-  tags: text("tags").array().default(sql`ARRAY[]::text[]`),
+  tags: text("tags")
+    .array()
+    .default(sql`ARRAY[]::text[]`),
   origin: varchar("origin", { length: 20 }).default("system"), // system, ecommerce, both
   type: varchar("type", { length: 2 }), // PF, PJ
   createdAt: timestamp("created_at").defaultNow(),
@@ -86,8 +94,18 @@ export const insertClientSchema = createInsertSchema(clients)
     cnpj: z.string().max(14).optional().nullable(),
     uf: z.string().max(2).optional().nullable(),
     cep: z.string().max(8).optional().nullable(),
-    email: z.string().email("Email inválido").optional().nullable().or(z.literal('')),
-    emailGestor: z.string().email("Email inválido").optional().nullable().or(z.literal('')),
+    email: z
+      .string()
+      .email("Email inválido")
+      .optional()
+      .nullable()
+      .or(z.literal("")),
+    emailGestor: z
+      .string()
+      .email("Email inválido")
+      .optional()
+      .nullable()
+      .or(z.literal("")),
     celular: z.string().optional().nullable(),
     telefone2: z.string().optional().nullable(),
     parceiro: z.string().optional().nullable(),
@@ -101,19 +119,27 @@ export type InsertClient = z.infer<typeof insertClientSchema>;
 export type Client = typeof clients.$inferSelect;
 
 // ==================== CONTACTS ====================
-export const contacts = pgTable("contacts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  tipo: varchar("tipo", { length: 20 }).notNull(), // telefone, email
-  valor: text("valor").notNull(), // +5511999999999 or email@example.com
-  preferencial: boolean("preferencial").default(false),
-  verified: boolean("verified").default(false),
-  lastContacted: timestamp("last_contacted"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_contacts_client").on(table.clientId),
-  unique("unique_client_contact").on(table.clientId, table.tipo, table.valor),
-]);
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    tipo: varchar("tipo", { length: 20 }).notNull(), // telefone, email
+    valor: text("valor").notNull(), // +5511999999999 or email@example.com
+    preferencial: boolean("preferencial").default(false),
+    verified: boolean("verified").default(false),
+    lastContacted: timestamp("last_contacted"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_contacts_client").on(table.clientId),
+    unique("unique_client_contact").on(table.clientId, table.tipo, table.valor),
+  ]
+);
 
 export const insertContactSchema = createInsertSchema(contacts).omit({
   id: true,
@@ -124,23 +150,31 @@ export type InsertContact = z.infer<typeof insertContactSchema>;
 export type Contact = typeof contacts.$inferSelect;
 
 // ==================== OPPORTUNITIES ====================
-export const opportunities = pgTable("opportunities", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  titulo: text("titulo").notNull(),
-  valorEstimado: text("valor_estimado"), // text field for flexible value entry
-  etapa: varchar("etapa", { length: 100 }).notNull().default("lead"), // lead, contato, proposta, fechado, perdido
-  responsavelId: varchar("responsavel_id").references(() => users.id),
-  prazo: timestamp("prazo"),
-  ordem: integer("ordem").default(0), // for drag & drop ordering within column
-  notas: jsonb("notas").default(sql`'[]'::jsonb`),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_opportunities_client").on(table.clientId),
-  index("idx_opportunities_etapa").on(table.etapa),
-  index("idx_opportunities_responsavel").on(table.responsavelId),
-]);
+export const opportunities = pgTable(
+  "opportunities",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    titulo: text("titulo").notNull(),
+    valorEstimado: text("valor_estimado"), // text field for flexible value entry
+    etapa: varchar("etapa", { length: 100 }).notNull().default("lead"), // lead, contato, proposta, fechado, perdido
+    responsavelId: varchar("responsavel_id").references(() => users.id),
+    prazo: timestamp("prazo"),
+    ordem: integer("ordem").default(0), // for drag & drop ordering within column
+    notas: jsonb("notas").default(sql`'[]'::jsonb`),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_opportunities_client").on(table.clientId),
+    index("idx_opportunities_etapa").on(table.etapa),
+    index("idx_opportunities_responsavel").on(table.responsavelId),
+  ]
+);
 
 export const insertOpportunitySchema = createInsertSchema(opportunities).omit({
   id: true,
@@ -152,16 +186,20 @@ export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 export type Opportunity = typeof opportunities.$inferSelect;
 
 // ==================== KANBAN STAGES ====================
-export const kanbanStages = pgTable("kanban_stages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  ordem: integer("ordem").notNull().default(0),
-  titulo: text("titulo").notNull(),
-  descricao: text("descricao"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_kanban_stages_ordem").on(table.ordem),
-]);
+export const kanbanStages = pgTable(
+  "kanban_stages",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    ordem: integer("ordem").notNull().default(0),
+    titulo: text("titulo").notNull(),
+    descricao: text("descricao"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("idx_kanban_stages_ordem").on(table.ordem)]
+);
 
 export const insertKanbanStageSchema = createInsertSchema(kanbanStages).omit({
   id: true,
@@ -174,33 +212,41 @@ export type KanbanStage = typeof kanbanStages.$inferSelect;
 
 // ==================== TEMPLATES ====================
 export const templates = pgTable("templates", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
   tipo: varchar("tipo", { length: 20 }).notNull(), // email, whatsapp
   assunto: text("assunto"), // for email
   conteudo: text("conteudo").notNull(),
   imageUrl: text("image_url"), // image URL for WhatsApp/Email
-  variaveis: text("variaveis").array().default(sql`ARRAY[]::text[]`), // ['razao_social', 'plano_atual']
+  variaveis: text("variaveis")
+    .array()
+    .default(sql`ARRAY[]::text[]`), // ['razao_social', 'plano_atual']
   ativo: boolean("ativo").default(true),
   createdBy: varchar("created_by").references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertTemplateSchema = createInsertSchema(templates).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  tipo: z.enum(["email", "whatsapp"]),
-});
+export const insertTemplateSchema = createInsertSchema(templates)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    tipo: z.enum(["email", "whatsapp"]),
+  });
 
 export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
 export type Template = typeof templates.$inferSelect;
 
 // ==================== CAMPAIGNS ====================
 export const campaigns = pgTable("campaigns", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
   tipo: varchar("tipo", { length: 20 }).notNull(), // email, whatsapp
   templateId: varchar("template_id").references(() => templates.id),
@@ -220,36 +266,47 @@ export const campaigns = pgTable("campaigns", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertCampaignSchema = createInsertSchema(campaigns).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  agendadaPara: z.union([z.date(), z.string().datetime()]).transform(val => typeof val === 'string' ? new Date(val) : val),
-  tempoFixoSegundos: z.number().int().min(1).max(300).default(70),
-  tempoAleatorioMin: z.number().int().min(0).max(300).default(30),
-  tempoAleatorioMax: z.number().int().min(0).max(300).default(60),
-});
+export const insertCampaignSchema = createInsertSchema(campaigns)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    agendadaPara: z
+      .union([z.date(), z.string().datetime()])
+      .transform((val) => (typeof val === "string" ? new Date(val) : val)),
+    tempoFixoSegundos: z.number().int().min(1).max(300).default(70),
+    tempoAleatorioMin: z.number().int().min(0).max(300).default(30),
+    tempoAleatorioMax: z.number().int().min(0).max(300).default(60),
+  });
 
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 
-
 // ==================== INTERACTIONS (Timeline Items) ====================
-export const interactions = pgTable("interactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  tipo: varchar("tipo", { length: 50 }).notNull(), // nota, email_enviado, whatsapp_enviado, status_mudou, campanha, ligacao
-  origem: varchar("origem", { length: 20 }).notNull().default("user"), // user, system
-  titulo: text("titulo"),
-  texto: text("texto"),
-  meta: jsonb("meta").default(sql`'{}'::jsonb`), // extra metadata like campaign_id, old_status, new_status, etc
-  createdBy: varchar("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_interactions_client").on(table.clientId),
-  index("idx_interactions_created").on(table.createdAt),
-]);
+export const interactions = pgTable(
+  "interactions",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    tipo: varchar("tipo", { length: 50 }).notNull(), // nota, email_enviado, whatsapp_enviado, status_mudou, campanha, ligacao
+    origem: varchar("origem", { length: 20 }).notNull().default("user"), // user, system
+    titulo: text("titulo"),
+    texto: text("texto"),
+    meta: jsonb("meta").default(sql`'{}'::jsonb`), // extra metadata like campaign_id, old_status, new_status, etc
+    createdBy: varchar("created_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_interactions_client").on(table.clientId),
+    index("idx_interactions_created").on(table.createdAt),
+  ]
+);
 
 export const insertInteractionSchema = createInsertSchema(interactions).omit({
   id: true,
@@ -261,7 +318,9 @@ export type Interaction = typeof interactions.$inferSelect;
 
 // ==================== CUSTOM FIELDS ====================
 export const customFields = pgTable("custom_fields", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   nome: text("nome").notNull().unique(),
   tipo: varchar("tipo", { length: 20 }).notNull(), // texto, numero, selecao, data, boolean
   opcoes: text("opcoes").array(), // for selecao type
@@ -280,22 +339,28 @@ export type InsertCustomField = z.infer<typeof insertCustomFieldSchema>;
 export type CustomField = typeof customFields.$inferSelect;
 
 // ==================== AUDIT LOGS ====================
-export const auditLogs = pgTable("audit_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id),
-  acao: varchar("acao", { length: 50 }).notNull(), // criar, editar, excluir, enviar, importar
-  entidade: varchar("entidade", { length: 50 }).notNull(), // client, opportunity, campaign, etc
-  entidadeId: varchar("entidade_id"),
-  dadosAntigos: jsonb("dados_antigos"),
-  dadosNovos: jsonb("dados_novos"),
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_audit_logs_user").on(table.userId),
-  index("idx_audit_logs_entidade").on(table.entidade, table.entidadeId),
-  index("idx_audit_logs_created").on(table.createdAt),
-]);
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id").references(() => users.id),
+    acao: varchar("acao", { length: 50 }).notNull(), // criar, editar, excluir, enviar, importar
+    entidade: varchar("entidade", { length: 50 }).notNull(), // client, opportunity, campaign, etc
+    entidadeId: varchar("entidade_id"),
+    dadosAntigos: jsonb("dados_antigos"),
+    dadosNovos: jsonb("dados_novos"),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_audit_logs_user").on(table.userId),
+    index("idx_audit_logs_entidade").on(table.entidade, table.entidadeId),
+    index("idx_audit_logs_created").on(table.createdAt),
+  ]
+);
 
 export const insertAuditLogSchema = createInsertSchema(auditLogs).omit({
   id: true,
@@ -306,23 +371,29 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 
 // ==================== IMPORT JOBS ====================
-export const importJobs = pgTable("import_jobs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nomeArquivo: text("nome_arquivo").notNull(),
-  status: varchar("status", { length: 20 }).notNull().default("processando"), // processando, concluido, erro
-  totalLinhas: integer("total_linhas").default(0),
-  linhasValidas: integer("linhas_validas").default(0),
-  linhasInvalidas: integer("linhas_invalidas").default(0),
-  duplicados: integer("duplicados").default(0),
-  mapeamento: jsonb("mapeamento"), // column mapping
-  erros: jsonb("erros").default(sql`'[]'::jsonb`), // array of error messages
-  createdBy: varchar("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  completedAt: timestamp("completed_at"),
-}, (table) => [
-  index("idx_import_jobs_created_by").on(table.createdBy),
-  index("idx_import_jobs_status").on(table.status),
-]);
+export const importJobs = pgTable(
+  "import_jobs",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    nomeArquivo: text("nome_arquivo").notNull(),
+    status: varchar("status", { length: 20 }).notNull().default("processando"), // processando, concluido, erro
+    totalLinhas: integer("total_linhas").default(0),
+    linhasValidas: integer("linhas_validas").default(0),
+    linhasInvalidas: integer("linhas_invalidas").default(0),
+    duplicados: integer("duplicados").default(0),
+    mapeamento: jsonb("mapeamento"), // column mapping
+    erros: jsonb("erros").default(sql`'[]'::jsonb`), // array of error messages
+    createdBy: varchar("created_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+    completedAt: timestamp("completed_at"),
+  },
+  (table) => [
+    index("idx_import_jobs_created_by").on(table.createdBy),
+    index("idx_import_jobs_status").on(table.status),
+  ]
+);
 
 export const insertImportJobSchema = createInsertSchema(importJobs).omit({
   id: true,
@@ -334,7 +405,9 @@ export type ImportJob = typeof importJobs.$inferSelect;
 
 // ==================== WHATSAPP SESSIONS ====================
 export const whatsappSessions = pgTable("whatsapp_sessions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
   sessionId: varchar("session_id", { length: 100 }).notNull().unique(),
   status: varchar("status", { length: 20 }).notNull().default("desconectada"), // conectada, desconectada, erro
@@ -346,7 +419,9 @@ export const whatsappSessions = pgTable("whatsapp_sessions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertWhatsappSessionSchema = createInsertSchema(whatsappSessions).omit({
+export const insertWhatsappSessionSchema = createInsertSchema(
+  whatsappSessions
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -356,23 +431,33 @@ export type InsertWhatsappSession = z.infer<typeof insertWhatsappSessionSchema>;
 export type WhatsappSession = typeof whatsappSessions.$inferSelect;
 
 // ==================== CONVERSATIONS ====================
-export const conversations = pgTable("conversations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  canal: varchar("canal", { length: 20 }).notNull().default("whatsapp"),
-  assunto: text("assunto"),
-  ativa: boolean("ativa").default(true),
-  oculta: boolean("oculta").default(false),
-  naoLida: boolean("nao_lida").default(false),
-  ultimaMensagem: text("ultima_mensagem"),
-  ultimaMensagemEm: timestamp("ultima_mensagem_em"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_conversations_client").on(table.clientId),
-  index("idx_conversations_user").on(table.userId),
-  index("idx_conversations_oculta").on(table.oculta),
-]);
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    canal: varchar("canal", { length: 20 }).notNull().default("whatsapp"),
+    assunto: text("assunto"),
+    ativa: boolean("ativa").default(true),
+    oculta: boolean("oculta").default(false),
+    naoLida: boolean("nao_lida").default(false),
+    ultimaMensagem: text("ultima_mensagem"),
+    ultimaMensagemEm: timestamp("ultima_mensagem_em"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_conversations_client").on(table.clientId),
+    index("idx_conversations_user").on(table.userId),
+    index("idx_conversations_oculta").on(table.oculta),
+  ]
+);
 
 export type Conversation = typeof conversations.$inferSelect;
 export const insertConversationSchema = createInsertSchema(conversations).omit({
@@ -383,28 +468,36 @@ export const insertConversationSchema = createInsertSchema(conversations).omit({
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 
 // ==================== MESSAGES ====================
-export const messages = pgTable("messages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  conversationId: varchar("conversation_id").notNull().references(() => conversations.id, { onDelete: "cascade" }),
-  sender: varchar("sender", { length: 20 }).notNull(), // "user", "client"
-  tipo: varchar("tipo", { length: 20 }).notNull().default("texto"), // texto, imagem, audio, video, documento
-  conteudo: text("conteudo"),
-  arquivo: text("arquivo"), // URL no Replit Storage
-  nomeArquivo: text("nome_arquivo"),
-  tamanho: integer("tamanho"), // em bytes
-  mimeType: text("mime_type"),
-  origem: varchar("origem", { length: 50 }), // "automation", "whatsapp", "manual", null
-  lido: boolean("lido").default(false),
-  deletado: boolean("deletado").default(false), // Soft delete for "removed for all"
-  // ✅ Campos para status de entrega do WhatsApp (ticks)
-  statusEntrega: varchar("status_entrega", { length: 20 }).default("enviado"), // enviado, entregue, lido
-  whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }), // ID da mensagem no WhatsApp para rastrear status
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_messages_conversation").on(table.conversationId),
-  index("idx_messages_sender").on(table.sender),
-  index("idx_messages_whatsapp_id").on(table.whatsappMessageId),
-]);
+export const messages = pgTable(
+  "messages",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    conversationId: varchar("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    sender: varchar("sender", { length: 20 }).notNull(), // "user", "client"
+    tipo: varchar("tipo", { length: 20 }).notNull().default("texto"), // texto, imagem, audio, video, documento
+    conteudo: text("conteudo"),
+    arquivo: text("arquivo"), // URL no Replit Storage
+    nomeArquivo: text("nome_arquivo"),
+    tamanho: integer("tamanho"), // em bytes
+    mimeType: text("mime_type"),
+    origem: varchar("origem", { length: 50 }), // "automation", "whatsapp", "manual", null
+    lido: boolean("lido").default(false),
+    deletado: boolean("deletado").default(false), // Soft delete for "removed for all"
+    // ✅ Campos para status de entrega do WhatsApp (ticks)
+    statusEntrega: varchar("status_entrega", { length: 20 }).default("enviado"), // enviado, entregue, lido
+    whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }), // ID da mensagem no WhatsApp para rastrear status
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_messages_conversation").on(table.conversationId),
+    index("idx_messages_sender").on(table.sender),
+    index("idx_messages_whatsapp_id").on(table.whatsappMessageId),
+  ]
+);
 
 export type Message = typeof messages.$inferSelect;
 export const insertMessageSchema = createInsertSchema(messages).omit({
@@ -414,127 +507,196 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 
 // ==================== QUICK REPLIES ====================
-export const quickReplies = pgTable("quick_replies", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  conteudo: text("conteudo").notNull(),
-  ordem: integer("ordem").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_quick_replies_user").on(table.userId),
-]);
+export const quickReplies = pgTable(
+  "quick_replies",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    conteudo: text("conteudo").notNull(),
+    ordem: integer("ordem").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("idx_quick_replies_user").on(table.userId)]
+);
 
-export const insertQuickReplySchema = createInsertSchema(quickReplies).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  conteudo: z.string().min(1, "Mensagem não pode estar vazia").max(1000, "Mensagem muito longa"),
-});
+export const insertQuickReplySchema = createInsertSchema(quickReplies)
+  .omit({
+    id: true,
+    createdAt: true,
+  })
+  .extend({
+    conteudo: z
+      .string()
+      .min(1, "Mensagem não pode estar vazia")
+      .max(1000, "Mensagem muito longa"),
+  });
 
 export type QuickReply = typeof quickReplies.$inferSelect;
 export type InsertQuickReply = z.infer<typeof insertQuickReplySchema>;
 
 // ==================== CLIENT NOTES ====================
-export const clientNotes = pgTable("client_notes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  conteudo: text("conteudo").notNull(),
-  tipo: varchar("tipo", { length: 20 }).notNull().default("comentario"), // comentario, atividade, agendamento
-  dataPlanejada: timestamp("data_planejada"), // for agendamento type
-  anexos: jsonb("anexos").default(sql`'[]'::jsonb`), // array of {nome, tipo, conteudo_base64}
-  cor: varchar("cor", { length: 20 }).default("bg-blue-500"), // color class for badge
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_client_notes_user").on(table.userId),
-  index("idx_client_notes_client").on(table.clientId),
-  index("idx_client_notes_user_client").on(table.userId, table.clientId),
-]);
+export const clientNotes = pgTable(
+  "client_notes",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    conteudo: text("conteudo").notNull(),
+    tipo: varchar("tipo", { length: 20 }).notNull().default("comentario"), // comentario, atividade, agendamento
+    dataPlanejada: timestamp("data_planejada"), // for agendamento type
+    anexos: jsonb("anexos").default(sql`'[]'::jsonb`), // array of {nome, tipo, conteudo_base64}
+    cor: varchar("cor", { length: 20 }).default("bg-blue-500"), // color class for badge
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_client_notes_user").on(table.userId),
+    index("idx_client_notes_client").on(table.clientId),
+    index("idx_client_notes_user_client").on(table.userId, table.clientId),
+  ]
+);
 
-export const insertClientNoteSchema = createInsertSchema(clientNotes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  conteudo: z.string().min(1, "Nota não pode estar vazia").max(500, "Nota muito longa"),
-  tipo: z.enum(["comentario", "atividade", "agendamento"]).optional(),
-  dataPlanejada: z.date().optional().nullable(),
-  anexos: z.array(z.object({
-    nome: z.string(),
-    tipo: z.string(),
-    conteudo_base64: z.string(),
-  })).optional(),
-  cor: z.string().optional(),
-});
+export const insertClientNoteSchema = createInsertSchema(clientNotes)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    conteudo: z
+      .string()
+      .min(1, "Nota não pode estar vazia")
+      .max(500, "Nota muito longa"),
+    tipo: z.enum(["comentario", "atividade", "agendamento"]).optional(),
+    dataPlanejada: z.date().optional().nullable(),
+    anexos: z
+      .array(
+        z.object({
+          nome: z.string(),
+          tipo: z.string(),
+          conteudo_base64: z.string(),
+        })
+      )
+      .optional(),
+    cor: z.string().optional(),
+  });
 
 export type ClientNote = typeof clientNotes.$inferSelect;
 export type InsertClientNote = z.infer<typeof insertClientNoteSchema>;
 
 // ==================== TAGS (Reusable Tags for Clients) ====================
-export const tags = pgTable("tags", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nome: text("nome").notNull(),
-  cor: varchar("cor", { length: 50 }).notNull(), // bg-blue-500, bg-purple-500, etc
-  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_tags_created_by").on(table.createdBy),
-]);
+export const tags = pgTable(
+  "tags",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    nome: text("nome").notNull(),
+    cor: varchar("cor", { length: 50 }).notNull(), // bg-blue-500, bg-purple-500, etc
+    createdBy: varchar("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("idx_tags_created_by").on(table.createdBy)]
+);
 
-export const insertTagSchema = createInsertSchema(tags).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-}).extend({
-  nome: z.string().min(1, "Nome da etiqueta obrigatório").max(50, "Nome muito longo"),
-  cor: z.string().min(1, "Cor obrigatória"),
-});
+export const insertTagSchema = createInsertSchema(tags)
+  .omit({
+    id: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    nome: z
+      .string()
+      .min(1, "Nome da etiqueta obrigatório")
+      .max(50, "Nome muito longo"),
+    cor: z.string().min(1, "Cor obrigatória"),
+  });
 
 export type Tag = typeof tags.$inferSelect;
 export type InsertTag = z.infer<typeof insertTagSchema>;
 
 // ==================== CLIENT SHARING ====================
-export const clientSharing = pgTable("client_sharing", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  ownerId: varchar("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  sharedWithUserId: varchar("shared_with_user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  permissao: varchar("permissao", { length: 20 }).notNull().default("visualizar"), // visualizar, editar
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_client_sharing_client").on(table.clientId),
-  index("idx_client_sharing_owner").on(table.ownerId),
-  index("idx_client_sharing_shared_with").on(table.sharedWithUserId),
-]);
+export const clientSharing = pgTable(
+  "client_sharing",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    ownerId: varchar("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sharedWithUserId: varchar("shared_with_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    permissao: varchar("permissao", { length: 20 })
+      .notNull()
+      .default("visualizar"), // visualizar, editar
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_client_sharing_client").on(table.clientId),
+    index("idx_client_sharing_owner").on(table.ownerId),
+    index("idx_client_sharing_shared_with").on(table.sharedWithUserId),
+  ]
+);
 
-export const insertClientSharingSchema = createInsertSchema(clientSharing).omit({
-  id: true,
-  createdAt: true,
-}).extend({
-  permissao: z.enum(["visualizar", "editar"]),
-});
+export const insertClientSharingSchema = createInsertSchema(clientSharing)
+  .omit({
+    id: true,
+    createdAt: true,
+  })
+  .extend({
+    permissao: z.enum(["visualizar", "editar"]),
+  });
 
 export type ClientSharing = typeof clientSharing.$inferSelect;
 export type InsertClientSharing = z.infer<typeof insertClientSharingSchema>;
 
 // ==================== NOTIFICATIONS ====================
-export const notifications = pgTable("notifications", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  tipo: varchar("tipo", { length: 50 }).notNull(), // "client_shared", etc
-  titulo: text("titulo").notNull(),
-  descricao: text("descricao").notNull(),
-  clientId: varchar("client_id").references(() => clients.id, { onDelete: "cascade" }),
-  fromUserId: varchar("from_user_id").references(() => users.id, { onDelete: "cascade" }),
-  lida: boolean("lida").notNull().default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_notifications_user").on(table.userId),
-  index("idx_notifications_lida").on(table.lida),
-  index("idx_notifications_user_lida").on(table.userId, table.lida),
-]);
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tipo: varchar("tipo", { length: 50 }).notNull(), // "client_shared", etc
+    titulo: text("titulo").notNull(),
+    descricao: text("descricao").notNull(),
+    clientId: varchar("client_id").references(() => clients.id, {
+      onDelete: "cascade",
+    }),
+    fromUserId: varchar("from_user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    lida: boolean("lida").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_notifications_user").on(table.userId),
+    index("idx_notifications_lida").on(table.lida),
+    index("idx_notifications_user_lida").on(table.userId, table.lida),
+  ]
+);
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
@@ -545,80 +707,115 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 // ==================== CAMPAIGN SENDINGS (Histórico de Envios por Cliente) ====================
-export const campaignSendings = pgTable("campaign_sendings", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  campaignId: varchar("campaign_id").references(() => campaigns.id, { onDelete: "cascade" }),
-  campaignName: text("campaign_name").notNull(),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  status: varchar("status", { length: 20 }).notNull().default("enviado"), // erro, enviado, entregue, lido
-  erroMensagem: text("erro_mensagem"),
-  dataSending: timestamp("data_sending").defaultNow(),
-  origemDisparo: varchar("origem_disparo", { length: 30 }).default("agendamento"),
-  mensagemUsada: text("mensagem_usada"),
-  modeloId: varchar("modelo_id").references(() => templates.id, { onDelete: "set null" }),
-  
-  // ✅ NOVOS CAMPOS: Rastreamento completo de status WhatsApp
-  whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }), // ID da mensagem no WhatsApp
-  statusWhatsapp: integer("status_whatsapp").default(0), // 0=erro, 1=pendente, 2=enviado, 3=entregue, 4=lido
-  dataEntrega: timestamp("data_entrega"), // Quando recebeu ack 3 (entregue)
-  dataVisualizacao: timestamp("data_visualizacao"), // Quando recebeu ack 4 (lido)
-  dataPrimeiraResposta: timestamp("data_primeira_resposta"),
-  dataUltimaResposta: timestamp("data_ultima_resposta"),
-  totalRespostas: integer("total_respostas").default(0),
-  ultimaInteracao: timestamp("ultima_interacao"),
-  
-  // ✅ Estado derivado (etiqueta calculada automaticamente)
-  estadoDerivado: varchar("estado_derivado", { length: 50 }).default("enviado"),
-  // Valores: enviado, entregue, nao_entregue, numero_invalido, bloqueado, 
-  //          visualizado, nao_visualizado, visualizou_nao_respondeu,
-  //          respondeu, respondeu_imediato, respondeu_24h, respondeu_dias, respondeu_muito_tempo,
-  //          engajamento_alto, engajamento_medio, engajamento_baixo, sem_engajamento
-  
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_campaign_sendings_user").on(table.userId),
-  index("idx_campaign_sendings_campaign").on(table.campaignId),
-  index("idx_campaign_sendings_client").on(table.clientId),
-  index("idx_campaign_sendings_date").on(table.dataSending),
-  index("idx_campaign_sendings_user_client").on(table.userId, table.clientId),
-  index("idx_campaign_sendings_origem").on(table.origemDisparo),
-  index("idx_campaign_sendings_whatsapp_id").on(table.whatsappMessageId),
-  index("idx_campaign_sendings_estado").on(table.estadoDerivado),
-  uniqueIndex("idx_campaign_sendings_unique_client_campaign").on(table.campaignId, table.clientId),
-]);
+export const campaignSendings = pgTable(
+  "campaign_sendings",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    campaignId: varchar("campaign_id").references(() => campaigns.id, {
+      onDelete: "cascade",
+    }),
+    campaignName: text("campaign_name").notNull(),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    status: varchar("status", { length: 20 }).notNull().default("enviado"), // erro, enviado, entregue, lido
+    erroMensagem: text("erro_mensagem"),
+    dataSending: timestamp("data_sending").defaultNow(),
+    origemDisparo: varchar("origem_disparo", { length: 30 }).default(
+      "agendamento"
+    ),
+    mensagemUsada: text("mensagem_usada"),
+    modeloId: varchar("modelo_id").references(() => templates.id, {
+      onDelete: "set null",
+    }),
 
-export const insertCampaignSendingSchema = createInsertSchema(campaignSendings).omit({
-  id: true,
-  createdAt: true,
-  dataSending: true,
-}).extend({
-  origemDisparo: z.enum(["agendamento", "envio_imediato"]).default("agendamento"),
-  mensagemUsada: z.string().optional(),
-  modeloId: z.string().optional().nullable(),
-  whatsappMessageId: z.string().optional(),
-  statusWhatsapp: z.number().optional(),
-  estadoDerivado: z.string().optional(),
-});
+    // ✅ NOVOS CAMPOS: Rastreamento completo de status WhatsApp
+    whatsappMessageId: varchar("whatsapp_message_id", { length: 100 }), // ID da mensagem no WhatsApp
+    statusWhatsapp: integer("status_whatsapp").default(0), // 0=erro, 1=pendente, 2=enviado, 3=entregue, 4=lido
+    dataEntrega: timestamp("data_entrega"), // Quando recebeu ack 3 (entregue)
+    dataVisualizacao: timestamp("data_visualizacao"), // Quando recebeu ack 4 (lido)
+    dataPrimeiraResposta: timestamp("data_primeira_resposta"),
+    dataUltimaResposta: timestamp("data_ultima_resposta"),
+    totalRespostas: integer("total_respostas").default(0),
+    ultimaInteracao: timestamp("ultima_interacao"),
+
+    // ✅ Estado derivado (etiqueta calculada automaticamente)
+    estadoDerivado: varchar("estado_derivado", { length: 50 }).default(
+      "enviado"
+    ),
+    // Valores: enviado, entregue, nao_entregue, numero_invalido, bloqueado,
+    //          visualizado, nao_visualizado, visualizou_nao_respondeu,
+    //          respondeu, respondeu_imediato, respondeu_24h, respondeu_dias, respondeu_muito_tempo,
+    //          engajamento_alto, engajamento_medio, engajamento_baixo, sem_engajamento
+
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_campaign_sendings_user").on(table.userId),
+    index("idx_campaign_sendings_campaign").on(table.campaignId),
+    index("idx_campaign_sendings_client").on(table.clientId),
+    index("idx_campaign_sendings_date").on(table.dataSending),
+    index("idx_campaign_sendings_user_client").on(table.userId, table.clientId),
+    index("idx_campaign_sendings_origem").on(table.origemDisparo),
+    index("idx_campaign_sendings_whatsapp_id").on(table.whatsappMessageId),
+    index("idx_campaign_sendings_estado").on(table.estadoDerivado),
+    uniqueIndex("idx_campaign_sendings_unique_client_campaign").on(
+      table.campaignId,
+      table.clientId
+    ),
+  ]
+);
+
+export const insertCampaignSendingSchema = createInsertSchema(campaignSendings)
+  .omit({
+    id: true,
+    createdAt: true,
+    dataSending: true,
+  })
+  .extend({
+    origemDisparo: z
+      .enum(["agendamento", "envio_imediato"])
+      .default("agendamento"),
+    mensagemUsada: z.string().optional(),
+    modeloId: z.string().optional().nullable(),
+    whatsappMessageId: z.string().optional(),
+    statusWhatsapp: z.number().optional(),
+    estadoDerivado: z.string().optional(),
+  });
 
 export type CampaignSending = typeof campaignSendings.$inferSelect;
 export type InsertCampaignSending = z.infer<typeof insertCampaignSendingSchema>;
 
 // ==================== CAMPAIGN GROUPS (Grupos/Templates de Filtros) ====================
-export const campaignGroups = pgTable("campaign_groups", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  nome: text("nome").notNull(),
-  descricao: text("descricao"),
-  filtros: jsonb("filtros").notNull().default(sql`'{}'::jsonb`), // { diasDesdeEnvio, tags, cidades, tipos, carteiras, semEtiqueta }
-  clientCount: integer("client_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_campaign_groups_user").on(table.userId),
-]);
+export const campaignGroups = pgTable(
+  "campaign_groups",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(),
+    descricao: text("descricao"),
+    filtros: jsonb("filtros")
+      .notNull()
+      .default(sql`'{}'::jsonb`), // { diasDesdeEnvio, tags, cidades, tipos, carteiras, semEtiqueta }
+    clientCount: integer("client_count").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("idx_campaign_groups_user").on(table.userId)]
+);
 
-export const insertCampaignGroupSchema = createInsertSchema(campaignGroups).omit({
+export const insertCampaignGroupSchema = createInsertSchema(
+  campaignGroups
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -629,29 +826,44 @@ export type CampaignGroup = typeof campaignGroups.$inferSelect;
 export type InsertCampaignGroup = z.infer<typeof insertCampaignGroupSchema>;
 
 // ==================== AUTOMATION TASKS ====================
-export const automationTasks = pgTable("automation_tasks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  opportunityId: varchar("opportunity_id").references(() => opportunities.id, { onDelete: "cascade" }), // ✅ Para filtrar por oportunidade específica
-  tipo: varchar("tipo", { length: 50 }).notNull(), // "follow_up", "re_engagement", "score_update", "auto_send"
-  status: varchar("status", { length: 50 }).notNull().default("pendente"), // pendente, executado, erro
-  proximaExecucao: timestamp("proxima_execucao").notNull(),
-  dados: jsonb("dados").default(sql`'{}'::jsonb`), // { diasSinceLastContact, tentativas, mensagem, etc }
-  tentativas: integer("tentativas").default(0),
-  ultimaTentativa: timestamp("ultima_tentativa"),
-  erro: text("erro"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_automation_tasks_user").on(table.userId),
-  index("idx_automation_tasks_client").on(table.clientId),
-  index("idx_automation_tasks_opportunity").on(table.opportunityId), // ✅ Nova índice
-  index("idx_automation_tasks_status").on(table.status),
-  index("idx_automation_tasks_proxima").on(table.proximaExecucao),
-]);
+export const automationTasks = pgTable(
+  "automation_tasks",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    opportunityId: varchar("opportunity_id").references(
+      () => opportunities.id,
+      { onDelete: "cascade" }
+    ), // ✅ Para filtrar por oportunidade específica
+    tipo: varchar("tipo", { length: 50 }).notNull(), // "follow_up", "re_engagement", "score_update", "auto_send"
+    status: varchar("status", { length: 50 }).notNull().default("pendente"), // pendente, executado, erro
+    proximaExecucao: timestamp("proxima_execucao").notNull(),
+    dados: jsonb("dados").default(sql`'{}'::jsonb`), // { diasSinceLastContact, tentativas, mensagem, etc }
+    tentativas: integer("tentativas").default(0),
+    ultimaTentativa: timestamp("ultima_tentativa"),
+    erro: text("erro"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_automation_tasks_user").on(table.userId),
+    index("idx_automation_tasks_client").on(table.clientId),
+    index("idx_automation_tasks_opportunity").on(table.opportunityId), // ✅ Nova índice
+    index("idx_automation_tasks_status").on(table.status),
+    index("idx_automation_tasks_proxima").on(table.proximaExecucao),
+  ]
+);
 
-export const insertAutomationTaskSchema = createInsertSchema(automationTasks).omit({
+export const insertAutomationTaskSchema = createInsertSchema(
+  automationTasks
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -663,23 +875,33 @@ export type AutomationTask = typeof automationTasks.$inferSelect;
 export type InsertAutomationTask = z.infer<typeof insertAutomationTaskSchema>;
 
 // ==================== FOLLOW UPS ====================
-export const followUps = pgTable("follow_ups", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  numero: integer("numero").notNull(), // 1, 2, 3 follow-up
-  diasSinceLastContact: integer("dias_since_last_contact").notNull(),
-  resultado: varchar("resultado", { length: 50 }), // "resposta", "sem_resposta", "recusou", "converteu"
-  executadoEm: timestamp("executado_em"),
-  proximoFollowUpEm: timestamp("proximo_follow_up_em"),
-  descricao: text("descricao"),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_follow_ups_user").on(table.userId),
-  index("idx_follow_ups_client").on(table.clientId),
-  index("idx_follow_ups_numero").on(table.numero),
-  index("idx_follow_ups_executado").on(table.executadoEm),
-]);
+export const followUps = pgTable(
+  "follow_ups",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    numero: integer("numero").notNull(), // 1, 2, 3 follow-up
+    diasSinceLastContact: integer("dias_since_last_contact").notNull(),
+    resultado: varchar("resultado", { length: 50 }), // "resposta", "sem_resposta", "recusou", "converteu"
+    executadoEm: timestamp("executado_em"),
+    proximoFollowUpEm: timestamp("proximo_follow_up_em"),
+    descricao: text("descricao"),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_follow_ups_user").on(table.userId),
+    index("idx_follow_ups_client").on(table.clientId),
+    index("idx_follow_ups_numero").on(table.numero),
+    index("idx_follow_ups_executado").on(table.executadoEm),
+  ]
+);
 
 export const insertFollowUpSchema = createInsertSchema(followUps).omit({
   id: true,
@@ -690,22 +912,32 @@ export type FollowUp = typeof followUps.$inferSelect;
 export type InsertFollowUp = z.infer<typeof insertFollowUpSchema>;
 
 // ==================== CLIENT SCORES ====================
-export const clientScores = pgTable("client_scores", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  scoreIA: integer("score_ia").default(0), // 0-100 from AI analysis
-  scoreContato: integer("score_contato").default(0), // Contact frequency
-  scoreEngajamento: integer("score_engajamento").default(0), // Engagement level
-  scorePotencial: integer("score_potencial").default(0), // Revenue potential
-  scoreTotal: integer("score_total").default(0), // Weighted total
-  ultimaAtualizacao: timestamp("ultima_atualizacao").defaultNow(),
-  proximaAtualizacao: timestamp("proxima_atualizacao"),
-}, (table) => [
-  index("idx_client_scores_user").on(table.userId),
-  index("idx_client_scores_client").on(table.clientId),
-  index("idx_client_scores_total").on(table.scoreTotal),
-]);
+export const clientScores = pgTable(
+  "client_scores",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    scoreIA: integer("score_ia").default(0), // 0-100 from AI analysis
+    scoreContato: integer("score_contato").default(0), // Contact frequency
+    scoreEngajamento: integer("score_engajamento").default(0), // Engagement level
+    scorePotencial: integer("score_potencial").default(0), // Revenue potential
+    scoreTotal: integer("score_total").default(0), // Weighted total
+    ultimaAtualizacao: timestamp("ultima_atualizacao").defaultNow(),
+    proximaAtualizacao: timestamp("proxima_atualizacao"),
+  },
+  (table) => [
+    index("idx_client_scores_user").on(table.userId),
+    index("idx_client_scores_client").on(table.clientId),
+    index("idx_client_scores_total").on(table.scoreTotal),
+  ]
+);
 
 export const insertClientScoreSchema = createInsertSchema(clientScores).omit({
   id: true,
@@ -717,13 +949,21 @@ export type InsertClientScore = z.infer<typeof insertClientScoreSchema>;
 
 // ==================== AUTOMATION CONFIGS ====================
 export const automationConfigs = pgTable("automation_configs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id")
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   jobType: varchar("job_type", { length: 50 }).notNull(), // follow_up, re_engagement, score_update, contract_reminder, etc
   ativo: boolean("ativo").default(true),
-  horarios: text("horarios").array().default(sql`ARRAY[]::text[]`), // ['08:00', '16:30']
+  horarios: text("horarios")
+    .array()
+    .default(sql`ARRAY[]::text[]`), // ['08:00', '16:30']
   timeout2h: boolean("timeout_2h").default(true),
   timeout4dias: boolean("timeout_4_dias").default(true),
-  diasSemana: text("dias_semana").array().default(sql`ARRAY['segunda', 'terca', 'quarta', 'quinta', 'sexta']::text[]`),
+  diasSemana: text("dias_semana")
+    .array()
+    .default(
+      sql`ARRAY['segunda', 'terca', 'quarta', 'quinta', 'sexta']::text[]`
+    ),
   // Estrutura: { dia_0: [...msgs], dia_1: [...msgs], ... }
   mensagensTemplates: jsonb("mensagens_templates").default(sql`'{}'::jsonb`),
   intervaloScheduler: integer("intervalo_scheduler").default(60), // segundos
@@ -736,164 +976,231 @@ export const automationConfigs = pgTable("automation_configs", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertAutomationConfigSchema = createInsertSchema(automationConfigs).omit({
+export const insertAutomationConfigSchema = createInsertSchema(
+  automationConfigs
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
 export type AutomationConfig = typeof automationConfigs.$inferSelect;
-export type InsertAutomationConfig = z.infer<typeof insertAutomationConfigSchema>;
+export type InsertAutomationConfig = z.infer<
+  typeof insertAutomationConfigSchema
+>;
 
 // ==================== E-COMMERCE PRODUCTS ====================
-export const ecommerceProducts = pgTable("ecommerce_products", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nome: text("nome").notNull(),
-  descricao: text("descricao"),
-  categoria: varchar("categoria", { length: 50 }).notNull(), // fibra, movel, tv, combo, office, fixo, aparelhos, internet-dedicada, pabx, locacao
-  operadora: varchar("operadora", { length: 10 }).notNull(), // V, C, T
-  velocidade: varchar("velocidade", { length: 50 }), // "500 Mbps", "1 Gbps"
-  franquia: varchar("franquia", { length: 50 }), // "50 GB", "Ilimitado"
-  preco: integer("preco").notNull(), // em centavos
-  precoInstalacao: integer("preco_instalacao").default(0),
-  fidelidade: integer("fidelidade").default(0), // meses
-  beneficios: text("beneficios").array().default(sql`ARRAY[]::text[]`),
-  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull().default("ambos"), // PF, PJ, ambos
-  ativo: boolean("ativo").default(true),
-  destaque: boolean("destaque").default(false),
-  ordem: integer("ordem").default(0),
-  sla: text("sla"), // SLA para empresas
-  linhasInclusas: integer("linhas_inclusas").default(1),
-  valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0),
-  
-  // 🆕 Calculadora de múltiplas linhas (dinâmico)
-  permiteCalculadoraLinhas: boolean("permite_calculadora_linhas").default(false),
-  
-  // 🆕 Upsell dinâmico
-  textosUpsell: text("textos_upsell").array().default(sql`ARRAY[]::text[]`), // Múltiplos textos para randomizar (aceita variáveis: [nome_servico], [preco])
-  svasUpsell: text("svas_upsell").array().default(sql`ARRAY[]::text[]`), // IDs dos SVAs para oferecer
-  
-  // 🆕 Novos campos para recomendação inteligente
-  modalidade: varchar("modalidade", { length: 20 }).default("ambos"), // novo, portabilidade, ambos
-  usoRecomendado: text("uso_recomendado").array().default(sql`ARRAY[]::text[]`), // trabalho, streaming, jogos, basico, equipe
-  limiteDispositivosMin: integer("limite_dispositivos_min").default(1),
-  limiteDispositivosMax: integer("limite_dispositivos_max").default(999),
-  badgeTexto: text("badge_texto"), // "Melhor para você", "Ideal para sua empresa"
-  textoDecisao: text("texto_decisao"), // Texto explicativo do card inteligente
-  scoreBase: integer("score_base").default(50), // Score base para ordenação (0-100)
-  
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_products_categoria").on(table.categoria),
-  index("idx_ecommerce_products_operadora").on(table.operadora),
-  index("idx_ecommerce_products_ativo").on(table.ativo),
-  index("idx_ecommerce_products_tipo_pessoa").on(table.tipoPessoa),
-  index("idx_ecommerce_products_modalidade").on(table.modalidade),
-]);
+export const ecommerceProducts = pgTable(
+  "ecommerce_products",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    nome: text("nome").notNull(),
+    descricao: text("descricao"),
+    categoria: varchar("categoria", { length: 50 }).notNull(), // fibra, movel, tv, combo, office, fixo, aparelhos, internet-dedicada, pabx, locacao
+    operadora: varchar("operadora", { length: 10 }).notNull(), // V, C, T
+    velocidade: varchar("velocidade", { length: 50 }), // "500 Mbps", "1 Gbps"
+    franquia: varchar("franquia", { length: 50 }), // "50 GB", "Ilimitado"
+    preco: integer("preco").notNull(), // em centavos
+    precoInstalacao: integer("preco_instalacao").default(0),
+    fidelidade: integer("fidelidade").default(0), // meses
+    beneficios: text("beneficios")
+      .array()
+      .default(sql`ARRAY[]::text[]`),
+    tipoPessoa: varchar("tipo_pessoa", { length: 10 })
+      .notNull()
+      .default("ambos"), // PF, PJ, ambos
+    ativo: boolean("ativo").default(true),
+    destaque: boolean("destaque").default(false),
+    ordem: integer("ordem").default(0),
+    sla: text("sla"), // SLA para empresas
+    linhasInclusas: integer("linhas_inclusas").default(1),
+    valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0),
 
-export const insertEcommerceProductSchema = createInsertSchema(ecommerceProducts).omit({
+    // 🆕 Calculadora de múltiplas linhas (dinâmico)
+    permiteCalculadoraLinhas: boolean("permite_calculadora_linhas").default(
+      false
+    ),
+
+    // 🆕 Upsell dinâmico
+    textosUpsell: text("textos_upsell")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // Múltiplos textos para randomizar (aceita variáveis: [nome_servico], [preco])
+    svasUpsell: text("svas_upsell")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // IDs dos SVAs para oferecer
+
+    // 🆕 Novos campos para recomendação inteligente
+    modalidade: varchar("modalidade", { length: 20 }).default("ambos"), // novo, portabilidade, ambos
+    usoRecomendado: text("uso_recomendado")
+      .array()
+      .default(sql`ARRAY[]::text[]`), // trabalho, streaming, jogos, basico, equipe
+    limiteDispositivosMin: integer("limite_dispositivos_min").default(1),
+    limiteDispositivosMax: integer("limite_dispositivos_max").default(999),
+    badgeTexto: text("badge_texto"), // "Melhor para você", "Ideal para sua empresa"
+    textoDecisao: text("texto_decisao"), // Texto explicativo do card inteligente
+    scoreBase: integer("score_base").default(50), // Score base para ordenação (0-100)
+
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_products_categoria").on(table.categoria),
+    index("idx_ecommerce_products_operadora").on(table.operadora),
+    index("idx_ecommerce_products_ativo").on(table.ativo),
+    index("idx_ecommerce_products_tipo_pessoa").on(table.tipoPessoa),
+    index("idx_ecommerce_products_modalidade").on(table.modalidade),
+  ]
+);
+
+export const insertEcommerceProductSchema = createInsertSchema(
+  ecommerceProducts
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
 export type EcommerceProduct = typeof ecommerceProducts.$inferSelect;
-export type InsertEcommerceProduct = z.infer<typeof insertEcommerceProductSchema>;
+export type InsertEcommerceProduct = z.infer<
+  typeof insertEcommerceProductSchema
+>;
 
 // E-commerce Categories Table
-export const ecommerceCategories = pgTable("ecommerce_categories", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nome: varchar("nome", { length: 50 }).notNull().unique(),
-  slug: varchar("slug", { length: 50 }).notNull().unique(),
-  descricao: text("descricao"),
-  icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
-  cor: varchar("cor", { length: 20 }).default("blue"), // Cor do tema
-  ativo: boolean("ativo").default(true),
-  ordem: integer("ordem").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_categories_ativo").on(table.ativo),
-  index("idx_ecommerce_categories_ordem").on(table.ordem),
-]);
+export const ecommerceCategories = pgTable(
+  "ecommerce_categories",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    nome: varchar("nome", { length: 50 }).notNull().unique(),
+    slug: varchar("slug", { length: 50 }).notNull().unique(),
+    descricao: text("descricao"),
+    icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
+    cor: varchar("cor", { length: 20 }).default("blue"), // Cor do tema
+    ativo: boolean("ativo").default(true),
+    ordem: integer("ordem").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_categories_ativo").on(table.ativo),
+    index("idx_ecommerce_categories_ordem").on(table.ordem),
+  ]
+);
 
-export const insertEcommerceCategorySchema = createInsertSchema(ecommerceCategories).omit({
+export const insertEcommerceCategorySchema = createInsertSchema(
+  ecommerceCategories
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
 export type EcommerceCategory = typeof ecommerceCategories.$inferSelect;
-export type InsertEcommerceCategory = z.infer<typeof insertEcommerceCategorySchema>;
+export type InsertEcommerceCategory = z.infer<
+  typeof insertEcommerceCategorySchema
+>;
 
 // ==================== E-COMMERCE ADICIONAIS (Produtos complementares) ====================
-export const ecommerceAdicionais = pgTable("ecommerce_adicionais", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  nome: text("nome").notNull(),
-  descricao: text("descricao"),
-  tipo: varchar("tipo", { length: 50 }).notNull(), // apps-ilimitados, gb-extra, aparelho, equipamento, licenca, servico
-  preco: integer("preco").notNull(), // em centavos (preço mensal ou único)
-  tipoCobranca: varchar("tipo_cobranca", { length: 20 }).default("mensal"), // mensal, unico
-  gbExtra: integer("gb_extra").default(0), // Quantidade de GB extras (se tipo = 'gb-extra')
-  categoria: varchar("categoria", { length: 50 }), // Para qual categoria de produto é compatível
-  operadora: varchar("operadora", { length: 10 }), // V, C, T (null = todas)
-  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).default("ambos"), // PF, PJ, ambos
-  ativo: boolean("ativo").default(true),
-  ordem: integer("ordem").default(0),
-  icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_adicionais_tipo").on(table.tipo),
-  index("idx_ecommerce_adicionais_categoria").on(table.categoria),
-  index("idx_ecommerce_adicionais_ativo").on(table.ativo),
-]);
+export const ecommerceAdicionais = pgTable(
+  "ecommerce_adicionais",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    nome: text("nome").notNull(),
+    descricao: text("descricao"),
+    tipo: varchar("tipo", { length: 50 }).notNull(), // apps-ilimitados, gb-extra, aparelho, equipamento, licenca, servico
+    preco: integer("preco").notNull(), // em centavos (preço mensal ou único)
+    tipoCobranca: varchar("tipo_cobranca", { length: 20 }).default("mensal"), // mensal, unico
+    gbExtra: integer("gb_extra").default(0), // Quantidade de GB extras (se tipo = 'gb-extra')
+    categoria: varchar("categoria", { length: 50 }), // Para qual categoria de produto é compatível
+    operadora: varchar("operadora", { length: 10 }), // V, C, T (null = todas)
+    tipoPessoa: varchar("tipo_pessoa", { length: 10 }).default("ambos"), // PF, PJ, ambos
+    ativo: boolean("ativo").default(true),
+    ordem: integer("ordem").default(0),
+    icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_adicionais_tipo").on(table.tipo),
+    index("idx_ecommerce_adicionais_categoria").on(table.categoria),
+    index("idx_ecommerce_adicionais_ativo").on(table.ativo),
+  ]
+);
 
-export const insertEcommerceAdicionalSchema = createInsertSchema(ecommerceAdicionais).omit({
+export const insertEcommerceAdicionalSchema = createInsertSchema(
+  ecommerceAdicionais
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
 export type EcommerceAdicional = typeof ecommerceAdicionais.$inferSelect;
-export type InsertEcommerceAdicional = z.infer<typeof insertEcommerceAdicionalSchema>;
+export type InsertEcommerceAdicional = z.infer<
+  typeof insertEcommerceAdicionalSchema
+>;
 
 // ==================== E-COMMERCE PRODUCT ADICIONAIS (Relacionamento) ====================
-export const ecommerceProductAdicionais = pgTable("ecommerce_product_adicionais", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  productId: varchar("product_id").notNull().references(() => ecommerceProducts.id, { onDelete: "cascade" }),
-  adicionalId: varchar("adicional_id").notNull().references((): any => ecommerceAdicionais.id, { onDelete: "cascade" }),
-  recomendado: boolean("recomendado").default(false), // Se é recomendado para este produto
-  ordem: integer("ordem").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_product_adicionais_product").on(table.productId),
-  index("idx_product_adicionais_adicional").on(table.adicionalId),
-]);
+export const ecommerceProductAdicionais = pgTable(
+  "ecommerce_product_adicionais",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    productId: varchar("product_id")
+      .notNull()
+      .references(() => ecommerceProducts.id, { onDelete: "cascade" }),
+    adicionalId: varchar("adicional_id")
+      .notNull()
+      .references((): any => ecommerceAdicionais.id, { onDelete: "cascade" }),
+    recomendado: boolean("recomendado").default(false), // Se é recomendado para este produto
+    ordem: integer("ordem").default(0),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_product_adicionais_product").on(table.productId),
+    index("idx_product_adicionais_adicional").on(table.adicionalId),
+  ]
+);
 
-export const insertEcommerceProductAdicionalSchema = createInsertSchema(ecommerceProductAdicionais).omit({
+export const insertEcommerceProductAdicionalSchema = createInsertSchema(
+  ecommerceProductAdicionais
+).omit({
   id: true,
   createdAt: true,
 });
 
-export type EcommerceProductAdicional = typeof ecommerceProductAdicionais.$inferSelect;
-export type InsertEcommerceProductAdicional = z.infer<typeof insertEcommerceProductAdicionalSchema>;
+export type EcommerceProductAdicional =
+  typeof ecommerceProductAdicionais.$inferSelect;
+export type InsertEcommerceProductAdicional = z.infer<
+  typeof insertEcommerceProductAdicionalSchema
+>;
 
 // ==================== E-COMMERCE STAGES ====================
-export const ecommerceStages = pgTable("ecommerce_stages", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  titulo: text("titulo").notNull(),
-  descricao: text("descricao"),
-  ordem: integer("ordem").notNull().default(0),
-  cor: varchar("cor", { length: 20 }).default("slate"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_stages_ordem").on(table.ordem),
-]);
+export const ecommerceStages = pgTable(
+  "ecommerce_stages",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    titulo: text("titulo").notNull(),
+    descricao: text("descricao"),
+    ordem: integer("ordem").notNull().default(0),
+    cor: varchar("cor", { length: 20 }).default("slate"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [index("idx_ecommerce_stages_ordem").on(table.ordem)]
+);
 
-export const insertEcommerceStageSchema = createInsertSchema(ecommerceStages).omit({
+export const insertEcommerceStageSchema = createInsertSchema(
+  ecommerceStages
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -903,44 +1210,54 @@ export type EcommerceStage = typeof ecommerceStages.$inferSelect;
 export type InsertEcommerceStage = z.infer<typeof insertEcommerceStageSchema>;
 
 // ==================== E-COMMERCE ORDERS ====================
-export const ecommerceOrders = pgTable("ecommerce_orders", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
-  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull(), // PF, PJ
-  cpf: varchar("cpf", { length: 11 }),
-  cnpj: varchar("cnpj", { length: 14 }),
-  nomeCompleto: text("nome_completo"),
-  razaoSocial: text("razao_social"),
-  email: varchar("email", { length: 255 }).notNull(),
-  telefone: varchar("telefone", { length: 20 }).notNull(),
-  cep: varchar("cep", { length: 8 }),
-  endereco: text("endereco"),
-  numero: varchar("numero", { length: 20 }),
-  complemento: varchar("complemento", { length: 100 }),
-  bairro: varchar("bairro", { length: 100 }),
-  cidade: varchar("cidade", { length: 100 }),
-  uf: varchar("uf", { length: 2 }),
-  etapa: varchar("etapa", { length: 100 }).notNull().default("novo_pedido"),
-  subtotal: integer("subtotal").notNull().default(0), // em centavos
-  total: integer("total").notNull().default(0), // em centavos
-  taxaInstalacao: integer("taxa_instalacao").notNull().default(0), // em centavos
-  economia: integer("economia").notNull().default(0), // em centavos
-  observacoes: text("observacoes"),
-  dadosAdicionais: jsonb("dados_adicionais").default(sql`'{}'::jsonb`), // campos extras conforme plano
-  termosAceitos: boolean("termos_aceitos").default(false),
-  metodoPagamento: varchar("metodo_pagamento", { length: 50 }),
-  responsavelId: varchar("responsavel_id").references(() => users.id),
-  lastViewedAt: timestamp("last_viewed_at"), // Última visualização pelo cliente
-  lastViewedByAdminAt: timestamp("last_viewed_by_admin_at"), // Última visualização por qualquer admin
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_orders_client").on(table.clientId),
-  index("idx_ecommerce_orders_etapa").on(table.etapa),
-  index("idx_ecommerce_orders_created").on(table.createdAt),
-]);
+export const ecommerceOrders = pgTable(
+  "ecommerce_orders",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    clientId: varchar("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull(), // PF, PJ
+    cpf: varchar("cpf", { length: 11 }),
+    cnpj: varchar("cnpj", { length: 14 }),
+    nomeCompleto: text("nome_completo"),
+    razaoSocial: text("razao_social"),
+    email: varchar("email", { length: 255 }).notNull(),
+    telefone: varchar("telefone", { length: 20 }).notNull(),
+    cep: varchar("cep", { length: 8 }),
+    endereco: text("endereco"),
+    numero: varchar("numero", { length: 20 }),
+    complemento: varchar("complemento", { length: 100 }),
+    bairro: varchar("bairro", { length: 100 }),
+    cidade: varchar("cidade", { length: 100 }),
+    uf: varchar("uf", { length: 2 }),
+    etapa: varchar("etapa", { length: 100 }).notNull().default("novo_pedido"),
+    subtotal: integer("subtotal").notNull().default(0), // em centavos
+    total: integer("total").notNull().default(0), // em centavos
+    taxaInstalacao: integer("taxa_instalacao").notNull().default(0), // em centavos
+    economia: integer("economia").notNull().default(0), // em centavos
+    observacoes: text("observacoes"),
+    dadosAdicionais: jsonb("dados_adicionais").default(sql`'{}'::jsonb`), // campos extras conforme plano
+    termosAceitos: boolean("termos_aceitos").default(false),
+    metodoPagamento: varchar("metodo_pagamento", { length: 50 }),
+    responsavelId: varchar("responsavel_id").references(() => users.id),
+    lastViewedAt: timestamp("last_viewed_at"), // Última visualização pelo cliente
+    lastViewedByAdminAt: timestamp("last_viewed_by_admin_at"), // Última visualização por qualquer admin
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_orders_client").on(table.clientId),
+    index("idx_ecommerce_orders_etapa").on(table.etapa),
+    index("idx_ecommerce_orders_created").on(table.createdAt),
+  ]
+);
 
-export const insertEcommerceOrderSchema = createInsertSchema(ecommerceOrders).omit({
+export const insertEcommerceOrderSchema = createInsertSchema(
+  ecommerceOrders
+).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -950,53 +1267,78 @@ export type EcommerceOrder = typeof ecommerceOrders.$inferSelect;
 export type InsertEcommerceOrder = z.infer<typeof insertEcommerceOrderSchema>;
 
 // ==================== E-COMMERCE ORDER ITEMS ====================
-export const ecommerceOrderItems = pgTable("ecommerce_order_items", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
-  productId: varchar("product_id").notNull().references(() => ecommerceProducts.id),
-  // Dados do produto salvos no momento do pedido (snapshot)
-  productNome: varchar("product_nome", { length: 255 }),
-  productDescricao: text("product_descricao"),
-  productCategoria: varchar("product_categoria", { length: 100 }),
-  productOperadora: varchar("product_operadora", { length: 100 }),
-  quantidade: integer("quantidade").notNull().default(1),
-  linhasAdicionais: integer("linhas_adicionais").default(0), // para PJ
-  precoUnitario: integer("preco_unitario").notNull(), // em centavos
-  valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0), // em centavos
-  subtotal: integer("subtotal").notNull(), // em centavos
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_order_items_order").on(table.orderId),
-  index("idx_ecommerce_order_items_product").on(table.productId),
-]);
+export const ecommerceOrderItems = pgTable(
+  "ecommerce_order_items",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    orderId: varchar("order_id")
+      .notNull()
+      .references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+    productId: varchar("product_id")
+      .notNull()
+      .references(() => ecommerceProducts.id),
+    // Dados do produto salvos no momento do pedido (snapshot)
+    productNome: varchar("product_nome", { length: 255 }),
+    productDescricao: text("product_descricao"),
+    productCategoria: varchar("product_categoria", { length: 100 }),
+    productOperadora: varchar("product_operadora", { length: 100 }),
+    quantidade: integer("quantidade").notNull().default(1),
+    linhasAdicionais: integer("linhas_adicionais").default(0), // para PJ
+    precoUnitario: integer("preco_unitario").notNull(), // em centavos
+    valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0), // em centavos
+    subtotal: integer("subtotal").notNull(), // em centavos
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_order_items_order").on(table.orderId),
+    index("idx_ecommerce_order_items_product").on(table.productId),
+  ]
+);
 
-export const insertEcommerceOrderItemSchema = createInsertSchema(ecommerceOrderItems).omit({
+export const insertEcommerceOrderItemSchema = createInsertSchema(
+  ecommerceOrderItems
+).omit({
   id: true,
   createdAt: true,
 });
 
 export type EcommerceOrderItem = typeof ecommerceOrderItems.$inferSelect;
-export type InsertEcommerceOrderItem = z.infer<typeof insertEcommerceOrderItemSchema>;
+export type InsertEcommerceOrderItem = z.infer<
+  typeof insertEcommerceOrderItemSchema
+>;
 
 // ==================== E-COMMERCE ORDER DOCUMENTS ====================
-export const ecommerceOrderDocuments = pgTable("ecommerce_order_documents", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
-  tipo: varchar("tipo", { length: 50 }).notNull(), // rg, cpf, contrato_social, comprovante_endereco, outros
-  fileName: text("file_name").notNull(),
-  filePath: text("file_path").notNull(),
-  fileSize: integer("file_size"),
-  mimeType: varchar("mime_type", { length: 100 }),
-  uploadedBy: varchar("uploaded_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => [
-  index("idx_ecommerce_order_documents_order").on(table.orderId),
-]);
+export const ecommerceOrderDocuments = pgTable(
+  "ecommerce_order_documents",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    orderId: varchar("order_id")
+      .notNull()
+      .references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+    tipo: varchar("tipo", { length: 50 }).notNull(), // rg, cpf, contrato_social, comprovante_endereco, outros
+    fileName: text("file_name").notNull(),
+    filePath: text("file_path").notNull(),
+    fileSize: integer("file_size"),
+    mimeType: varchar("mime_type", { length: 100 }),
+    uploadedBy: varchar("uploaded_by").references(() => users.id),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [index("idx_ecommerce_order_documents_order").on(table.orderId)]
+);
 
-export const insertEcommerceOrderDocumentSchema = createInsertSchema(ecommerceOrderDocuments).omit({
+export const insertEcommerceOrderDocumentSchema = createInsertSchema(
+  ecommerceOrderDocuments
+).omit({
   id: true,
   createdAt: true,
 });
 
-export type EcommerceOrderDocument = typeof ecommerceOrderDocuments.$inferSelect;
-export type InsertEcommerceOrderDocument = z.infer<typeof insertEcommerceOrderDocumentSchema>;
+export type EcommerceOrderDocument =
+  typeof ecommerceOrderDocuments.$inferSelect;
+export type InsertEcommerceOrderDocument = z.infer<
+  typeof insertEcommerceOrderDocumentSchema
+>;

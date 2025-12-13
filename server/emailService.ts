@@ -25,7 +25,9 @@ interface EmailStatusPedido {
   novoStatus: string;
 }
 
-export async function enviarEmailBoasVindas(data: EmailBoasVindas): Promise<boolean> {
+export async function enviarEmailBoasVindas(
+  data: EmailBoasVindas
+): Promise<boolean> {
   console.log("\n📧 [MOCK EMAIL] Boas-vindas");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`Para: ${data.email}`);
@@ -36,13 +38,19 @@ export async function enviarEmailBoasVindas(data: EmailBoasVindas): Promise<bool
   return true;
 }
 
-export async function enviarEmailPedidoRecebido(data: EmailPedidoRecebido): Promise<boolean> {
+export async function enviarEmailPedidoRecebido(
+  data: EmailPedidoRecebido
+): Promise<boolean> {
   console.log("\n📧 [MOCK EMAIL] Pedido Recebido");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`Para: ${data.email}`);
   console.log(`Nome: ${data.nome}`);
   console.log(`Pedido: #${data.pedidoId}`);
-  console.log(`Produtos: ${data.produtos.map(p => `${p.nome} (${p.quantidade}x)`).join(", ")}`);
+  console.log(
+    `Produtos: ${data.produtos
+      .map((p) => `${p.nome} (${p.quantidade}x)`)
+      .join(", ")}`
+  );
   if (data.senhaAcesso) {
     console.log(`\n🔑 CREDENCIAIS DE ACESSO:`);
     console.log(`   Email: ${data.email}`);
@@ -53,7 +61,9 @@ export async function enviarEmailPedidoRecebido(data: EmailPedidoRecebido): Prom
   return true;
 }
 
-export async function enviarEmailStatusPedido(data: EmailStatusPedido): Promise<boolean> {
+export async function enviarEmailStatusPedido(
+  data: EmailStatusPedido
+): Promise<boolean> {
   console.log("\n📧 [MOCK EMAIL] Status Atualizado");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log(`Para: ${data.email}`);

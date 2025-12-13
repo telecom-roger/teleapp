@@ -19,13 +19,13 @@ export default function CheckoutEndereco() {
     cidade: "",
     estado: "",
   });
-  
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tipo = params.get("tipo") as "PF" | "PJ";
     if (tipo) setTipoPessoa(tipo);
   }, []);
-  
+
   const buscarCepMutation = useMutation({
     mutationFn: async (cep: string) => {
       const response = await fetch(`/api/cep/${cep}`);
@@ -42,30 +42,28 @@ export default function CheckoutEndereco() {
       });
     },
   });
-  
+
   const buscarCep = () => {
     const cepLimpo = formData.cep.replace(/\D/g, "");
     if (cepLimpo.length === 8) {
       buscarCepMutation.mutate(cepLimpo);
     }
   };
-  
+
   const formatCEP = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+    return value.replace(/\D/g, "").replace(/(\d{5})(\d{1,3})$/, "$1-$2");
   };
-  
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem("checkout-endereco", JSON.stringify(formData));
     setLocation(`/ecommerce/checkout/documentos?tipo=${tipoPessoa}`);
   };
-  
+
   const voltar = () => {
     setLocation(`/ecommerce/checkout/dados?tipo=${tipoPessoa}`);
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
       <div className="max-w-2xl mx-auto">
@@ -73,7 +71,7 @@ export default function CheckoutEndereco() {
           <h1 className="text-3xl font-bold mb-2">Endereço de Instalação</h1>
           <p className="text-slate-600">Etapa 3 de 5 • Endereço</p>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Onde será instalado o serviço?</CardTitle>
@@ -87,27 +85,39 @@ export default function CheckoutEndereco() {
                     id="cep"
                     required
                     value={formData.cep}
-                    onChange={(e) => setFormData({ ...formData, cep: formatCEP(e.target.value) })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cep: formatCEP(e.target.value),
+                      })
+                    }
                     placeholder="00000-000"
                     maxLength={9}
                   />
-                  <Button type="button" variant="outline" onClick={buscarCep} disabled={buscarCepMutation.isPending}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={buscarCep}
+                    disabled={buscarCepMutation.isPending}
+                  >
                     <Search className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="logradouro">Logradouro</Label>
                 <Input
                   id="logradouro"
                   required
                   value={formData.logradouro}
-                  onChange={(e) => setFormData({ ...formData, logradouro: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, logradouro: e.target.value })
+                  }
                   placeholder="Rua, Avenida..."
                 />
               </div>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-1">
                   <Label htmlFor="numero">Número</Label>
@@ -115,7 +125,9 @@ export default function CheckoutEndereco() {
                     id="numero"
                     required
                     value={formData.numero}
-                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, numero: e.target.value })
+                    }
                     placeholder="123"
                   />
                 </div>
@@ -124,23 +136,27 @@ export default function CheckoutEndereco() {
                   <Input
                     id="complemento"
                     value={formData.complemento}
-                    onChange={(e) => setFormData({ ...formData, complemento: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, complemento: e.target.value })
+                    }
                     placeholder="Apto, Bloco..."
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="bairro">Bairro</Label>
                 <Input
                   id="bairro"
                   required
                   value={formData.bairro}
-                  onChange={(e) => setFormData({ ...formData, bairro: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bairro: e.target.value })
+                  }
                   placeholder="Centro"
                 />
               </div>
-              
+
               <div className="grid grid-cols-3 gap-3">
                 <div className="col-span-2">
                   <Label htmlFor="cidade">Cidade</Label>
@@ -148,7 +164,9 @@ export default function CheckoutEndereco() {
                     id="cidade"
                     required
                     value={formData.cidade}
-                    onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, cidade: e.target.value })
+                    }
                     placeholder="São Paulo"
                   />
                 </div>
@@ -158,19 +176,29 @@ export default function CheckoutEndereco() {
                     id="estado"
                     required
                     value={formData.estado}
-                    onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, estado: e.target.value })
+                    }
                     placeholder="SP"
                     maxLength={2}
                   />
                 </div>
               </div>
-              
+
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={voltar} className="flex-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={voltar}
+                  className="flex-1"
+                >
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Voltar
                 </Button>
-                <Button type="submit" className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500"
+                >
                   Continuar
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>

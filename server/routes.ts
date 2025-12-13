@@ -774,11 +774,9 @@ export async function registerRoutes(
       }
       // Se tiver permissão "visualizar", não pode editar
       if (access.permissao === "visualizar") {
-        return res
-          .status(403)
-          .json({
-            error: "Você só pode visualizar este cliente, não pode editá-lo",
-          });
+        return res.status(403).json({
+          error: "Você só pode visualizar este cliente, não pode editá-lo",
+        });
       }
 
       const validatedData = insertClientSchema.partial().parse(req.body);
@@ -847,10 +845,10 @@ export async function registerRoutes(
       // Verificar permissão: apenas admin OU criador do cliente pode deletar
       const isAdmin = user.role === "admin";
       const isOwner = client.createdBy === user.id;
-      
+
       if (!isAdmin && !isOwner) {
-        return res.status(403).json({ 
-          error: "Você não tem permissão para deletar este cliente" 
+        return res.status(403).json({
+          error: "Você não tem permissão para deletar este cliente",
         });
       }
 
@@ -968,12 +966,10 @@ export async function registerRoutes(
         }
         // Se tiver permissão "visualizar", não pode criar oportunidade
         if (access.permissao === "visualizar") {
-          return res
-            .status(403)
-            .json({
-              error:
-                "Você só pode visualizar este cliente, não pode criar oportunidades",
-            });
+          return res.status(403).json({
+            error:
+              "Você só pode visualizar este cliente, não pode criar oportunidades",
+          });
         }
       }
 
@@ -1064,12 +1060,10 @@ export async function registerRoutes(
           }
           // Se tiver permissão "visualizar", não pode mover oportunidade
           if (access.permissao === "visualizar") {
-            return res
-              .status(403)
-              .json({
-                error:
-                  "Você só pode visualizar este cliente, não pode mover oportunidades",
-              });
+            return res.status(403).json({
+              error:
+                "Você só pode visualizar este cliente, não pode mover oportunidades",
+            });
           }
         }
 
@@ -1260,11 +1254,9 @@ export async function registerRoutes(
         }
         // Se tiver permissão "visualizar", não pode editar oportunidade
         if (access.permissao === "visualizar") {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode visualizar este cliente, não pode editá-lo",
-            });
+          return res.status(403).json({
+            error: "Você só pode visualizar este cliente, não pode editá-lo",
+          });
         }
       }
 
@@ -2843,12 +2835,10 @@ export async function registerRoutes(
         );
 
         if (!sessaoConectada) {
-          return res
-            .status(400)
-            .json({
-              error:
-                "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-            });
+          return res.status(400).json({
+            error:
+              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+          });
         }
 
         // Create campaign tracking ID
@@ -3228,12 +3218,10 @@ export async function registerRoutes(
         );
 
         if (!sessaoConectada) {
-          return res
-            .status(400)
-            .json({
-              error:
-                "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-            });
+          return res.status(400).json({
+            error:
+              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+          });
         }
 
         // Verify the session is actually alive
@@ -3535,12 +3523,10 @@ export async function registerRoutes(
           }
           // Se tiver permissão "visualizar", não pode enviar mensagens
           if (access.permissao === "visualizar") {
-            return res
-              .status(403)
-              .json({
-                error:
-                  "Você só pode visualizar este cliente, não pode enviar mensagens",
-              });
+            return res.status(403).json({
+              error:
+                "Você só pode visualizar este cliente, não pode enviar mensagens",
+            });
           }
         }
 
@@ -3968,12 +3954,10 @@ export async function registerRoutes(
       // ✅ INDIVIDUAL: Busca a sessão do próprio usuário
       const session = await storage.getConnectedSessionByUserId(user.id);
       if (!session) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-          });
+        return res.status(400).json({
+          error:
+            "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+        });
       }
 
       // Get or create conversation with target client
@@ -5073,11 +5057,9 @@ export async function registerRoutes(
         const client = await storage.getClientById(clientId);
         if (!client) return res.status(404).json({ error: "Client not found" });
         if (client.createdBy !== user.id) {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode compartilhar seus próprios clientes",
-            });
+          return res.status(403).json({
+            error: "Você só pode compartilhar seus próprios clientes",
+          });
         }
 
         const sharing = await storage.shareClientWithUser({
@@ -5132,11 +5114,9 @@ export async function registerRoutes(
         const client = await storage.getClientById(clientId);
         if (!client) return res.status(404).json({ error: "Client not found" });
         if (client.createdBy !== user.id) {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode desfazer compartilhamento dos seus clientes",
-            });
+          return res.status(403).json({
+            error: "Você só pode desfazer compartilhamento dos seus clientes",
+          });
         }
 
         await storage.unshareClientWithUser(clientId, sharedWithUserId);
@@ -5263,12 +5243,10 @@ export async function registerRoutes(
         console.warn(
           `📤 UNSHARE-BULK: Usuário ${user.id} não tem propriedade de nenhum cliente`
         );
-        return res
-          .status(403)
-          .json({
-            error:
-              "Você só pode remover compartilhamento dos seus próprios clientes",
-          });
+        return res.status(403).json({
+          error:
+            "Você só pode remover compartilhamento dos seus próprios clientes",
+        });
       }
 
       // Delete all sharings for owned clients only
@@ -5347,8 +5325,8 @@ export async function registerRoutes(
         })
         .from(users)
         .where(sql`${users.role} IN ('admin', 'agent', 'user')`);
-      
-      res.json(allUsers.map(u => ({ id: u.id, nome: u.nome || u.id })));
+
+      res.json(allUsers.map((u) => ({ id: u.id, nome: u.nome || u.id })));
     } catch (error: any) {
       console.error("Error fetching agents list:", error);
       res.status(500).json({ error: error.message || "Internal server error" });
@@ -5356,11 +5334,11 @@ export async function registerRoutes(
   });
 
   // ==================== NOTIFICATIONS ROUTES ====================
-  
+
   // SSE endpoint for real-time notifications
   app.get("/api/notifications/sse", isAuthenticated, (req, res) => {
     const user = req.user as any;
-    
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -5370,7 +5348,7 @@ export async function registerRoutes(
     // Add connection
     import("./notificationService.js").then(({ addConnection }) => {
       addConnection(user.id, res);
-      
+
       // Send initial connection message
       res.write(`data: ${JSON.stringify({ type: "connected" })}\n\n`);
     });
