@@ -8,6 +8,20 @@
       "when": 1764927254403,
       "tag": "0000_bitter_blink",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765579316977,
+      "tag": "0001_pretty_rhino",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765623787838,
+      "tag": "0002_bitter_zarek",
+      "breakpoints": true
     }
   ]
 }

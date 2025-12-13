@@ -14,6 +14,10 @@ import {
   Tag,
   Lightbulb,
   Layout,
+  ShoppingCart,
+  Package,
+  Folder,
+  LayoutGrid,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -128,6 +132,26 @@ const adminItems = [
     title: "Templates",
     url: "/admin/templates",
     icon: Layout,
+  },
+  {
+    title: "Listagem de Pedidos",
+    url: "/admin/ecommerce-listagem",
+    icon: ShoppingCart,
+  },
+  {
+    title: "Kanban de Pedidos",
+    url: "/admin/ecommerce-pedidos",
+    icon: LayoutGrid,
+  },
+  {
+    title: "Produtos E-commerce",
+    url: "/admin/ecommerce-produtos",
+    icon: Package,
+  },
+  {
+    title: "Categorias E-commerce",
+    url: "/admin/ecommerce-categorias",
+    icon: Folder,
   },
   {
     title: "Automação",

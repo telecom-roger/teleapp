@@ -1,6 +1,11 @@
 import type { Express, Request, Response } from "express";
 import type { Server } from "http";
 import { z } from "zod";
+import ecommerceAuthRoutes from "./ecommerceAuthRoutes";
+import ecommerceCustomerRoutes from "./ecommerceCustomerRoutes";
+import ecommerceAdminRoutes from "./ecommerceAdminRoutes";
+import ecommerceManagementRoutes from "./ecommerceManagementRoutes";
+import ecommercePublicRoutes from "./ecommercePublicRoutes";
 import {
   eq,
   and,
@@ -53,6 +58,7 @@ import {
 } from "./testAutomation";
 import { checkPropostaEnviadaTimeouts } from "./automationService";
 import { analyzeClientMessage, validateOpportunityCreation } from "./aiService";
+import { registerEcommerceRoutes } from "./ecommerceRoutes";
 
 // ======================== CONSTANTES DE ETAPAS (AUTOMAÇÃO) ========================
 // 🔥 REGRAS CRÍTICAS DE MOVIMENTO DA IA:
@@ -145,6 +151,24 @@ export async function registerRoutes(
   // ==================== SCHEDULER: CAMPANHAS AGENDADAS ====================
   // MOVED TO BACKGROUND - Initialized with delay to avoid blocking health checks
   // See startCampaignScheduler() function below
+
+  // ==================== E-COMMERCE ROUTES ====================
+  registerEcommerceRoutes(app);
+
+  // ==================== E-COMMERCE PUBLIC API (CATEGORIES & PRODUCTS) ====================
+  app.use("/api/ecommerce/public", ecommercePublicRoutes);
+
+  // ==================== E-COMMERCE AUTH ROUTES (PUBLIC) ====================
+  app.use("/api/ecommerce/auth", ecommerceAuthRoutes);
+
+  // ==================== E-COMMERCE CUSTOMER PANEL ROUTES ====================
+  app.use("/api/ecommerce/customer", ecommerceCustomerRoutes);
+
+  // ==================== E-COMMERCE ADMIN ROUTES ====================
+  app.use("/api/admin/ecommerce", ecommerceAdminRoutes);
+
+  // ==================== E-COMMERCE MANAGEMENT ROUTES (CATEGORIES & PRODUCTS) ====================
+  app.use("/api/admin/ecommerce/manage", ecommerceManagementRoutes);
 
   // ==================== AUTH ROUTES ====================
   app.get("/api/auth/user", isAuthenticated, async (req, res) => {
@@ -814,16 +838,27 @@ export async function registerRoutes(
 
   app.delete("/api/clients/:id", isAuthenticated, async (req, res) => {
     try {
+      const user = req.user as any;
       const client = await storage.getClientById(req.params.id);
       if (!client) {
         return res.status(404).json({ error: "Client not found" });
+      }
+
+      // Verificar permissão: apenas admin OU criador do cliente pode deletar
+      const isAdmin = user.role === "admin";
+      const isOwner = client.createdBy === user.id;
+      
+      if (!isAdmin && !isOwner) {
+        return res.status(403).json({ 
+          error: "Você não tem permissão para deletar este cliente" 
+        });
       }
 
       await storage.deleteClient(req.params.id);
 
       // Create audit log
       await storage.createAuditLog({
-        userId: (req.user as any).id,
+        userId: user.id,
         acao: "excluir",
         entidade: "client",
         entidadeId: req.params.id,
@@ -5301,7 +5336,51 @@ export async function registerRoutes(
     }
   });
 
+  // Get agents list (for assignment)
+  app.get("/api/users/agents", isAuthenticated, async (req, res) => {
+    try {
+      const allUsers = await db
+        .select({
+          id: users.id,
+          nome: users.firstName,
+          role: users.role,
+        })
+        .from(users)
+        .where(sql`${users.role} IN ('admin', 'agent', 'user')`);
+      
+      res.json(allUsers.map(u => ({ id: u.id, nome: u.nome || u.id })));
+    } catch (error: any) {
+      console.error("Error fetching agents list:", error);
+      res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  });
+
   // ==================== NOTIFICATIONS ROUTES ====================
+  
+  // SSE endpoint for real-time notifications
+  app.get("/api/notifications/sse", isAuthenticated, (req, res) => {
+    const user = req.user as any;
+    
+    // Set SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no"); // Disable nginx buffering
+
+    // Add connection
+    import("./notificationService.js").then(({ addConnection }) => {
+      addConnection(user.id, res);
+      
+      // Send initial connection message
+      res.write(`data: ${JSON.stringify({ type: "connected" })}\n\n`);
+    });
+
+    // Cleanup on disconnect
+    req.on("close", () => {
+      res.end();
+    });
+  });
+
   app.get("/api/notifications", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;

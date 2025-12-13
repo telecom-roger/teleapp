@@ -27,15 +27,16 @@ export const sessions = pgTable(
 );
 
 // ==================== USERS ====================
-export const users = pgTable("users", {
+export const users: any = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique().notNull(),
   passwordHash: varchar("password_hash").notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { length: 20 }).notNull().default("agent"), // admin, manager, agent
+  role: varchar("role", { length: 20 }).notNull().default("agent"), // admin, agent, customer
   active: boolean("active").notNull().default(true),
+  clientId: varchar("client_id").references((): any => clients.id, { onDelete: "set null" }), // Link para cliente (quando role=customer)
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -44,7 +45,7 @@ export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
 
 // ==================== CLIENTS ====================
-export const clients = pgTable("clients", {
+export const clients: any = pgTable("clients", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   nome: text("nome").notNull(),
   cnpj: varchar("cnpj", { length: 14 }),
@@ -67,9 +68,11 @@ export const clients = pgTable("clients", {
   dataUltimoPedido: varchar("data_ultimo_pedido", { length: 20 }),
   observacoes: text("observacoes"),
   tags: text("tags").array().default(sql`ARRAY[]::text[]`),
+  origin: varchar("origin", { length: 20 }).default("system"), // system, ecommerce, both
+  type: varchar("type", { length: 2 }), // PF, PJ
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  createdBy: varchar("created_by").references(() => users.id),
+  createdBy: varchar("created_by").references((): any => users.id),
 });
 
 export const insertClientSchema = createInsertSchema(clients)
@@ -741,3 +744,259 @@ export const insertAutomationConfigSchema = createInsertSchema(automationConfigs
 
 export type AutomationConfig = typeof automationConfigs.$inferSelect;
 export type InsertAutomationConfig = z.infer<typeof insertAutomationConfigSchema>;
+
+// ==================== E-COMMERCE PRODUCTS ====================
+export const ecommerceProducts = pgTable("ecommerce_products", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nome: text("nome").notNull(),
+  descricao: text("descricao"),
+  categoria: varchar("categoria", { length: 50 }).notNull(), // fibra, movel, tv, combo, office, fixo, aparelhos, internet-dedicada, pabx, locacao
+  operadora: varchar("operadora", { length: 10 }).notNull(), // V, C, T
+  velocidade: varchar("velocidade", { length: 50 }), // "500 Mbps", "1 Gbps"
+  franquia: varchar("franquia", { length: 50 }), // "50 GB", "Ilimitado"
+  preco: integer("preco").notNull(), // em centavos
+  precoInstalacao: integer("preco_instalacao").default(0),
+  fidelidade: integer("fidelidade").default(0), // meses
+  beneficios: text("beneficios").array().default(sql`ARRAY[]::text[]`),
+  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull().default("ambos"), // PF, PJ, ambos
+  ativo: boolean("ativo").default(true),
+  destaque: boolean("destaque").default(false),
+  ordem: integer("ordem").default(0),
+  sla: text("sla"), // SLA para empresas
+  linhasInclusas: integer("linhas_inclusas").default(1),
+  valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0),
+  
+  // 🆕 Calculadora de múltiplas linhas (dinâmico)
+  permiteCalculadoraLinhas: boolean("permite_calculadora_linhas").default(false),
+  
+  // 🆕 Upsell dinâmico
+  textosUpsell: text("textos_upsell").array().default(sql`ARRAY[]::text[]`), // Múltiplos textos para randomizar (aceita variáveis: [nome_servico], [preco])
+  svasUpsell: text("svas_upsell").array().default(sql`ARRAY[]::text[]`), // IDs dos SVAs para oferecer
+  
+  // 🆕 Novos campos para recomendação inteligente
+  modalidade: varchar("modalidade", { length: 20 }).default("ambos"), // novo, portabilidade, ambos
+  usoRecomendado: text("uso_recomendado").array().default(sql`ARRAY[]::text[]`), // trabalho, streaming, jogos, basico, equipe
+  limiteDispositivosMin: integer("limite_dispositivos_min").default(1),
+  limiteDispositivosMax: integer("limite_dispositivos_max").default(999),
+  badgeTexto: text("badge_texto"), // "Melhor para você", "Ideal para sua empresa"
+  textoDecisao: text("texto_decisao"), // Texto explicativo do card inteligente
+  scoreBase: integer("score_base").default(50), // Score base para ordenação (0-100)
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_products_categoria").on(table.categoria),
+  index("idx_ecommerce_products_operadora").on(table.operadora),
+  index("idx_ecommerce_products_ativo").on(table.ativo),
+  index("idx_ecommerce_products_tipo_pessoa").on(table.tipoPessoa),
+  index("idx_ecommerce_products_modalidade").on(table.modalidade),
+]);
+
+export const insertEcommerceProductSchema = createInsertSchema(ecommerceProducts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceProduct = typeof ecommerceProducts.$inferSelect;
+export type InsertEcommerceProduct = z.infer<typeof insertEcommerceProductSchema>;
+
+// E-commerce Categories Table
+export const ecommerceCategories = pgTable("ecommerce_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nome: varchar("nome", { length: 50 }).notNull().unique(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  descricao: text("descricao"),
+  icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
+  cor: varchar("cor", { length: 20 }).default("blue"), // Cor do tema
+  ativo: boolean("ativo").default(true),
+  ordem: integer("ordem").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_categories_ativo").on(table.ativo),
+  index("idx_ecommerce_categories_ordem").on(table.ordem),
+]);
+
+export const insertEcommerceCategorySchema = createInsertSchema(ecommerceCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceCategory = typeof ecommerceCategories.$inferSelect;
+export type InsertEcommerceCategory = z.infer<typeof insertEcommerceCategorySchema>;
+
+// ==================== E-COMMERCE ADICIONAIS (Produtos complementares) ====================
+export const ecommerceAdicionais = pgTable("ecommerce_adicionais", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  nome: text("nome").notNull(),
+  descricao: text("descricao"),
+  tipo: varchar("tipo", { length: 50 }).notNull(), // apps-ilimitados, gb-extra, aparelho, equipamento, licenca, servico
+  preco: integer("preco").notNull(), // em centavos (preço mensal ou único)
+  tipoCobranca: varchar("tipo_cobranca", { length: 20 }).default("mensal"), // mensal, unico
+  gbExtra: integer("gb_extra").default(0), // Quantidade de GB extras (se tipo = 'gb-extra')
+  categoria: varchar("categoria", { length: 50 }), // Para qual categoria de produto é compatível
+  operadora: varchar("operadora", { length: 10 }), // V, C, T (null = todas)
+  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).default("ambos"), // PF, PJ, ambos
+  ativo: boolean("ativo").default(true),
+  ordem: integer("ordem").default(0),
+  icone: varchar("icone", { length: 50 }), // Nome do ícone lucide-react
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_adicionais_tipo").on(table.tipo),
+  index("idx_ecommerce_adicionais_categoria").on(table.categoria),
+  index("idx_ecommerce_adicionais_ativo").on(table.ativo),
+]);
+
+export const insertEcommerceAdicionalSchema = createInsertSchema(ecommerceAdicionais).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceAdicional = typeof ecommerceAdicionais.$inferSelect;
+export type InsertEcommerceAdicional = z.infer<typeof insertEcommerceAdicionalSchema>;
+
+// ==================== E-COMMERCE PRODUCT ADICIONAIS (Relacionamento) ====================
+export const ecommerceProductAdicionais = pgTable("ecommerce_product_adicionais", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: varchar("product_id").notNull().references(() => ecommerceProducts.id, { onDelete: "cascade" }),
+  adicionalId: varchar("adicional_id").notNull().references((): any => ecommerceAdicionais.id, { onDelete: "cascade" }),
+  recomendado: boolean("recomendado").default(false), // Se é recomendado para este produto
+  ordem: integer("ordem").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_product_adicionais_product").on(table.productId),
+  index("idx_product_adicionais_adicional").on(table.adicionalId),
+]);
+
+export const insertEcommerceProductAdicionalSchema = createInsertSchema(ecommerceProductAdicionais).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EcommerceProductAdicional = typeof ecommerceProductAdicionais.$inferSelect;
+export type InsertEcommerceProductAdicional = z.infer<typeof insertEcommerceProductAdicionalSchema>;
+
+// ==================== E-COMMERCE STAGES ====================
+export const ecommerceStages = pgTable("ecommerce_stages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  titulo: text("titulo").notNull(),
+  descricao: text("descricao"),
+  ordem: integer("ordem").notNull().default(0),
+  cor: varchar("cor", { length: 20 }).default("slate"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_stages_ordem").on(table.ordem),
+]);
+
+export const insertEcommerceStageSchema = createInsertSchema(ecommerceStages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceStage = typeof ecommerceStages.$inferSelect;
+export type InsertEcommerceStage = z.infer<typeof insertEcommerceStageSchema>;
+
+// ==================== E-COMMERCE ORDERS ====================
+export const ecommerceOrders = pgTable("ecommerce_orders", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
+  tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull(), // PF, PJ
+  cpf: varchar("cpf", { length: 11 }),
+  cnpj: varchar("cnpj", { length: 14 }),
+  nomeCompleto: text("nome_completo"),
+  razaoSocial: text("razao_social"),
+  email: varchar("email", { length: 255 }).notNull(),
+  telefone: varchar("telefone", { length: 20 }).notNull(),
+  cep: varchar("cep", { length: 8 }),
+  endereco: text("endereco"),
+  numero: varchar("numero", { length: 20 }),
+  complemento: varchar("complemento", { length: 100 }),
+  bairro: varchar("bairro", { length: 100 }),
+  cidade: varchar("cidade", { length: 100 }),
+  uf: varchar("uf", { length: 2 }),
+  etapa: varchar("etapa", { length: 100 }).notNull().default("novo_pedido"),
+  subtotal: integer("subtotal").notNull().default(0), // em centavos
+  total: integer("total").notNull().default(0), // em centavos
+  taxaInstalacao: integer("taxa_instalacao").notNull().default(0), // em centavos
+  economia: integer("economia").notNull().default(0), // em centavos
+  observacoes: text("observacoes"),
+  dadosAdicionais: jsonb("dados_adicionais").default(sql`'{}'::jsonb`), // campos extras conforme plano
+  termosAceitos: boolean("termos_aceitos").default(false),
+  metodoPagamento: varchar("metodo_pagamento", { length: 50 }),
+  responsavelId: varchar("responsavel_id").references(() => users.id),
+  lastViewedAt: timestamp("last_viewed_at"), // Última visualização pelo cliente
+  lastViewedByAdminAt: timestamp("last_viewed_by_admin_at"), // Última visualização por qualquer admin
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_orders_client").on(table.clientId),
+  index("idx_ecommerce_orders_etapa").on(table.etapa),
+  index("idx_ecommerce_orders_created").on(table.createdAt),
+]);
+
+export const insertEcommerceOrderSchema = createInsertSchema(ecommerceOrders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceOrder = typeof ecommerceOrders.$inferSelect;
+export type InsertEcommerceOrder = z.infer<typeof insertEcommerceOrderSchema>;
+
+// ==================== E-COMMERCE ORDER ITEMS ====================
+export const ecommerceOrderItems = pgTable("ecommerce_order_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => ecommerceProducts.id),
+  // Dados do produto salvos no momento do pedido (snapshot)
+  productNome: varchar("product_nome", { length: 255 }),
+  productDescricao: text("product_descricao"),
+  productCategoria: varchar("product_categoria", { length: 100 }),
+  productOperadora: varchar("product_operadora", { length: 100 }),
+  quantidade: integer("quantidade").notNull().default(1),
+  linhasAdicionais: integer("linhas_adicionais").default(0), // para PJ
+  precoUnitario: integer("preco_unitario").notNull(), // em centavos
+  valorPorLinhaAdicional: integer("valor_por_linha_adicional").default(0), // em centavos
+  subtotal: integer("subtotal").notNull(), // em centavos
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_order_items_order").on(table.orderId),
+  index("idx_ecommerce_order_items_product").on(table.productId),
+]);
+
+export const insertEcommerceOrderItemSchema = createInsertSchema(ecommerceOrderItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EcommerceOrderItem = typeof ecommerceOrderItems.$inferSelect;
+export type InsertEcommerceOrderItem = z.infer<typeof insertEcommerceOrderItemSchema>;
+
+// ==================== E-COMMERCE ORDER DOCUMENTS ====================
+export const ecommerceOrderDocuments = pgTable("ecommerce_order_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+  tipo: varchar("tipo", { length: 50 }).notNull(), // rg, cpf, contrato_social, comprovante_endereco, outros
+  fileName: text("file_name").notNull(),
+  filePath: text("file_path").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type", { length: 100 }),
+  uploadedBy: varchar("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_order_documents_order").on(table.orderId),
+]);
+
+export const insertEcommerceOrderDocumentSchema = createInsertSchema(ecommerceOrderDocuments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EcommerceOrderDocument = typeof ecommerceOrderDocuments.$inferSelect;
+export type InsertEcommerceOrderDocument = z.infer<typeof insertEcommerceOrderDocumentSchema>;
