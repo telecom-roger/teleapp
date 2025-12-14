@@ -2,7 +2,17 @@ import { useCartStore } from "@/stores/cartStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { X, Plus, Minus, Copy, ShoppingCart } from "lucide-react";
+import {
+  X,
+  Plus,
+  Minus,
+  Copy,
+  ShoppingCart,
+  ChevronRight,
+  Wifi,
+  Smartphone,
+  Briefcase,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UpsellModal } from "./UpsellModal";
 import { useState, useEffect } from "react";
@@ -15,13 +25,21 @@ export function CartSidebar() {
     closeCart,
     removeItem,
     updateQuantity,
-    updateLinhas,
     duplicateItem,
     getTotal,
     getSubtotal,
     getItemCount,
     addItem,
   } = useCartStore();
+
+  const getCategoryIcon = (categoria: string | null) => {
+    if (!categoria) return Smartphone;
+    const cat = categoria.toLowerCase();
+    if (cat.includes("fibra") || cat.includes("link dedicado")) return Wifi;
+    if (cat.includes("móvel") || cat.includes("movel")) return Smartphone;
+    if (cat.includes("office") || cat.includes("365")) return Briefcase;
+    return Smartphone;
+  };
 
   const [upsellModalAberto, setUpsellModalAberto] = useState(false);
   const [svasParaOferecer, setSvasParaOferecer] = useState<any[]>([]);
@@ -111,30 +129,51 @@ export function CartSidebar() {
     <>
       {/* Overlay (mobile) */}
       <div
-        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
         onClick={closeCart}
       />
 
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed right-0 top-0 h-screen w-full lg:w-[360px] bg-background border-l shadow-2xl z-50 transform transition-transform duration-300 ease-out",
+          "fixed right-0 top-0 h-screen w-full lg:w-[420px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-out",
           "flex flex-col"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-lg">Resumo da Contratação</h3>
+        <div
+          className="flex items-center justify-between p-4"
+          style={{
+            borderBottom: "1px solid #E0E0E0",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <div>
+            <h3 className="font-black text-lg" style={{ color: "#111111" }}>
+              Resumo da Contratação
+            </h3>
+            <p className="text-sm" style={{ color: "#555555" }}>
+              {getItemCount()}{" "}
+              {getItemCount() === 1
+                ? "plano selecionado"
+                : "planos selecionados"}
+            </p>
           </div>
-          <Button variant="ghost" size="icon" onClick={closeCart}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={closeCart}
+            className="transition-colors"
+            style={{ color: "#555555" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#111111")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
+          >
             <X className="w-5 h-5" />
           </Button>
         </div>
 
         {/* Items List (scrollable) */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {items.map((item, index) => {
             const operadoraNames: Record<string, string> = {
               V: "VIVO",
@@ -142,50 +181,76 @@ export function CartSidebar() {
               T: "TIM",
             };
 
-            const operadoraColors = {
-              V: "bg-purple-100 text-purple-700 border-purple-200",
-              C: "bg-red-100 text-red-700 border-red-200",
-              T: "bg-blue-100 text-blue-700 border-blue-200",
-            };
-
-            const itemTotal =
-              item.product.preco * item.quantidade +
-              (item.linhasAdicionais || 0) *
-                (item.product.valorPorLinhaAdicional || 0);
+            const itemTotal = item.product.preco * item.quantidade;
 
             return (
-              <Card
+              <div
                 key={`${item.product.id}-${index}`}
-                className="p-3 space-y-2"
+                className="p-4 transition-all space-y-3"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E0E0E0",
+                  borderRadius: "12px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                }}
               >
                 {/* Product Header */}
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 text-xs font-medium rounded border",
-                          operadoraColors[
-                            item.product
-                              .operadora as keyof typeof operadoraColors
-                          ] || "bg-gray-100"
-                        )}
+                      {(() => {
+                        const Icon = getCategoryIcon(item.product.categoria);
+                        return (
+                          <Icon
+                            className="h-5 w-5 stroke-[1.5]"
+                            style={{ color: "#1E90FF" }}
+                          />
+                        );
+                      })()}
+                      <h4
+                        className="font-bold text-base"
+                        style={{ color: "#111111" }}
                       >
-                        {operadoraNames[item.product.operadora] ||
-                          item.product.operadora}
-                      </span>
+                        {item.product.nome}
+                      </h4>
                     </div>
-                    <h4 className="font-medium text-sm line-clamp-2">
-                      {item.product.nome}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {item.product.velocidade || item.product.franquia}
-                    </p>
+                    <div
+                      className="flex items-center gap-2 text-sm"
+                      style={{ color: "#555555" }}
+                    >
+                      {item.product.operadora && (
+                        <span className="font-semibold">
+                          {operadoraNames[item.product.operadora] ||
+                            item.product.operadora}
+                        </span>
+                      )}
+                      {item.product.categoria && (
+                        <>
+                          <span>•</span>
+                          <span>{item.product.categoria}</span>
+                        </>
+                      )}
+                    </div>
+                    {item.product.velocidade && (
+                      <p className="text-xs text-slate-500 mt-1">
+                        {item.product.velocidade}
+                      </p>
+                    )}
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                    className="h-8 w-8 transition-colors"
+                    style={{ color: "#555555" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#FF6B35";
+                      e.currentTarget.style.backgroundColor =
+                        "rgba(255,107,53,0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#555555";
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
                     onClick={() => removeItem(item.product.id)}
                   >
                     <X className="w-4 h-4" />
@@ -193,72 +258,117 @@ export function CartSidebar() {
                 </div>
 
                 {/* GB Info */}
-                {item.product.franquia &&
-                  (item.quantidade > 1 || (item.linhasAdicionais || 0) > 0) && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2">
-                      <div className="text-xs space-y-0.5">
-                        <div className="flex justify-between text-blue-700">
-                          <span className="font-medium">GB por linha:</span>
-                          <span className="font-semibold">
-                            {item.product.franquia}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-blue-900">
-                          <span className="font-bold">GB Total:</span>
-                          <span className="font-bold">
-                            {(() => {
-                              const totalLinhas =
-                                item.quantidade + (item.linhasAdicionais || 0);
-                              const gbMatch =
-                                item.product.franquia?.match(/(\d+)\s*GB/i);
-                              if (gbMatch) {
-                                const gbPorLinha = parseInt(gbMatch[1]);
-                                const gbTotal = gbPorLinha * totalLinhas;
-                                return item.product.franquia
-                                  .toLowerCase()
-                                  .includes("ilimitado")
-                                  ? "Ilimitado"
-                                  : `${gbTotal}GB`;
-                              }
+                {item.product.franquia && item.quantidade > 1 && (
+                  <div
+                    className="p-3"
+                    style={{
+                      backgroundColor: "#FAFAFA",
+                      border: "1px solid #1E90FF",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    <div className="text-xs space-y-1.5">
+                      <div
+                        className="flex justify-between"
+                        style={{ color: "#1E90FF" }}
+                      >
+                        <span className="font-medium">GB por linha:</span>
+                        <span className="font-semibold">
+                          {item.product.franquia}
+                        </span>
+                      </div>
+                      <div
+                        className="flex justify-between"
+                        style={{ color: "#111111" }}
+                      >
+                        <span className="font-bold">GB Total:</span>
+                        <span className="font-bold text-base">
+                          {(() => {
+                            const gbMatch =
+                              item.product.franquia?.match(/(\d+)\s*GB/i);
+                            if (gbMatch) {
+                              const gbPorLinha = parseInt(gbMatch[1]);
+                              const gbTotal = gbPorLinha * item.quantidade;
                               return item.product.franquia
-                                ?.toLowerCase()
+                                .toLowerCase()
                                 .includes("ilimitado")
                                 ? "Ilimitado"
-                                : item.product.franquia;
-                            })()}
-                          </span>
-                        </div>
-                        <div className="text-blue-600 text-[10px] mt-1">
-                          {item.quantidade + (item.linhasAdicionais || 0)}{" "}
-                          linha(s) × {item.product.franquia}
-                        </div>
+                                : `${gbTotal}GB`;
+                            }
+                            return item.product.franquia
+                              ?.toLowerCase()
+                              .includes("ilimitado")
+                              ? "Ilimitado"
+                              : item.product.franquia;
+                          })()}
+                        </span>
+                      </div>
+                      <div
+                        className="text-[10px] mt-1"
+                        style={{ color: "#555555" }}
+                      >
+                        {item.quantidade} linha(s) × {item.product.franquia}
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
 
                 {/* Quantity Control */}
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-muted-foreground">
+                <div
+                  className="flex items-center justify-between pt-2"
+                  style={{ borderTop: "1px solid #E0E0E0" }}
+                >
+                  <span
+                    className="text-sm font-medium"
+                    style={{ color: "#111111" }}
+                  >
                     Quantidade
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-8 w-8 border-0 transition-all"
+                      style={{
+                        backgroundColor: "#FAFAFA",
+                        borderRadius: "8px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#1E90FF";
+                        e.currentTarget.style.color = "#FFFFFF";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#FAFAFA";
+                        e.currentTarget.style.color = "";
+                      }}
                       onClick={() =>
                         updateQuantity(item.product.id, item.quantidade - 1)
                       }
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
-                    <span className="w-8 text-center text-sm font-medium">
+                    <span
+                      className="w-10 text-center text-base font-bold"
+                      style={{ color: "#111111" }}
+                    >
                       {item.quantidade}
                     </span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-7 w-7"
+                      className="h-8 w-8 border-0 transition-all"
+                      style={{
+                        backgroundColor: "#FAFAFA",
+                        borderRadius: "8px",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = "#1E90FF";
+                        e.currentTarget.style.color = "#FFFFFF";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "#FAFAFA";
+                        e.currentTarget.style.color = "";
+                      }}
                       onClick={() =>
                         updateQuantity(item.product.id, item.quantidade + 1)
                       }
@@ -268,104 +378,132 @@ export function CartSidebar() {
                   </div>
                 </div>
 
-                {/* Linhas Adicionais (para PJ) */}
-                {item.product.tipoPessoa === "PJ" &&
-                  item.product.valorPorLinhaAdicional > 0 && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Linhas Adicionais
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() =>
-                            updateLinhas(
-                              item.product.id,
-                              Math.max(0, (item.linhasAdicionais || 0) - 1)
-                            )
-                          }
-                        >
-                          <Minus className="w-3 h-3" />
-                        </Button>
-                        <span className="w-8 text-center text-sm font-medium">
-                          {item.linhasAdicionais || 0}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={() =>
-                            updateLinhas(
-                              item.product.id,
-                              (item.linhasAdicionais || 0) + 1
-                            )
-                          }
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                 {/* Item Total & Actions */}
-                <div className="flex items-center justify-between pt-2 border-t">
-                  <span className="text-sm font-semibold">
-                    {formatPrice(itemTotal)}/mês
-                  </span>
+                <div
+                  className="flex items-center justify-between pt-3"
+                  style={{ borderTop: "1px solid #E0E0E0" }}
+                >
+                  <div>
+                    <p className="text-xs" style={{ color: "#555555" }}>
+                      Subtotal
+                    </p>
+                    <p
+                      className="text-xl font-bold"
+                      style={{ color: "#1E90FF" }}
+                    >
+                      {formatPrice(itemTotal)}
+                      <span
+                        className="text-sm font-normal"
+                        style={{ color: "#555555" }}
+                      >
+                        /mês
+                      </span>
+                    </p>
+                  </div>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="h-7 text-xs"
+                    className="h-8 text-xs border-0 transition-all"
+                    style={{ backgroundColor: "#FAFAFA", borderRadius: "8px" }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#1E90FF";
+                      e.currentTarget.style.color = "#FFFFFF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "#FAFAFA";
+                      e.currentTarget.style.color = "";
+                    }}
                     onClick={() => duplicateItem(item.product.id)}
                   >
                     <Copy className="w-3 h-3 mr-1" />
                     Duplicar
                   </Button>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
 
         {/* Footer - Totals */}
-        <div className="border-t bg-muted/30 p-4 space-y-3">
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-medium">{formatPrice(subtotal)}/mês</span>
+        <div
+          className="p-4"
+          style={{ borderTop: "1px solid #E0E0E0", backgroundColor: "#FAFAFA" }}
+        >
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium" style={{ color: "#555555" }}>
+                Subtotal
+              </span>
+              <span className="font-bold" style={{ color: "#111111" }}>
+                {formatPrice(subtotal)}
+              </span>
             </div>
+
             {economia > 0 && (
-              <div className="flex justify-between text-green-600">
-                <span>Economia estimada</span>
-                <span className="font-medium">-{formatPrice(economia)}</span>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium" style={{ color: "#1E90FF" }}>
+                  Economia estimada
+                </span>
+                <span className="font-bold" style={{ color: "#1E90FF" }}>
+                  -{formatPrice(economia)}
+                </span>
               </div>
             )}
-            <Separator />
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
-              <span className="text-primary">{formatPrice(total)}/mês</span>
+
+            <div className="pt-3" style={{ borderTop: "1px solid #E0E0E0" }}>
+              <div className="flex justify-between items-baseline mb-1">
+                <span
+                  className="text-base font-bold"
+                  style={{ color: "#111111" }}
+                >
+                  Total Mensal
+                </span>
+                <div className="text-right">
+                  <span
+                    className="text-2xl font-bold"
+                    style={{ color: "#1E90FF" }}
+                  >
+                    {formatPrice(total)}
+                  </span>
+                  <span className="text-sm ml-1" style={{ color: "#555555" }}>
+                    /mês
+                  </span>
+                </div>
+              </div>
             </div>
+
+            <a
+              onClick={(e) => {
+                e.preventDefault();
+                handleIrParaCheckout();
+              }}
+              href="#"
+              className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
+              style={{
+                backgroundColor: "#1E90FF",
+                color: "#FFFFFF",
+                borderRadius: "12px",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#00CFFF";
+                e.currentTarget.style.transform = "scale(1.02)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1E90FF";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              Continuar Contratação
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </a>
+
+            <p className="text-xs text-center" style={{ color: "#555555" }}>
+              {getItemCount()}{" "}
+              {getItemCount() === 1
+                ? "plano selecionado"
+                : "planos selecionados"}
+            </p>
           </div>
-
-          <a
-            onClick={(e) => {
-              e.preventDefault();
-              handleIrParaCheckout();
-            }}
-            href="#"
-            className="flex items-center justify-center w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-8 font-medium text-base transition-colors cursor-pointer"
-          >
-            Continuar Contratação
-            <span className="ml-2 text-xs opacity-75">
-              ({getItemCount()} {getItemCount() === 1 ? "item" : "itens"})
-            </span>
-          </a>
-
-          <p className="text-xs text-center text-muted-foreground">
-            Você será direcionado para o formulário de contratação
-          </p>
         </div>
       </div>
 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
 import { ArrowRight, ArrowLeft, Upload, FileText } from "lucide-react";
+import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
+import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 
 export default function CheckoutDocumentos() {
   const [, setLocation] = useLocation();
@@ -44,18 +44,68 @@ export default function CheckoutDocumentos() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Documentos</h1>
-          <p className="text-slate-600">Etapa 4 de 5 • Upload de Documentos</p>
-        </div>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "#FAFAFA" }}
+    >
+      <EcommerceHeader />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Envie seus documentos</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="flex-1 py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1
+              className="text-4xl font-bold mb-3"
+              style={{ color: "#111111" }}
+            >
+              Documentos
+            </h1>
+            <p className="text-lg" style={{ color: "#555555" }}>
+              Etapa 4 de 5 • Upload de Documentos
+            </p>
+          </div>
+
+          {/* Card do Formulário */}
+          <div
+            className="p-8"
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              border: "1px solid #E0E0E0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+          >
+            {/* Título com ícone */}
+            <div
+              className="flex items-center gap-3 mb-6 pb-6"
+              style={{ borderBottom: "2px solid #F0F0F0" }}
+            >
+              <div
+                className="p-3 rounded-full"
+                style={{ backgroundColor: "rgba(30,144,255,0.1)" }}
+              >
+                <FileText className="h-6 w-6" style={{ color: "#1E90FF" }} />
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: "#111111" }}>
+                Envie seus documentos
+              </h2>
+            </div>
+
+            {/* Aviso sobre documentos */}
+            <div
+              className="p-4 mb-6"
+              style={{
+                backgroundColor: "rgba(30,144,255,0.05)",
+                border: "1px solid rgba(30,144,255,0.2)",
+                borderRadius: "12px",
+              }}
+            >
+              <p className="text-sm" style={{ color: "#555555" }}>
+                Os documentos não são obrigatórios agora, mas poderão ser
+                solicitados através da nossa equipe.
+              </p>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="documento">
@@ -168,28 +218,53 @@ export default function CheckoutDocumentos() {
                 </div>
               )}
 
-              <div className="flex gap-3 pt-4">
-                <Button
+              <div className="flex gap-4 pt-6">
+                <button
                   type="button"
-                  variant="outline"
                   onClick={voltar}
-                  className="flex-1"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    border: "2px solid #E0E0E0",
+                    color: "#555555",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#1E90FF";
+                    e.currentTarget.style.color = "#1E90FF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#E0E0E0";
+                    e.currentTarget.style.color = "#555555";
+                  }}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="h-5 w-5" />
                   Voltar
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#1E90FF",
+                    color: "#FFFFFF",
+                    border: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1570D6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1E90FF";
+                  }}
                 >
                   Continuar
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
+
+      <EcommerceFooter />
     </div>
   );
 }

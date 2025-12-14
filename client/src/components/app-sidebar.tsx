@@ -18,6 +18,7 @@ import {
   Package,
   Folder,
   LayoutGrid,
+  Image,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -152,6 +153,11 @@ const adminItems = [
     title: "Categorias E-commerce",
     url: "/admin/ecommerce-categorias",
     icon: Folder,
+  },
+  {
+    title: "Banners E-commerce",
+    url: "/admin/ecommerce-banners",
+    icon: Image,
   },
   {
     title: "Automação",

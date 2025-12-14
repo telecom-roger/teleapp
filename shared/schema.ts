@@ -1008,6 +1008,9 @@ export const ecommerceProducts = pgTable(
     beneficios: text("beneficios")
       .array()
       .default(sql`ARRAY[]::text[]`),
+    diferenciais: text("diferenciais")
+      .array()
+      .default(sql`ARRAY[]::text[]`),
     tipoPessoa: varchar("tipo_pessoa", { length: 10 })
       .notNull()
       .default("ambos"), // PF, PJ, ambos
@@ -1102,6 +1105,46 @@ export type EcommerceCategory = typeof ecommerceCategories.$inferSelect;
 export type InsertEcommerceCategory = z.infer<
   typeof insertEcommerceCategorySchema
 >;
+
+// E-commerce Banners Table
+export const ecommerceBanners = pgTable(
+  "ecommerce_banners",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    titulo: varchar("titulo", { length: 200 }).notNull(),
+    subtitulo: text("subtitulo"),
+    imagemUrl: text("imagem_url").notNull(), // URL da imagem do banner
+    imagemMobileUrl: text("imagem_mobile_url"), // URL da imagem para mobile (opcional)
+    pagina: varchar("pagina", { length: 50 }).notNull(), // home, planos, comparador, etc
+    posicao: varchar("posicao", { length: 50 }).default("topo"), // topo, meio, rodape
+    linkDestino: text("link_destino"), // URL de destino ao clicar no banner
+    linkTexto: varchar("link_texto", { length: 100 }), // Texto do botão/link
+    ordem: integer("ordem").default(0), // Para ordenação quando há múltiplos banners
+    ativo: boolean("ativo").default(true),
+    dataInicio: timestamp("data_inicio"), // Data de início da exibição
+    dataFim: timestamp("data_fim"), // Data de fim da exibição
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_ecommerce_banners_pagina").on(table.pagina),
+    index("idx_ecommerce_banners_ativo").on(table.ativo),
+    index("idx_ecommerce_banners_ordem").on(table.ordem),
+  ]
+);
+
+export const insertEcommerceBannerSchema = createInsertSchema(
+  ecommerceBanners
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceBanner = typeof ecommerceBanners.$inferSelect;
+export type InsertEcommerceBanner = z.infer<typeof insertEcommerceBannerSchema>;
 
 // ==================== E-COMMERCE ADICIONAIS (Produtos complementares) ====================
 export const ecommerceAdicionais = pgTable(

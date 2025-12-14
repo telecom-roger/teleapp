@@ -379,59 +379,112 @@ export default function AdminEcommercePedidos() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div
+      className="p-6 space-y-6"
+      style={{ background: "#FAFAFA", minHeight: "100vh" }}
+    >
       <div>
-        <h1 className="text-3xl font-bold">Pedidos E-commerce</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold" style={{ color: "#111111" }}>
+          Pedidos E-commerce
+        </h1>
+        <p style={{ color: "#555555" }}>
           Gerencie os pedidos recebidos através do site
         </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+        <Card
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle
+              className="text-sm font-medium"
+              style={{ color: "#555555" }}
+            >
               Total de Pedidos
             </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <ShoppingCart className="h-4 w-4" style={{ color: "#1E90FF" }} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.totalPedidos || 0}</div>
+            <div className="text-2xl font-bold" style={{ color: "#111111" }}>
+              {stats?.totalPedidos || 0}
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos Hoje</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle
+              className="text-sm font-medium"
+              style={{ color: "#555555" }}
+            >
+              Pedidos Hoje
+            </CardTitle>
+            <Clock className="h-4 w-4" style={{ color: "#1E90FF" }} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats?.pedidosHoje || 0}</div>
+            <div className="text-2xl font-bold" style={{ color: "#111111" }}>
+              {stats?.pedidosHoje || 0}
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <CardTitle
+              className="text-sm font-medium"
+              style={{ color: "#555555" }}
+            >
+              Receita Total
+            </CardTitle>
+            <Package className="h-4 w-4" style={{ color: "#1AD1C1" }} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold" style={{ color: "#111111" }}>
               R$ {((stats?.totalReceita || 0) / 100).toFixed(2)}
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle
+              className="text-sm font-medium"
+              style={{ color: "#555555" }}
+            >
               Aguardando Docs
             </CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4" style={{ color: "#FF6B35" }} />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold" style={{ color: "#111111" }}>
               {stats?.porEtapa.find((e) => e.etapa === "aguardando_documentos")
                 ?.count || 0}
             </div>
@@ -440,11 +493,20 @@ export default function AdminEcommercePedidos() {
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E0E0E0",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-5 w-5 text-slate-600" />
-            <h3 className="font-semibold">Filtros</h3>
+            <Filter className="h-5 w-5" style={{ color: "#1E90FF" }} />
+            <h3 className="font-semibold" style={{ color: "#111111" }}>
+              Filtros
+            </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">

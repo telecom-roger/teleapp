@@ -348,21 +348,56 @@ export default function EcommerceListagemPedidos() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div
+      className="p-6 space-y-6"
+      style={{ background: "#FAFAFA", minHeight: "100vh" }}
+    >
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Listagem de Pedidos E-commerce</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold" style={{ color: "#111111" }}>
+            Listagem de Pedidos E-commerce
+          </h1>
+          <p style={{ color: "#555555" }}>
             Gerenciar, filtrar e auditar todos os pedidos do sistema
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV}>
+          <Button
+            variant="outline"
+            onClick={handleExportCSV}
+            style={{
+              borderColor: "#E0E0E0",
+              color: "#555555",
+              borderRadius: "8px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "#1E90FF";
+              e.currentTarget.style.color = "#1E90FF";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "#E0E0E0";
+              e.currentTarget.style.color = "#555555";
+            }}
+          >
             <Download className="h-4 w-4 mr-2" />
             Exportar CSV
           </Button>
           <Button
             onClick={() => (window.location.href = "/admin/ecommerce-pedidos")}
+            style={{
+              background: "#1E90FF",
+              color: "#FFFFFF",
+              borderRadius: "8px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#00CFFF";
+              e.currentTarget.style.transform = "scale(1.02)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#1E90FF";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
           >
             <Kanban className="h-4 w-4 mr-2" />
             Ver Kanban
@@ -371,10 +406,20 @@ export default function EcommerceListagemPedidos() {
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E0E0E0",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
+          <CardTitle
+            className="flex items-center gap-2"
+            style={{ color: "#111111" }}
+          >
+            <Filter className="h-5 w-5" style={{ color: "#1E90FF" }} />
             Filtros
           </CardTitle>
         </CardHeader>

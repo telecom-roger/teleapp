@@ -3,6 +3,8 @@ import { ShoppingCart, Menu, X, User } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { useCartStore } from "@/stores/cartStore";
+import { Badge } from "@/components/ui/badge";
 
 interface CustomerData {
   user: {
@@ -19,6 +21,8 @@ interface CustomerData {
 export function EcommerceHeader() {
   const [location] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { getItemCount, openCart } = useCartStore();
+  const itemCount = getItemCount();
 
   const { data: customerData } = useQuery<CustomerData>({
     queryKey: ["/api/ecommerce/auth/customer"],
@@ -39,22 +43,38 @@ export function EcommerceHeader() {
     : "/ecommerce/login";
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
+    <header
+      className="sticky top-0 z-50 w-full shadow-sm"
+      style={{
+        borderBottom: "1px solid #E0E0E0",
+        backgroundColor: "rgba(255,255,255,0.95)",
+        backdropFilter: "blur(8px)",
+      }}
+    >
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/ecommerce">
             <div className="flex items-center space-x-2 cursor-pointer">
               <div className="relative">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#6366F1] via-[#8B5CF6] to-[#A855F7] flex items-center justify-center">
+                <div
+                  className="h-10 w-10 flex items-center justify-center"
+                  style={{ borderRadius: "12px", backgroundColor: "#1E90FF" }}
+                >
                   <span className="text-white font-bold text-lg">T</span>
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                <span
+                  className="text-xl font-bold"
+                  style={{ color: "#111111" }}
+                >
                   TelePlanos
                 </span>
-                <span className="text-[10px] text-slate-500 -mt-1">
+                <span
+                  className="text-[10px] -mt-1"
+                  style={{ color: "#555555" }}
+                >
                   Conecte-se melhor
                 </span>
               </div>
@@ -67,15 +87,24 @@ export function EcommerceHeader() {
               <a
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-[#6366F1] cursor-pointer relative group ${
-                  location === item.href ? "text-[#6366F1]" : "text-slate-700"
+                className={`text-sm font-medium transition-colors cursor-pointer relative group ${
+                  location === item.href ? "" : ""
                 }`}
+                style={{
+                  color: location === item.href ? "#1E90FF" : "#555555",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#1E90FF")}
+                onMouseLeave={(e) => {
+                  if (location !== item.href)
+                    e.currentTarget.style.color = "#555555";
+                }}
               >
                 {item.label}
                 <span
-                  className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#6366F1] to-[#A855F7] transition-all group-hover:w-full ${
-                    location === item.href ? "w-full" : ""
+                  className={`absolute -bottom-1 left-0 h-0.5 transition-all group-hover:w-full ${
+                    location === item.href ? "w-full" : "w-0"
                   }`}
+                  style={{ backgroundColor: "#1E90FF" }}
                 ></span>
               </a>
             ))}
@@ -83,10 +112,46 @@ export function EcommerceHeader() {
 
           {/* CTA + Mobile Menu */}
           <div className="flex items-center space-x-3">
+            {/* Carrinho Icon com Badge */}
+            {itemCount > 0 && (
+              <button
+                onClick={openCart}
+                className="relative p-2 transition-colors"
+                style={{ color: "#555555" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#1E90FF")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
+                aria-label="Abrir carrinho"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                <Badge
+                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] border-0"
+                  style={{ backgroundColor: "#FF6B35", color: "#FFFFFF" }}
+                >
+                  {itemCount}
+                </Badge>
+              </button>
+            )}
+
             {/* Login do Cliente - Desktop */}
             <a
               href={loginUrl}
-              className="hidden sm:inline-flex items-center justify-center rounded-lg text-sm font-medium transition-all duration-300 border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-[#6366F1] hover:text-[#6366F1] h-10 px-4"
+              className="hidden sm:inline-flex items-center justify-center text-sm font-medium transition-all duration-300 h-10 px-4"
+              style={{
+                borderRadius: "12px",
+                border: "1px solid #E0E0E0",
+                backgroundColor: "#FFFFFF",
+                color: "#555555",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#1E90FF";
+                e.currentTarget.style.color = "#1E90FF";
+                e.currentTarget.style.backgroundColor = "rgba(30,144,255,0.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#E0E0E0";
+                e.currentTarget.style.color = "#555555";
+                e.currentTarget.style.backgroundColor = "#FFFFFF";
+              }}
             >
               <User className="mr-2 h-4 w-4" />
               {customerData?.client ? "Meu Painel" : "Entrar"}
@@ -94,7 +159,20 @@ export function EcommerceHeader() {
 
             <a
               href="/ecommerce/checkout"
-              className="hidden md:inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white hover:shadow-lg hover:scale-105 h-10 px-6"
+              className="hidden md:inline-flex items-center justify-center text-sm font-bold transition-all duration-300 h-10 px-6 shadow-lg"
+              style={{
+                borderRadius: "12px",
+                backgroundColor: "#1E90FF",
+                color: "#FFFFFF",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#00CFFF";
+                e.currentTarget.style.transform = "scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#1E90FF";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
               Contrate Agora

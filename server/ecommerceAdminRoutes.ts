@@ -7,6 +7,7 @@ import {
   clients,
   users,
   ecommerceOrderDocuments,
+  ecommerceBanners,
 } from "@shared/schema";
 import { eq, desc, and, or, like, sql, isNull } from "drizzle-orm";
 import { requireRole, requireAuth, blockCustomers } from "./middleware/auth";
@@ -569,6 +570,212 @@ router.post(
     } catch (error: any) {
       console.error("Erro ao marcar todos como visualizados:", error);
       res.status(500).json({ error: "Erro ao marcar como visualizado" });
+    }
+  }
+);
+
+// ==================== BANNERS ====================
+
+/**
+ * GET /api/admin/ecommerce/banners
+ * Lista todos os banners
+ */
+router.get("/banners", blockCustomers, async (req: Request, res: Response) => {
+  try {
+    const banners = await db
+      .select()
+      .from(ecommerceBanners)
+      .orderBy(ecommerceBanners.ordem, ecommerceBanners.createdAt);
+
+    res.json(banners);
+  } catch (error: any) {
+    console.error("Erro ao listar banners:", error);
+    res.status(500).json({ error: "Erro ao listar banners" });
+  }
+});
+
+/**
+ * GET /api/admin/ecommerce/banners/:id
+ * Busca um banner específico
+ */
+router.get(
+  "/banners/:id",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const [banner] = await db
+        .select()
+        .from(ecommerceBanners)
+        .where(eq(ecommerceBanners.id, id))
+        .limit(1);
+
+      if (!banner) {
+        return res.status(404).json({ error: "Banner não encontrado" });
+      }
+
+      res.json(banner);
+    } catch (error: any) {
+      console.error("Erro ao buscar banner:", error);
+      res.status(500).json({ error: "Erro ao buscar banner" });
+    }
+  }
+);
+
+/**
+ * POST /api/admin/ecommerce/banners
+ * Cria um novo banner
+ */
+router.post("/banners", blockCustomers, async (req: Request, res: Response) => {
+  try {
+    console.log("[BANNER POST] Recebendo requisição:", {
+      user: req.user,
+      body: req.body,
+      isAuthenticated: req.isAuthenticated?.(),
+    });
+
+    const {
+      titulo,
+      subtitulo,
+      imagemUrl,
+      imagemMobileUrl,
+      pagina,
+      posicao,
+      linkDestino,
+      linkTexto,
+      ordem,
+      ativo,
+      dataInicio,
+      dataFim,
+    } = req.body;
+
+    if (!titulo || !imagemUrl || !pagina) {
+      return res.status(400).json({
+        error: "Título, imagem e página são obrigatórios",
+      });
+    }
+
+    const bannerData: any = {
+      titulo,
+      imagemUrl,
+      pagina,
+      posicao: posicao || "topo",
+      ordem: ordem || 0,
+      ativo: ativo !== undefined ? ativo : true,
+    };
+
+    // Adicionar campos opcionais apenas se fornecidos
+    if (subtitulo) bannerData.subtitulo = subtitulo;
+    if (imagemMobileUrl) bannerData.imagemMobileUrl = imagemMobileUrl;
+    if (linkDestino) bannerData.linkDestino = linkDestino;
+    if (linkTexto) bannerData.linkTexto = linkTexto;
+    if (dataInicio) bannerData.dataInicio = new Date(dataInicio);
+    if (dataFim) bannerData.dataFim = new Date(dataFim);
+
+    const [banner] = await db
+      .insert(ecommerceBanners)
+      .values(bannerData)
+      .returning();
+
+    res.status(201).json(banner);
+  } catch (error: any) {
+    console.error("Erro ao criar banner:", error);
+    res.status(500).json({ error: error.message || "Erro ao criar banner" });
+  }
+});
+
+/**
+ * PUT /api/admin/ecommerce/banners/:id
+ * Atualiza um banner
+ */
+router.put(
+  "/banners/:id",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const {
+        titulo,
+        subtitulo,
+        imagemUrl,
+        imagemMobileUrl,
+        pagina,
+        posicao,
+        linkDestino,
+        linkTexto,
+        ordem,
+        ativo,
+        dataInicio,
+        dataFim,
+      } = req.body;
+
+      const updateData: any = {
+        updatedAt: new Date(),
+      };
+
+      // Adicionar apenas os campos fornecidos
+      if (titulo !== undefined) updateData.titulo = titulo;
+      if (subtitulo !== undefined) updateData.subtitulo = subtitulo || null;
+      if (imagemUrl !== undefined) updateData.imagemUrl = imagemUrl || null;
+      if (imagemMobileUrl !== undefined)
+        updateData.imagemMobileUrl = imagemMobileUrl || null;
+      if (pagina !== undefined) updateData.pagina = pagina;
+      if (posicao !== undefined) updateData.posicao = posicao;
+      if (linkDestino !== undefined)
+        updateData.linkDestino = linkDestino || null;
+      if (linkTexto !== undefined) updateData.linkTexto = linkTexto || null;
+      if (ordem !== undefined) updateData.ordem = ordem;
+      if (ativo !== undefined) updateData.ativo = ativo;
+      if (dataInicio !== undefined)
+        updateData.dataInicio = dataInicio ? new Date(dataInicio) : null;
+      if (dataFim !== undefined)
+        updateData.dataFim = dataFim ? new Date(dataFim) : null;
+
+      const [banner] = await db
+        .update(ecommerceBanners)
+        .set(updateData)
+        .where(eq(ecommerceBanners.id, id))
+        .returning();
+
+      if (!banner) {
+        return res.status(404).json({ error: "Banner não encontrado" });
+      }
+
+      res.json(banner);
+    } catch (error: any) {
+      console.error("Erro ao atualizar banner:", error);
+      res
+        .status(500)
+        .json({ error: error.message || "Erro ao atualizar banner" });
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/ecommerce/banners/:id
+ * Deleta um banner
+ */
+router.delete(
+  "/banners/:id",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+
+      const [banner] = await db
+        .delete(ecommerceBanners)
+        .where(eq(ecommerceBanners.id, id))
+        .returning();
+
+      if (!banner) {
+        return res.status(404).json({ error: "Banner não encontrado" });
+      }
+
+      res.json({ success: true, message: "Banner deletado com sucesso" });
+    } catch (error: any) {
+      console.error("Erro ao deletar banner:", error);
+      res.status(500).json({ error: "Erro ao deletar banner" });
     }
   }
 );

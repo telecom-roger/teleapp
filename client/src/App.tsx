@@ -1,3 +1,4 @@
+import React from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -59,6 +60,7 @@ import CustomerDashboard from "@/pages/ecommerce/customer-dashboard";
 import CustomerOrders from "@/pages/ecommerce/customer-orders";
 import CustomerProfile from "@/pages/ecommerce/customer-profile";
 import CustomerDocuments from "@/pages/ecommerce/customer-documents";
+import CheckoutResumo from "@/pages/ecommerce/checkout/resumo";
 import CheckoutTipoCliente from "@/pages/ecommerce/checkout/tipo-cliente";
 import CheckoutDados from "@/pages/ecommerce/checkout/dados";
 import CheckoutEndereco from "@/pages/ecommerce/checkout/endereco";
@@ -67,6 +69,7 @@ import CheckoutConfirmacao from "@/pages/ecommerce/checkout/confirmacao";
 import CheckoutObrigado from "@/pages/ecommerce/checkout/obrigado";
 import AdminProdutos from "@/pages/admin/ecommerce-produtos";
 import AdminCategorias from "@/pages/admin/ecommerce-categorias";
+import AdminBanners from "@/pages/admin/ecommerce-banners";
 import AdminPedidos from "@/pages/admin/ecommerce-pedidos";
 import AdminKanban from "@/pages/admin/ecommerce-kanban";
 import AdminListagemPedidos from "@/pages/admin/ecommerce-listagem-pedidos";
@@ -110,6 +113,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/admin/import-partners" component={ImportPartners} />
       <Route path="/admin/ecommerce-produtos" component={AdminProdutos} />
       <Route path="/admin/ecommerce-categorias" component={AdminCategorias} />
+      <Route path="/admin/ecommerce-banners" component={AdminBanners} />
       <Route path="/admin/ecommerce-pedidos" component={AdminPedidos} />
       <Route path="/admin/ecommerce-kanban" component={AdminKanban} />
       <Route
@@ -126,7 +130,11 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/ecommerce/login" component={CustomerLogin} />
 
       {/* E-commerce Checkout Routes (public) - ANTES do :slug */}
-      <Route path="/ecommerce/checkout" component={CheckoutTipoCliente} />
+      <Route path="/ecommerce/checkout" component={CheckoutResumo} />
+      <Route
+        path="/ecommerce/checkout/tipo-cliente"
+        component={CheckoutTipoCliente}
+      />
       <Route path="/ecommerce/checkout/dados" component={CheckoutDados} />
       <Route path="/ecommerce/checkout/endereco" component={CheckoutEndereco} />
       <Route
@@ -175,8 +183,8 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
 }
 
 function AppContent() {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const [location, setLocation] = useLocation();
 
   // Sidebar width configuration - responsive
   const style = {
@@ -186,6 +194,14 @@ function AppContent() {
 
   // Check if current route is an e-commerce page (public facing)
   const isEcommercePage = location.startsWith("/ecommerce");
+
+  // 🔒 PROTEÇÃO: Bloquear clientes de acessar áreas administrativas
+  React.useEffect(() => {
+    if (user && user.role === "customer" && !isEcommercePage) {
+      // Cliente tentando acessar área administrativa - redirecionar para painel do cliente
+      setLocation("/ecommerce/painel");
+    }
+  }, [user, location, isEcommercePage, setLocation]);
 
   if (isLoading) {
     return (

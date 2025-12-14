@@ -1,9 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Package,
   FileText,
@@ -117,10 +115,28 @@ export default function EcommercePainel() {
 
   if (loadingCustomer) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Carregando...</p>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#FAFAFA",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div
+            style={{
+              height: "32px",
+              width: "32px",
+              animation: "spin 1s linear infinite",
+              borderRadius: "50%",
+              border: "4px solid #1E90FF",
+              borderTopColor: "transparent",
+              margin: "0 auto 16px",
+            }}
+          />
+          <p style={{ fontSize: "14px", color: "#555555" }}>Carregando...</p>
         </div>
       </div>
     );
@@ -138,25 +154,49 @@ export default function EcommercePainel() {
   const lastOrder = orders[0];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div style={{ minHeight: "100vh", display: "flex", background: "#FAFAFA" }}>
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r transform transition-transform duration-300 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 lg:translate-x-0",
           menuOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{
+          background: "#FFFFFF",
+          borderRight: "1px solid #E0E0E0",
+          boxShadow: "2px 0 8px rgba(0,0,0,0.05)",
+        }}
       >
-        <div className="flex flex-col h-full">
+        <div
+          style={{ display: "flex", flexDirection: "column", height: "100%" }}
+        >
           {/* Logo/Header */}
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-bold text-primary">Minha Conta</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+          <div style={{ padding: "24px", borderBottom: "1px solid #E0E0E0" }}>
+            <h2
+              style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+                color: "#1E90FF",
+                marginBottom: "4px",
+              }}
+            >
+              Minha Conta
+            </h2>
+            <p style={{ fontSize: "14px", color: "#555555" }}>
               {customerData.client.nome}
             </p>
           </div>
 
           {/* Menu */}
-          <nav className="flex-1 p-4 space-y-1">
+          <nav
+            style={{
+              flex: 1,
+              padding: "16px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "8px",
+            }}
+          >
             {menuItems.map((item) => (
               <button
                 key={item.path}
@@ -164,43 +204,150 @@ export default function EcommercePainel() {
                   navigate(item.path);
                   setMenuOpen(false);
                 }}
-                className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors",
-                  item.active
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-slate-100 text-slate-700"
-                )}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "12px 16px",
+                  fontWeight: 500,
+                  fontSize: "15px",
+                  transition: "all 0.2s ease",
+                  background: item.active ? "#1E90FF" : "transparent",
+                  color: item.active ? "#FFFFFF" : "#555555",
+                  borderRadius: "8px",
+                  border: "none",
+                  cursor: "pointer",
+                  outline: "none",
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => {
+                  if (!item.active) {
+                    e.currentTarget.style.setProperty(
+                      "background",
+                      "rgba(30,144,255,0.1)",
+                      "important"
+                    );
+                    e.currentTarget.style.setProperty(
+                      "color",
+                      "#1E90FF",
+                      "important"
+                    );
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!item.active) {
+                    e.currentTarget.style.setProperty(
+                      "background",
+                      "transparent",
+                      "important"
+                    );
+                    e.currentTarget.style.setProperty(
+                      "color",
+                      "#555555",
+                      "important"
+                    );
+                  }
+                }}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
+                <item.icon style={{ width: "20px", height: "20px" }} />
+                <span>{item.label}</span>
               </button>
             ))}
           </nav>
 
           {/* Suporte WhatsApp */}
-          <div className="p-4 border-t">
-            <Button
-              variant="outline"
-              className="w-full gap-2"
+          <div style={{ padding: "16px", borderTop: "1px solid #E0E0E0" }}>
+            <button
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                fontWeight: 500,
+                fontSize: "14px",
+                transition: "all 0.2s ease",
+                background: "transparent",
+                color: "#1AD1C1",
+                border: "2px solid #1AD1C1",
+                borderRadius: "8px",
+                cursor: "pointer",
+                outline: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty(
+                  "background",
+                  "#1AD1C1",
+                  "important"
+                );
+                e.currentTarget.style.setProperty(
+                  "color",
+                  "#FFFFFF",
+                  "important"
+                );
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty(
+                  "background",
+                  "transparent",
+                  "important"
+                );
+                e.currentTarget.style.setProperty(
+                  "color",
+                  "#1AD1C1",
+                  "important"
+                );
+              }}
               onClick={() =>
                 window.open("https://wa.me/5519999477404", "_blank")
               }
             >
-              <MessageSquare className="w-4 h-4" />
-              Suporte WhatsApp
-            </Button>
+              <MessageSquare style={{ width: "16px", height: "16px" }} />
+              <span>Suporte WhatsApp</span>
+            </button>
           </div>
 
           {/* Logout */}
-          <div className="p-4 border-t">
-            <Button
-              variant="ghost"
-              className="w-full gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          <div style={{ padding: "16px", borderTop: "1px solid #E0E0E0" }}>
+            <button
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "12px 16px",
+                fontWeight: 500,
+                fontSize: "14px",
+                transition: "all 0.2s ease",
+                background: "transparent",
+                color: "#FF6B35",
+                border: "none",
+                borderRadius: "8px",
+                cursor: "pointer",
+                outline: "none",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.setProperty(
+                  "background",
+                  "rgba(255,107,53,0.1)",
+                  "important"
+                );
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.setProperty(
+                  "background",
+                  "transparent",
+                  "important"
+                );
+              }}
               onClick={handleLogout}
             >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
+              <LogOut style={{ width: "16px", height: "16px" }} />
+              <span>Sair</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -208,81 +355,225 @@ export default function EcommercePainel() {
       {/* Mobile Menu Overlay */}
       {menuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.5)",
+            zIndex: 40,
+          }}
+          className="lg:hidden"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-64">
+      <div style={{ flex: 1 }} className="lg:ml-64">
         {/* Top Bar (Mobile) */}
-        <header className="lg:hidden bg-white border-b p-4 flex items-center justify-between sticky top-0 z-30">
-          <Button
-            variant="ghost"
-            size="icon"
+        <header
+          style={{
+            background: "#FFFFFF",
+            borderBottom: "1px solid #E0E0E0",
+            padding: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "sticky",
+            top: 0,
+            zIndex: 30,
+          }}
+          className="lg:hidden"
+        >
+          <button
             onClick={() => setMenuOpen(!menuOpen)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#1E90FF",
+              cursor: "pointer",
+              padding: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <Menu className="w-6 h-6" />
-          </Button>
-          <h1 className="font-semibold">Dashboard</h1>
-          <div className="w-10" />
+            <Menu style={{ width: "24px", height: "24px" }} />
+          </button>
+          <h1 style={{ fontWeight: 600, fontSize: "16px", color: "#111111" }}>
+            Dashboard
+          </h1>
+          <div style={{ width: "40px" }} />
         </header>
 
         {/* Content */}
-        <main className="p-6 space-y-6">
+        <main
+          style={{
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "24px",
+          }}
+        >
           {/* Welcome */}
-          <div className="bg-gradient-to-r from-primary to-purple-600 text-white rounded-lg p-6">
-            <h1 className="text-2xl font-bold mb-2">
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1E90FF 0%, #00CFFF 100%)",
+              color: "#FFFFFF",
+              boxShadow: "0 8px 24px rgba(30,144,255,0.25)",
+              borderRadius: "16px",
+              padding: "32px",
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "28px",
+                fontWeight: "bold",
+                marginBottom: "12px",
+              }}
+            >
               Olá, {customerData.client.nome.split(" ")[0]}! 👋
             </h1>
-            <p className="text-white/90">
+            <p style={{ fontSize: "16px", opacity: 0.95 }}>
               Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos e
               gerenciar sua conta.
             </p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card
+              className="p-6 transition-all duration-200"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E0E0E0",
+                borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(30,144,255,0.15)";
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.borderColor = "#1E90FF";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = "#E0E0E0";
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
+                  <p
+                    className="text-sm mb-2 font-medium"
+                    style={{ color: "#555555" }}
+                  >
                     Pedidos em Andamento
                   </p>
-                  <p className="text-3xl font-bold">{pendingOrders.length}</p>
+                  <p
+                    className="text-4xl font-bold"
+                    style={{ color: "#1E90FF" }}
+                  >
+                    {pendingOrders.length}
+                  </p>
                 </div>
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-blue-600" />
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(30,144,255,0.15)" }}
+                >
+                  <Clock className="w-7 h-7" style={{ color: "#1E90FF" }} />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card
+              className="p-6 transition-all duration-200"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E0E0E0",
+                borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(30,144,255,0.15)";
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.borderColor = "#1E90FF";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = "#E0E0E0";
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
+                  <p
+                    className="text-sm mb-2 font-medium"
+                    style={{ color: "#555555" }}
+                  >
                     Total de Pedidos
                   </p>
-                  <p className="text-3xl font-bold">{orders.length}</p>
+                  <p
+                    className="text-4xl font-bold"
+                    style={{ color: "#111111" }}
+                  >
+                    {orders.length}
+                  </p>
                 </div>
-                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Package className="w-6 h-6 text-purple-600" />
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(30,144,255,0.15)" }}
+                >
+                  <Package className="w-7 h-7" style={{ color: "#1E90FF" }} />
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
+            <Card
+              className="p-6 transition-all duration-200"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E0E0E0",
+                borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(26,209,193,0.15)";
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.borderColor = "#1AD1C1";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = "#E0E0E0";
+              }}
+            >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">
+                  <p
+                    className="text-sm mb-2 font-medium"
+                    style={{ color: "#555555" }}
+                  >
                     Pedidos Concluídos
                   </p>
-                  <p className="text-3xl font-bold">
+                  <p
+                    className="text-4xl font-bold"
+                    style={{ color: "#1AD1C1" }}
+                  >
                     {orders.filter((o: any) => o.etapa === "concluido").length}
                   </p>
                 </div>
-                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center"
+                  style={{ background: "rgba(26,209,193,0.15)" }}
+                >
+                  <CheckCircle2
+                    className="w-7 h-7"
+                    style={{ color: "#1AD1C1" }}
+                  />
                 </div>
               </div>
             </Card>
@@ -290,64 +581,183 @@ export default function EcommercePainel() {
 
           {/* Último Pedido */}
           {lastOrder && (
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Último Pedido</h2>
+            <Card
+              className="p-6 transition-all duration-200"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E0E0E0",
+                borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(30,144,255,0.12)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.borderColor = "#1E90FF";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)";
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderColor = "#E0E0E0";
+              }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold" style={{ color: "#111111" }}>
+                  Último Pedido
+                </h2>
                 <Badge
-                  className={statusColors[lastOrder.etapa] || "bg-gray-100"}
+                  style={{
+                    background: "rgba(30,144,255,0.15)",
+                    color: "#1E90FF",
+                    border: "1px solid #1E90FF",
+                    borderRadius: "8px",
+                    padding: "6px 12px",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
                 >
                   {statusLabels[lastOrder.etapa] || lastOrder.etapa}
                 </Badge>
               </div>
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Pedido:</span>
-                  <span className="font-mono">#{lastOrder.id.slice(0, 8)}</span>
+              <div className="space-y-4">
+                <div
+                  className="flex justify-between items-center p-3 rounded-lg"
+                  style={{ background: "#FAFAFA" }}
+                >
+                  <span className="font-medium" style={{ color: "#555555" }}>
+                    Pedido:
+                  </span>
+                  <span
+                    className="font-mono font-bold"
+                    style={{ color: "#111111" }}
+                  >
+                    #{lastOrder.id.slice(0, 8)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Data:</span>
-                  <span>{formatDate(lastOrder.createdAt)}</span>
+                <div
+                  className="flex justify-between items-center p-3 rounded-lg"
+                  style={{ background: "#FAFAFA" }}
+                >
+                  <span className="font-medium" style={{ color: "#555555" }}>
+                    Data:
+                  </span>
+                  <span className="font-semibold" style={{ color: "#111111" }}>
+                    {formatDate(lastOrder.createdAt)}
+                  </span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Total:</span>
-                  <span className="font-semibold">
+                <div
+                  className="flex justify-between items-center p-3 rounded-lg"
+                  style={{ background: "rgba(30,144,255,0.08)" }}
+                >
+                  <span className="font-medium" style={{ color: "#555555" }}>
+                    Total:
+                  </span>
+                  <span
+                    className="text-xl font-bold"
+                    style={{ color: "#1E90FF" }}
+                  >
                     {formatPrice(lastOrder.total)}/mês
                   </span>
                 </div>
 
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
+                <button
+                  className="w-full mt-4 flex items-center justify-center gap-2 px-4 py-3 font-medium transition-all duration-200"
+                  style={{
+                    background: "transparent",
+                    color: "#1E90FF",
+                    border: "1px solid #E0E0E0",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#1E90FF";
+                    e.currentTarget.style.background = "rgba(30,144,255,0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#E0E0E0";
+                    e.currentTarget.style.background = "transparent";
+                  }}
                   onClick={() => navigate("/ecommerce/painel/pedidos")}
                 >
                   Ver Todos os Pedidos
-                  <ChevronRight className="w-4 h-4 ml-2" />
-                </Button>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
             </Card>
           )}
 
           {/* Ações Rápidas */}
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Ações Rápidas</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                className="justify-start gap-2"
+          <Card
+            className="p-6"
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid #E0E0E0",
+              borderRadius: "16px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          >
+            <h2 className="text-xl font-bold mb-4" style={{ color: "#111111" }}>
+              Ações Rápidas
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <button
+                className="flex items-center gap-3 px-5 py-4 font-medium transition-all duration-200"
+                style={{
+                  background: "transparent",
+                  color: "#1E90FF",
+                  border: "2px solid #1E90FF",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#1E90FF";
+                  e.currentTarget.style.color = "#FFFFFF";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(30,144,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#1E90FF";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 onClick={() => navigate("/ecommerce/planos")}
               >
-                <Package className="w-4 h-4" />
-                Contratar Novo Plano
-              </Button>
-              <Button
-                variant="outline"
-                className="justify-start gap-2"
+                <Package className="w-5 h-5" />
+                <span>Contratar Novo Plano</span>
+              </button>
+              <button
+                className="flex items-center gap-3 px-5 py-4 font-medium transition-all duration-200"
+                style={{
+                  background: "transparent",
+                  color: "#1E90FF",
+                  border: "2px solid #1E90FF",
+                  borderRadius: "10px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#1E90FF";
+                  e.currentTarget.style.color = "#FFFFFF";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow =
+                    "0 4px 12px rgba(30,144,255,0.3)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "#1E90FF";
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 onClick={() => navigate("/ecommerce/painel/perfil")}
               >
-                <User className="w-4 h-4" />
-                Editar Meu Perfil
-              </Button>
+                <User className="w-5 h-5" />
+                <span>Editar Meu Perfil</span>
+              </button>
             </div>
           </Card>
         </main>

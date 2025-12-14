@@ -5,6 +5,7 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import connectPg from "connect-pg-simple";
 import * as storage from "./storage";
+import { blockCustomers } from "./middleware/auth";
 
 async function createSessionStoreWithRetry(
   maxRetries = 3,
@@ -173,6 +174,17 @@ export async function setupAuth(app: Express) {
 
   // Login route
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
+    // Bloquear clientes do e-commerce de acessarem o sistema administrativo
+    const user = req.user as any;
+    if (user && user.role === "customer") {
+      req.logout((err) => {
+        if (err) console.error("Erro ao fazer logout:", err);
+      });
+      return res.status(403).json({
+        error: "Acesso negado",
+        message: "Clientes devem acessar o painel em /ecommerce/login",
+      });
+    }
     res.json({ user: req.user });
   });
 

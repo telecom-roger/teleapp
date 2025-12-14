@@ -23,25 +23,48 @@ export default function CheckoutObrigado() {
     user?.role === "customer" ? "/ecommerce/painel" : "/ecommerce/login";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen py-8 px-4" style={{ background: "#FAFAFA" }}>
       <div className="max-w-2xl mx-auto">
-        <Card className="border-2 border-green-200">
+        <Card
+          className="overflow-hidden"
+          style={{
+            background: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "16px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
           <CardContent className="p-12 text-center">
             <div className="mb-6">
-              <CheckCircle className="h-20 w-20 mx-auto text-green-600" />
+              <CheckCircle
+                className="h-20 w-20 mx-auto"
+                style={{ color: "#1AD1C1" }}
+              />
             </div>
 
-            <h1 className="text-3xl font-bold mb-3">Pedido Confirmado!</h1>
-            <p className="text-lg text-slate-600 mb-6">
+            <h1
+              className="text-3xl font-bold mb-3"
+              style={{ color: "#111111" }}
+            >
+              Pedido Confirmado!
+            </h1>
+            <p className="text-lg mb-6" style={{ color: "#555555" }}>
               Seu pedido foi recebido com sucesso
             </p>
 
             {pedidoId && (
-              <div className="bg-slate-100 p-4 rounded-lg mb-8">
-                <span className="text-sm text-slate-600">
+              <div
+                className="p-4 mb-8"
+                style={{
+                  background: "rgba(30, 144, 255, 0.05)",
+                  border: "1px solid #E0E0E0",
+                  borderRadius: "12px",
+                }}
+              >
+                <span className="text-sm" style={{ color: "#555555" }}>
                   Número do pedido:
                 </span>
-                <p className="text-2xl font-bold text-purple-600">
+                <p className="text-2xl font-bold" style={{ color: "#1E90FF" }}>
                   #{pedidoId}
                 </p>
               </div>
@@ -49,10 +72,18 @@ export default function CheckoutObrigado() {
 
             <div className="space-y-4 mb-8">
               <div className="flex items-start text-left">
-                <Mail className="h-6 w-6 mr-3 mt-1 text-purple-600 flex-shrink-0" />
+                <Mail
+                  className="h-6 w-6 mr-3 mt-1 flex-shrink-0"
+                  style={{ color: "#1E90FF" }}
+                />
                 <div>
-                  <h3 className="font-semibold mb-1">Acesso ao Sistema</h3>
-                  <p className="text-sm text-slate-600">
+                  <h3
+                    className="font-semibold mb-1"
+                    style={{ color: "#111111" }}
+                  >
+                    Acesso ao Sistema
+                  </h3>
+                  <p className="text-sm" style={{ color: "#555555" }}>
                     Você receberá um e-mail com suas credenciais de acesso ao
                     sistema em alguns instantes.
                   </p>
@@ -60,10 +91,18 @@ export default function CheckoutObrigado() {
               </div>
 
               <div className="flex items-start text-left">
-                <Package className="h-6 w-6 mr-3 mt-1 text-blue-600 flex-shrink-0" />
+                <Package
+                  className="h-6 w-6 mr-3 mt-1 flex-shrink-0"
+                  style={{ color: "#1E90FF" }}
+                />
                 <div>
-                  <h3 className="font-semibold mb-1">Próximos Passos</h3>
-                  <p className="text-sm text-slate-600">
+                  <h3
+                    className="font-semibold mb-1"
+                    style={{ color: "#111111" }}
+                  >
+                    Próximos Passos
+                  </h3>
+                  <p className="text-sm" style={{ color: "#555555" }}>
                     Nossa equipe entrará em contato para agendar a instalação
                     dos seus serviços.
                   </p>
@@ -72,11 +111,40 @@ export default function CheckoutObrigado() {
             </div>
 
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" asChild>
+              <Button
+                variant="outline"
+                asChild
+                style={{
+                  borderColor: "#E0E0E0",
+                  color: "#555555",
+                  borderRadius: "8px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#1E90FF";
+                  e.currentTarget.style.color = "#1E90FF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#E0E0E0";
+                  e.currentTarget.style.color = "#555555";
+                }}
+              >
                 <Link href="/ecommerce">Voltar à Loja</Link>
               </Button>
               <Button
-                className="bg-gradient-to-r from-purple-600 to-blue-500"
+                style={{
+                  background: "#1E90FF",
+                  color: "#FFFFFF",
+                  borderRadius: "8px",
+                  transition: "all 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#00CFFF";
+                  e.currentTarget.style.transform = "scale(1.02)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#1E90FF";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
                 onClick={() => {
                   // Invalidar queries para atualização instantânea do dashboard
                   queryClient.invalidateQueries({

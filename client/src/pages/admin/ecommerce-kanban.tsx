@@ -143,13 +143,27 @@ export default function AdminKanban() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div
+      className="p-6 space-y-6"
+      style={{ background: "#FAFAFA", minHeight: "100vh" }}
+    >
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Kanban E-commerce</h1>
-          <p className="text-slate-600">Gerencie seus pedidos visualmente</p>
+          <h1 className="text-3xl font-bold" style={{ color: "#111111" }}>
+            Kanban E-commerce
+          </h1>
+          <p style={{ color: "#555555" }}>Gerencie seus pedidos visualmente</p>
         </div>
-        <Badge variant="outline" className="text-lg px-3 py-1">
+        <Badge
+          variant="outline"
+          className="text-lg px-3 py-1"
+          style={{
+            background: "rgba(30,144,255,0.1)",
+            color: "#1E90FF",
+            border: "1px solid #1E90FF",
+            borderRadius: "6px",
+          }}
+        >
           {orders.length} pedidos
         </Badge>
       </div>
@@ -170,27 +184,64 @@ export default function AdminKanban() {
                 </Badge>
               </div>
 
-              <div className="bg-slate-50 p-2 space-y-2 rounded-b-lg min-h-[400px]">
+              <div
+                className="p-2 space-y-2 rounded-b-lg min-h-[400px]"
+                style={{ background: "#FAFAFA" }}
+              >
                 {stageOrders.map((order) => (
                   <Card
                     key={order.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className="cursor-pointer transition-shadow"
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1px solid #E0E0E0",
+                      borderRadius: "12px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow =
+                        "0 4px 12px rgba(0,0,0,0.1)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow =
+                        "0 2px 8px rgba(0,0,0,0.05)";
+                    }}
                     onClick={() => setSelectedOrder(order)}
                   >
                     <CardContent className="p-3">
                       <div className="flex justify-between items-start mb-2">
-                        <span className="font-semibold text-sm">
+                        <span
+                          className="font-semibold text-sm"
+                          style={{ color: "#111111" }}
+                        >
                           #{order.id}
                         </span>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge
+                          variant="outline"
+                          className="text-xs"
+                          style={{
+                            background: "rgba(30,144,255,0.1)",
+                            color: "#1E90FF",
+                            border: "1px solid #1E90FF",
+                            borderRadius: "4px",
+                          }}
+                        >
                           {order.tipoPessoa}
                         </Badge>
                       </div>
-                      <p className="text-sm font-medium mb-1">{order.nome}</p>
-                      <p className="text-xs text-slate-600 mb-2">
+                      <p
+                        className="text-sm font-medium mb-1"
+                        style={{ color: "#111111" }}
+                      >
+                        {order.nome}
+                      </p>
+                      <p className="text-xs mb-2" style={{ color: "#555555" }}>
                         {order.email}
                       </p>
-                      <div className="flex items-center text-xs text-slate-500">
+                      <div
+                        className="flex items-center text-xs"
+                        style={{ color: "#555555" }}
+                      >
                         <Calendar className="h-3 w-3 mr-1" />
                         {formatData(order.createdAt)}
                       </div>

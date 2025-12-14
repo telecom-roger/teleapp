@@ -176,10 +176,24 @@ router.post(
     try {
       const productData = req.body;
 
+      console.log("📝 CREATE produto recebido:", {
+        nome: productData.nome,
+        beneficios: productData.beneficios,
+        diferenciais: productData.diferenciais,
+        temBeneficios: Array.isArray(productData.beneficios),
+        temDiferenciais: Array.isArray(productData.diferenciais),
+      });
+
       const [product] = await db
         .insert(ecommerceProducts)
         .values(productData)
         .returning();
+
+      console.log("✅ Produto criado:", {
+        nome: product.nome,
+        beneficios: product.beneficios,
+        diferenciais: product.diferenciais,
+      });
 
       res.json(product);
     } catch (error: any) {
@@ -201,6 +215,14 @@ router.put(
       const { id } = req.params;
       const productData = req.body;
 
+      console.log("📝 UPDATE produto recebido:", {
+        id,
+        beneficios: productData.beneficios,
+        diferenciais: productData.diferenciais,
+        temBeneficios: Array.isArray(productData.beneficios),
+        temDiferenciais: Array.isArray(productData.diferenciais),
+      });
+
       const [product] = await db
         .update(ecommerceProducts)
         .set({
@@ -213,6 +235,12 @@ router.put(
       if (!product) {
         return res.status(404).json({ error: "Produto não encontrado" });
       }
+
+      console.log("✅ Produto atualizado:", {
+        nome: product.nome,
+        beneficios: product.beneficios,
+        diferenciais: product.diferenciais,
+      });
 
       res.json(product);
     } catch (error: any) {
