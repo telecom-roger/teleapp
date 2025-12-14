@@ -4,8 +4,9 @@ import {
   ecommerceCategories,
   ecommerceProducts,
   ecommerceAdicionais,
+  ecommerceBanners,
 } from "@shared/schema";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, lte, gte, or, isNull, sql } from "drizzle-orm";
 
 const router = Router();
 
@@ -101,6 +102,91 @@ router.get("/adicionais", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Erro ao buscar adicionais:", error);
     res.status(500).json({ error: "Erro ao buscar adicionais" });
+  }
+});
+
+/**
+ * GET /api/ecommerce/public/banners
+ * Lista banners ativos para a página especificada
+ * Query params: ?pagina=home
+ */
+router.get("/banners", async (req: Request, res: Response) => {
+  try {
+    const { pagina } = req.query;
+
+    if (!pagina || typeof pagina !== "string") {
+      return res
+        .status(400)
+        .json({ error: "Parâmetro 'pagina' é obrigatório" });
+    }
+
+    const now = new Date();
+
+    // Busca banners ativos, da página especificada e dentro do período de validade
+    const banners = await db
+      .select()
+      .from(ecommerceBanners)
+      .where(
+        and(
+          eq(ecommerceBanners.ativo, true),
+          eq(ecommerceBanners.pagina, pagina),
+          // Data início: null OU no passado
+          or(
+            isNull(ecommerceBanners.dataInicio),
+            lte(ecommerceBanners.dataInicio, now)
+          ),
+          // Data fim: null OU no futuro
+          or(
+            isNull(ecommerceBanners.dataFim),
+            gte(ecommerceBanners.dataFim, now)
+          )
+        )
+      )
+      .orderBy(asc(ecommerceBanners.ordem), asc(ecommerceBanners.createdAt));
+
+    res.json(banners);
+  } catch (error: any) {
+    console.error("Erro ao buscar banners públicos:", error);
+    res.status(500).json({ error: "Erro ao buscar banners" });
+  }
+});
+
+/**
+ * GET /api/ecommerce/public/banners/:pagina
+ * Lista banners ativos para a página especificada (alternativa com path param)
+ */
+router.get("/banners/:pagina", async (req: Request, res: Response) => {
+  try {
+    const { pagina } = req.params;
+
+    const now = new Date();
+
+    // Busca banners ativos, da página especificada e dentro do período de validade
+    const banners = await db
+      .select()
+      .from(ecommerceBanners)
+      .where(
+        and(
+          eq(ecommerceBanners.ativo, true),
+          eq(ecommerceBanners.pagina, pagina),
+          // Data início: null OU no passado
+          or(
+            isNull(ecommerceBanners.dataInicio),
+            lte(ecommerceBanners.dataInicio, now)
+          ),
+          // Data fim: null OU no futuro
+          or(
+            isNull(ecommerceBanners.dataFim),
+            gte(ecommerceBanners.dataFim, now)
+          )
+        )
+      )
+      .orderBy(asc(ecommerceBanners.ordem), asc(ecommerceBanners.createdAt));
+
+    res.json(banners);
+  } catch (error: any) {
+    console.error("Erro ao buscar banners públicos:", error);
+    res.status(500).json({ error: "Erro ao buscar banners" });
   }
 });
 

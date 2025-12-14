@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { ArrowRight, ArrowLeft } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Building2 } from "lucide-react";
+import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
+import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 
 export default function CheckoutDados() {
   const [, setLocation] = useLocation();
@@ -58,30 +59,73 @@ export default function CheckoutDados() {
   };
 
   const voltar = () => {
-    setLocation("/ecommerce/checkout");
+    setLocation("/ecommerce/checkout/tipo-cliente");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Seus Dados</h1>
-          <p className="text-slate-600">Etapa 2 de 5 • Dados Cadastrais</p>
-        </div>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "#FAFAFA" }}
+    >
+      <EcommerceHeader />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Informações de{" "}
-              {tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex-1 py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1
+              className="text-4xl font-bold mb-3"
+              style={{ color: "#111111" }}
+            >
+              Seus Dados
+            </h1>
+            <p className="text-lg" style={{ color: "#555555" }}>
+              Etapa 2 de 5 • Dados Cadastrais
+            </p>
+          </div>
+
+          {/* Card do Formulário */}
+          <div
+            className="p-8"
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              border: "1px solid #E0E0E0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+          >
+            {/* Título com ícone */}
+            <div
+              className="flex items-center gap-3 mb-6 pb-6"
+              style={{ borderBottom: "2px solid #F0F0F0" }}
+            >
+              <div
+                className="p-3 rounded-full"
+                style={{ backgroundColor: "rgba(30,144,255,0.1)" }}
+              >
+                {tipoPessoa === "PF" ? (
+                  <User className="h-6 w-6" style={{ color: "#1E90FF" }} />
+                ) : (
+                  <Building2 className="h-6 w-6" style={{ color: "#1E90FF" }} />
+                )}
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: "#111111" }}>
+                Informações de{" "}
+                {tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+              </h2>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
               {tipoPessoa === "PF" ? (
                 <>
                   <div>
-                    <Label htmlFor="nome">Nome Completo</Label>
+                    <Label
+                      htmlFor="nome"
+                      className="text-sm font-bold mb-2 block"
+                      style={{ color: "#111111" }}
+                    >
+                      Nome Completo
+                    </Label>
                     <Input
                       id="nome"
                       required
@@ -90,10 +134,23 @@ export default function CheckoutDados() {
                         setFormData({ ...formData, nome: e.target.value })
                       }
                       placeholder="João Silva"
+                      className="h-12 px-4 font-semibold"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#111111",
+                      }}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="documento">CPF</Label>
+                    <Label
+                      htmlFor="documento"
+                      className="text-sm font-bold mb-2 block"
+                      style={{ color: "#111111" }}
+                    >
+                      CPF
+                    </Label>
                     <Input
                       id="documento"
                       required
@@ -106,13 +163,26 @@ export default function CheckoutDados() {
                       }
                       placeholder="000.000.000-00"
                       maxLength={14}
+                      className="h-12 px-4 font-semibold"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#111111",
+                      }}
                     />
                   </div>
                 </>
               ) : (
                 <>
                   <div>
-                    <Label htmlFor="razaoSocial">Razão Social</Label>
+                    <Label
+                      htmlFor="razaoSocial"
+                      className="text-sm font-bold mb-2 block"
+                      style={{ color: "#111111" }}
+                    >
+                      Razão Social
+                    </Label>
                     <Input
                       id="razaoSocial"
                       required
@@ -124,10 +194,23 @@ export default function CheckoutDados() {
                         })
                       }
                       placeholder="Empresa LTDA"
+                      className="h-12 px-4 font-semibold"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#111111",
+                      }}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Label
+                      htmlFor="cnpj"
+                      className="text-sm font-bold mb-2 block"
+                      style={{ color: "#111111" }}
+                    >
+                      CNPJ
+                    </Label>
                     <Input
                       id="cnpj"
                       required
@@ -140,13 +223,26 @@ export default function CheckoutDados() {
                       }
                       placeholder="00.000.000/0000-00"
                       maxLength={18}
+                      className="h-12 px-4 font-semibold"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#111111",
+                      }}
                     />
                   </div>
                 </>
               )}
 
               <div>
-                <Label htmlFor="email">E-mail</Label>
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-bold mb-2 block"
+                  style={{ color: "#111111" }}
+                >
+                  E-mail
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -156,11 +252,24 @@ export default function CheckoutDados() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="contato@exemplo.com"
+                  className="h-12 px-4 font-semibold"
+                  style={{
+                    borderRadius: "12px",
+                    border: "2px solid #E0E0E0",
+                    backgroundColor: "#FFFFFF",
+                    color: "#111111",
+                  }}
                 />
               </div>
 
               <div>
-                <Label htmlFor="telefone">Telefone</Label>
+                <Label
+                  htmlFor="telefone"
+                  className="text-sm font-bold mb-2 block"
+                  style={{ color: "#111111" }}
+                >
+                  Telefone
+                </Label>
                 <Input
                   id="telefone"
                   required
@@ -173,31 +282,63 @@ export default function CheckoutDados() {
                   }
                   placeholder="(00) 00000-0000"
                   maxLength={15}
+                  className="h-12 px-4 font-semibold"
+                  style={{
+                    borderRadius: "12px",
+                    border: "2px solid #E0E0E0",
+                    backgroundColor: "#FFFFFF",
+                    color: "#111111",
+                  }}
                 />
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button
+              <div className="flex gap-4 pt-6">
+                <button
                   type="button"
-                  variant="outline"
                   onClick={voltar}
-                  className="flex-1"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    border: "2px solid #E0E0E0",
+                    color: "#555555",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#1E90FF";
+                    e.currentTarget.style.color = "#1E90FF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#E0E0E0";
+                    e.currentTarget.style.color = "#555555";
+                  }}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="h-5 w-5" />
                   Voltar
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#1E90FF",
+                    color: "#FFFFFF",
+                    border: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1570D6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1E90FF";
+                  }}
                 >
                   Continuar
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
+
+      <EcommerceFooter />
     </div>
   );
 }

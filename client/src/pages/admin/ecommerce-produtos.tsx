@@ -174,6 +174,9 @@ export default function AdminProdutos() {
       beneficios: (formData.get("beneficios") as string)
         .split("\n")
         .filter((b) => b.trim()),
+      diferenciais: (formData.get("diferenciais") as string)
+        .split("\n")
+        .filter((d) => d.trim()),
       // NOVOS CAMPOS - Calculadora e Upsell
       permiteCalculadoraLinhas:
         formData.get("permiteCalculadoraLinhas") === "on",
@@ -202,6 +205,8 @@ export default function AdminProdutos() {
       textosUpsell: data.textosUpsell,
       svasUpsell: data.svasUpsell,
       permiteCalculadoraLinhas: data.permiteCalculadoraLinhas,
+      beneficios: data.beneficios,
+      diferenciais: data.diferenciais,
     });
 
     if (editando) {
@@ -306,13 +311,18 @@ export default function AdminProdutos() {
   if (isLoading) return <div className="p-8">Carregando...</div>;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div
+      className="p-4 md:p-8 space-y-6"
+      style={{ background: "#FAFAFA", minHeight: "100vh" }}
+    >
       {/* Header com Estatísticas */}
       <div>
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h1 className="text-3xl font-bold">Produtos E-commerce</h1>
-            <p className="text-slate-600">
+            <h1 className="text-3xl font-bold" style={{ color: "#111111" }}>
+              Produtos E-commerce
+            </h1>
+            <p style={{ color: "#555555" }}>
               Gerencie os planos e ofertas disponíveis
             </p>
           </div>
@@ -323,6 +333,20 @@ export default function AdminProdutos() {
               setTextosUpsell([""]);
               setDialogOpen(true);
             }}
+            style={{
+              background: "#1E90FF",
+              color: "#FFFFFF",
+              borderRadius: "8px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#00CFFF";
+              e.currentTarget.style.transform = "scale(1.02)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#1E90FF";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
           >
             <Plus className="mr-2 h-4 w-4" />
             Novo Produto
@@ -331,55 +355,107 @@ export default function AdminProdutos() {
 
         {/* Estatísticas */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
+          <Card
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid #E0E0E0",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Total de Produtos</p>
-                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-sm" style={{ color: "#555555" }}>
+                    Total de Produtos
+                  </p>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: "#111111" }}
+                  >
+                    {stats.total}
+                  </p>
                 </div>
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-8 w-8" style={{ color: "#1E90FF" }} />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid #E0E0E0",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Produtos Ativos</p>
-                  <p className="text-2xl font-bold">{stats.ativos}</p>
+                  <p className="text-sm" style={{ color: "#555555" }}>
+                    Produtos Ativos
+                  </p>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: "#111111" }}
+                  >
+                    {stats.ativos}
+                  </p>
                 </div>
-                <Eye className="h-8 w-8 text-green-600" />
+                <Eye className="h-8 w-8" style={{ color: "#1AD1C1" }} />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid #E0E0E0",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          >
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-slate-600">Preço Médio</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-sm" style={{ color: "#555555" }}>
+                    Preço Médio
+                  </p>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: "#111111" }}
+                  >
                     {formatPreco(stats.precoMedio)}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-purple-600" />
+                <DollarSign className="h-8 w-8" style={{ color: "#1E90FF" }} />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card
+            style={{
+              background: "#FFFFFF",
+              border: "1px solid #E0E0E0",
+              borderRadius: "12px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            }}
+          >
             <CardContent className="pt-6">
               <div>
-                <p className="text-sm text-slate-600 mb-2">Por Operadora</p>
+                <p className="text-sm mb-2" style={{ color: "#555555" }}>
+                  Por Operadora
+                </p>
                 <div className="space-y-1">
                   {Object.entries(stats.porOperadora).map(([op, count]) => (
                     <div key={op} className="flex justify-between text-sm">
-                      <span className="font-medium">
+                      <span
+                        className="font-medium"
+                        style={{ color: "#111111" }}
+                      >
                         {op === "V" ? "VIVO" : op === "C" ? "CLARO" : "TIM"}:
                       </span>
-                      <span>{count}</span>
+                      <span style={{ color: "#555555" }}>{count}</span>
                     </div>
                   ))}
                 </div>
@@ -390,11 +466,20 @@ export default function AdminProdutos() {
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E0E0E0",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
         <CardContent className="pt-6">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="h-5 w-5 text-slate-600" />
-            <h3 className="font-semibold">Filtros</h3>
+            <Filter className="h-5 w-5" style={{ color: "#1E90FF" }} />
+            <h3 className="font-semibold" style={{ color: "#111111" }}>
+              Filtros
+            </h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -554,8 +639,16 @@ export default function AdminProdutos() {
       </Card>
 
       {/* Tabela de Produtos */}
-      <Card>
+      <Card
+        style={{
+          background: "#FFFFFF",
+          border: "1px solid #E0E0E0",
+          borderRadius: "12px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+        }}
+      >
         <CardContent className="pt-6">
+          \n{" "}
           <Table>
             <TableHeader>
               <TableRow>
@@ -584,9 +677,22 @@ export default function AdminProdutos() {
                   <TableRow key={produto.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{produto.nome}</div>
+                        <div
+                          className="font-medium"
+                          style={{ color: "#111111" }}
+                        >
+                          {produto.nome}
+                        </div>
                         {produto.destaque && (
-                          <Badge className="mt-1 bg-orange-100 text-orange-800 border-orange-200">
+                          <Badge
+                            style={{
+                              background: "#FF6B35",
+                              color: "#FFFFFF",
+                              border: "none",
+                              borderRadius: "6px",
+                            }}
+                            className="mt-1"
+                          >
                             Destaque
                           </Badge>
                         )}
@@ -606,20 +712,27 @@ export default function AdminProdutos() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {produto.velocidade && <div>{produto.velocidade}</div>}
+                        {produto.velocidade && (
+                          <div style={{ color: "#111111" }}>
+                            {produto.velocidade}
+                          </div>
+                        )}
                         {produto.franquia && (
-                          <div className="text-slate-600">
+                          <div style={{ color: "#555555" }}>
                             {produto.franquia}
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="font-semibold">
+                      <div
+                        className="font-semibold"
+                        style={{ color: "#111111" }}
+                      >
                         {formatPreco(produto.preco)}
                       </div>
                       {produto.fidelidade > 0 && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs" style={{ color: "#555555" }}>
                           {produto.fidelidade} meses
                         </div>
                       )}
@@ -635,12 +748,26 @@ export default function AdminProdutos() {
                     </TableCell>
                     <TableCell>
                       {produto.ativo ? (
-                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                        <Badge
+                          style={{
+                            background: "rgba(26,209,193,0.1)",
+                            color: "#1AD1C1",
+                            border: "1px solid #1AD1C1",
+                            borderRadius: "6px",
+                          }}
+                        >
                           <Eye className="h-3 w-3 mr-1" />
                           Ativo
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">
+                        <Badge
+                          style={{
+                            background: "#F5F5F5",
+                            color: "#555555",
+                            border: "1px solid #E0E0E0",
+                            borderRadius: "6px",
+                          }}
+                        >
                           <EyeOff className="h-3 w-3 mr-1" />
                           Inativo
                         </Badge>
@@ -688,7 +815,6 @@ export default function AdminProdutos() {
               )}
             </TableBody>
           </Table>
-
           {/* Controles de Paginação */}
           {totalPaginas > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
@@ -921,12 +1047,22 @@ export default function AdminProdutos() {
               />
             </div>
 
+            <div>
+              <Label>Diferenciais (um por linha) - Colapsáveis no card</Label>
+              <Textarea
+                name="diferenciais"
+                defaultValue={editando?.diferenciais?.join("\n") || ""}
+                rows={4}
+                placeholder="Recursos extras que aparecem colapsados..."
+              />
+            </div>
+
             {/* NOVOS CAMPOS - SISTEMA DE RECOMENDAÇÃO INTELIGENTE */}
             <div className="border-t pt-4 mt-4">
+              \n{" "}
               <h3 className="text-sm font-semibold mb-3">
                 Sistema de Recomendação Inteligente
               </h3>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Modalidade</Label>
@@ -958,7 +1094,6 @@ export default function AdminProdutos() {
                   />
                 </div>
               </div>
-
               <div>
                 <Label>Uso Recomendado (separado por vírgulas)</Label>
                 <Input
@@ -970,7 +1105,6 @@ export default function AdminProdutos() {
                   Opções: trabalho, streaming, jogos, basico, equipe
                 </p>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Limite Mínimo de Dispositivos</Label>
@@ -992,7 +1126,6 @@ export default function AdminProdutos() {
                   />
                 </div>
               </div>
-
               <div>
                 <Label>Badge de Destaque</Label>
                 <Input
@@ -1001,7 +1134,6 @@ export default function AdminProdutos() {
                   placeholder="Ex: Mais Vendido, Ultra Velocidade"
                 />
               </div>
-
               <div>
                 <Label>Texto de Decisão (Por que escolher este plano?)</Label>
                 <Textarea

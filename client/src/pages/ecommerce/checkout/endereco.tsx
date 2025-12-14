@@ -1,16 +1,31 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLocation } from "wouter";
-import { ArrowRight, ArrowLeft, Search } from "lucide-react";
+import { ArrowRight, ArrowLeft, Search, Plus, X, MapPin } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
+import { useCartStore } from "@/stores/cartStore";
+import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
+import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
+
+interface EnderecoData {
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+}
 
 export default function CheckoutEndereco() {
   const [, setLocation] = useLocation();
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
-  const [formData, setFormData] = useState({
+  const { items } = useCartStore();
+
+  const [formData, setFormData] = useState<EnderecoData>({
     cep: "",
     logradouro: "",
     numero: "",
@@ -20,11 +35,66 @@ export default function CheckoutEndereco() {
     estado: "",
   });
 
+  const [usarMesmoEndereco, setUsarMesmoEndereco] = useState(true);
+  const [enderecosInstalacao, setEnderecosInstalacao] = useState<
+    EnderecoData[]
+  >([]);
+
+  // Verificar se algum produto é de categoria que precisa endereço de instalação
+  const precisaEnderecoInstalacao = items.some((item) => {
+    const categoria =
+      item.categoria?.toLowerCase() ||
+      item.product.categoria?.toLowerCase() ||
+      "";
+    return (
+      categoria.includes("banda larga") ||
+      categoria.includes("fibra") ||
+      categoria.includes("link dedicado")
+    );
+  });
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tipo = params.get("tipo") as "PF" | "PJ";
     if (tipo) setTipoPessoa(tipo);
+
+    // Carregar dados do cadastro se existir
+    const dadosStr = localStorage.getItem("checkout-dados");
+    if (dadosStr && usarMesmoEndereco) {
+      const dados = JSON.parse(dadosStr);
+      // Se tiver dados cadastrais e "usar mesmo endereço" estiver marcado,
+      // os campos serão preenchidos automaticamente
+    }
   }, []);
+
+  const adicionarEnderecoInstalacao = () => {
+    setEnderecosInstalacao([
+      ...enderecosInstalacao,
+      {
+        cep: "",
+        logradouro: "",
+        numero: "",
+        complemento: "",
+        bairro: "",
+        cidade: "",
+        estado: "",
+      },
+    ]);
+  };
+
+  const removerEnderecoInstalacao = (index: number) => {
+    setEnderecosInstalacao(enderecosInstalacao.filter((_, i) => i !== index));
+  };
+
+  const atualizarEnderecoInstalacao = (
+    index: number,
+    campo: keyof EnderecoData,
+    valor: string
+  ) => {
+    const novosEnderecos = [...enderecosInstalacao];
+    novosEnderecos[index] = { ...novosEnderecos[index], [campo]: valor };
+    setEnderecosInstalacao(novosEnderecos);
+  };
 
   const buscarCepMutation = useMutation({
     mutationFn: async (cep: string) => {
@@ -50,13 +120,50 @@ export default function CheckoutEndereco() {
     }
   };
 
+  const buscarCepInstalacao = async (index: number) => {
+    const cepLimpo = enderecosInstalacao[index].cep.replace(/\D/g, "");
+    if (cepLimpo.length === 8) {
+      try {
+        const response = await fetch(`/api/cep/${cepLimpo}`);
+        if (!response.ok) throw new Error("CEP não encontrado");
+        const data = await response.json();
+
+        const novosEnderecos = [...enderecosInstalacao];
+        novosEnderecos[index] = {
+          ...novosEnderecos[index],
+          logradouro: data.endereco || "",
+          bairro: data.bairro || "",
+          cidade: data.cidade || "",
+          estado: data.uf || "",
+        };
+        setEnderecosInstalacao(novosEnderecos);
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+      }
+    }
+  };
+
   const formatCEP = (value: string) => {
     return value.replace(/\D/g, "").replace(/(\d{5})(\d{1,3})$/, "$1-$2");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem("checkout-endereco", JSON.stringify(formData));
+
+    const enderecoData: any = {
+      enderecoCadastral: formData,
+    };
+
+    // Se precisa endereço de instalação
+    if (precisaEnderecoInstalacao) {
+      if (usarMesmoEndereco) {
+        enderecoData.enderecosInstalacao = [formData];
+      } else {
+        enderecoData.enderecosInstalacao = enderecosInstalacao;
+      }
+    }
+
+    localStorage.setItem("checkout-endereco", JSON.stringify(enderecoData));
     setLocation(`/ecommerce/checkout/documentos?tipo=${tipoPessoa}`);
   };
 
@@ -65,18 +172,52 @@ export default function CheckoutEndereco() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Endereço de Instalação</h1>
-          <p className="text-slate-600">Etapa 3 de 5 • Endereço</p>
-        </div>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "#FAFAFA" }}
+    >
+      <EcommerceHeader />
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Onde será instalado o serviço?</CardTitle>
-          </CardHeader>
-          <CardContent>
+      <div className="flex-1 py-12 px-4">
+        <div className="max-w-3xl mx-auto">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <h1
+              className="text-4xl font-bold mb-3"
+              style={{ color: "#111111" }}
+            >
+              Endereço
+            </h1>
+            <p className="text-lg" style={{ color: "#555555" }}>
+              Etapa 3 de 5 • Endereço de Cadastro e Instalação
+            </p>
+          </div>
+
+          {/* Card do Formulário */}
+          <div
+            className="p-8 mb-6"
+            style={{
+              backgroundColor: "#FFFFFF",
+              borderRadius: "16px",
+              border: "1px solid #E0E0E0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+          >
+            {/* Título com ícone */}
+            <div
+              className="flex items-center gap-3 mb-6 pb-6"
+              style={{ borderBottom: "2px solid #F0F0F0" }}
+            >
+              <div
+                className="p-3 rounded-full"
+                style={{ backgroundColor: "rgba(30,144,255,0.1)" }}
+              >
+                <MapPin className="h-6 w-6" style={{ color: "#1E90FF" }} />
+              </div>
+              <h2 className="text-2xl font-bold" style={{ color: "#111111" }}>
+                Endereço Cadastral
+              </h2>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="cep">CEP</Label>
@@ -185,28 +326,234 @@ export default function CheckoutEndereco() {
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button
+              {/* Seção de Endereços de Instalação (apenas para produtos específicos) */}
+              {precisaEnderecoInstalacao && (
+                <div className="border-t pt-4 mt-6">
+                  <h3 className="font-semibold text-lg mb-3">
+                    Endereço de Instalação
+                  </h3>
+
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Checkbox
+                      id="mesmoEndereco"
+                      checked={usarMesmoEndereco}
+                      onCheckedChange={(checked) =>
+                        setUsarMesmoEndereco(checked as boolean)
+                      }
+                    />
+                    <label
+                      htmlFor="mesmoEndereco"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                    >
+                      Usar o mesmo endereço cadastral para instalação
+                    </label>
+                  </div>
+
+                  {!usarMesmoEndereco && (
+                    <div className="space-y-4">
+                      <p className="text-sm text-slate-600">
+                        Adicione os endereços onde os serviços serão instalados
+                      </p>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={adicionarEnderecoInstalacao}
+                        className="w-full"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Adicionar Endereço de Instalação
+                      </Button>
+
+                      {enderecosInstalacao.map((endereco, index) => (
+                        <Card
+                          key={index}
+                          className="border-2 border-purple-200"
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="text-base">
+                                Endereço de Instalação #{index + 1}
+                              </CardTitle>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removerEnderecoInstalacao(index)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="space-y-3">
+                            <div>
+                              <Label>CEP</Label>
+                              <div className="flex gap-2">
+                                <Input
+                                  value={endereco.cep}
+                                  onChange={(e) =>
+                                    atualizarEnderecoInstalacao(
+                                      index,
+                                      "cep",
+                                      formatCEP(e.target.value)
+                                    )
+                                  }
+                                  placeholder="00000-000"
+                                  maxLength={9}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  onClick={() => buscarCepInstalacao(index)}
+                                >
+                                  <Search className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Logradouro</Label>
+                              <Input
+                                value={endereco.logradouro}
+                                onChange={(e) =>
+                                  atualizarEnderecoInstalacao(
+                                    index,
+                                    "logradouro",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Rua, Avenida..."
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="col-span-1">
+                                <Label>Número</Label>
+                                <Input
+                                  value={endereco.numero}
+                                  onChange={(e) =>
+                                    atualizarEnderecoInstalacao(
+                                      index,
+                                      "numero",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="123"
+                                />
+                              </div>
+                              <div className="col-span-2">
+                                <Label>Complemento</Label>
+                                <Input
+                                  value={endereco.complemento}
+                                  onChange={(e) =>
+                                    atualizarEnderecoInstalacao(
+                                      index,
+                                      "complemento",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Apto, Bloco..."
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <Label>Bairro</Label>
+                              <Input
+                                value={endereco.bairro}
+                                onChange={(e) =>
+                                  atualizarEnderecoInstalacao(
+                                    index,
+                                    "bairro",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Centro"
+                              />
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="col-span-2">
+                                <Label>Cidade</Label>
+                                <Input
+                                  value={endereco.cidade}
+                                  onChange={(e) =>
+                                    atualizarEnderecoInstalacao(
+                                      index,
+                                      "cidade",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="São Paulo"
+                                />
+                              </div>
+                              <div className="col-span-1">
+                                <Label>UF</Label>
+                                <Input
+                                  value={endereco.estado}
+                                  onChange={(e) =>
+                                    atualizarEnderecoInstalacao(
+                                      index,
+                                      "estado",
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="SP"
+                                  maxLength={2}
+                                />
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex gap-4 pt-6">
+                <button
                   type="button"
-                  variant="outline"
                   onClick={voltar}
-                  className="flex-1"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#FFFFFF",
+                    border: "2px solid #E0E0E0",
+                    color: "#555555",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "#1E90FF";
+                    e.currentTarget.style.color = "#1E90FF";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#E0E0E0";
+                    e.currentTarget.style.color = "#555555";
+                  }}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="h-5 w-5" />
                   Voltar
-                </Button>
-                <Button
+                </button>
+                <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500"
+                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                  style={{
+                    backgroundColor: "#1E90FF",
+                    color: "#FFFFFF",
+                    border: "none",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1570D6";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1E90FF";
+                  }}
                 >
                   Continuar
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                  <ArrowRight className="h-5 w-5" />
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
+
+      <EcommerceFooter />
     </div>
   );
 }

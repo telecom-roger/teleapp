@@ -119,17 +119,38 @@ export default function EcommerceLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "#FAFAFA" }}
+    >
       <EcommerceHeader />
 
       <main className="flex-1 container max-w-md mx-auto px-4 py-12 flex items-center justify-center">
-        <Card className="w-full p-8 shadow-xl border-2">
+        <Card
+          className="w-full p-8 shadow-xl"
+          style={{
+            backgroundColor: "#FFFFFF",
+            border: "1px solid #E0E0E0",
+            borderRadius: "16px",
+          }}
+        >
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-              <ShoppingBag className="w-8 h-8 text-primary" />
+            <div
+              className="inline-flex items-center justify-center w-16 h-16 mb-4"
+              style={{
+                borderRadius: "50%",
+                backgroundColor: "rgba(30,144,255,0.1)",
+              }}
+            >
+              <ShoppingBag className="w-8 h-8" style={{ color: "#1E90FF" }} />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Área do Cliente</h1>
-            <p className="text-muted-foreground">
+            <h1
+              className="text-3xl font-bold mb-2"
+              style={{ color: "#111111" }}
+            >
+              Área do Cliente
+            </h1>
+            <p style={{ color: "#555555" }}>
               Acompanhe seus pedidos e gerencie sua conta
             </p>
           </div>
@@ -190,8 +211,23 @@ export default function EcommerceLogin() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full font-bold shadow-lg border-0 transition-all"
               size="lg"
+              style={{
+                backgroundColor: "#1E90FF",
+                color: "#FFFFFF",
+                borderRadius: "12px",
+              }}
+              onMouseEnter={(e: any) => {
+                if (!loginMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#00CFFF";
+                  e.currentTarget.style.transform = "scale(1.02)";
+                }
+              }}
+              onMouseLeave={(e: any) => {
+                e.currentTarget.style.backgroundColor = "#1E90FF";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? "Entrando..." : "Entrar"}

@@ -94,10 +94,24 @@ export default function CustomerLogin() {
       // Forçar refetch imediato da autenticação
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
 
-      // Redirecionar após garantir que a autenticação foi recarregada
-      setTimeout(() => {
-        setLocation("/ecommerce/painel");
-      }, 200);
+      // Verificar se veio do checkout (via query param ou referrer)
+      const params = new URLSearchParams(window.location.search);
+      const returnTo = params.get("returnTo");
+
+      // Se veio do checkout, voltar para o resumo do checkout
+      if (
+        returnTo === "checkout" ||
+        document.referrer.includes("/ecommerce/checkout")
+      ) {
+        setTimeout(() => {
+          setLocation("/ecommerce/checkout");
+        }, 200);
+      } else {
+        // Caso contrário, ir para o painel
+        setTimeout(() => {
+          setLocation("/ecommerce/painel");
+        }, 200);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -136,13 +150,26 @@ export default function CustomerLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 p-4">
-      <Card className="w-full max-w-md shadow-xl">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: "#FAFAFA" }}
+    >
+      <Card
+        className="w-full max-w-md shadow-xl"
+        style={{
+          backgroundColor: "#FFFFFF",
+          borderRadius: "16px",
+          border: "1px solid #E0E0E0",
+        }}
+      >
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
+          <CardTitle
+            className="text-2xl font-bold text-center"
+            style={{ color: "#111111" }}
+          >
             Portal do Cliente
           </CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center" style={{ color: "#555555" }}>
             Acesse seu painel para acompanhar pedidos e serviços
           </CardDescription>
         </CardHeader>
@@ -176,7 +203,22 @@ export default function CustomerLogin() {
 
             <Button
               type="submit"
-              className="w-full"
+              className="w-full font-bold shadow-lg border-0 transition-all"
+              style={{
+                backgroundColor: "#1E90FF",
+                color: "#FFFFFF",
+                borderRadius: "12px",
+              }}
+              onMouseEnter={(e: any) => {
+                if (!loginMutation.isPending) {
+                  e.currentTarget.style.backgroundColor = "#00CFFF";
+                  e.currentTarget.style.transform = "scale(1.02)";
+                }
+              }}
+              onMouseLeave={(e: any) => {
+                e.currentTarget.style.backgroundColor = "#1E90FF";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
               disabled={loginMutation.isPending}
             >
               {loginMutation.isPending ? (
