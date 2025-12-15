@@ -215,7 +215,6 @@ router.post("/address-change-request", requireRole(["customer"]), async (req: Re
  */
 router.post(
   "/documents/upload",
-  requireRole(["customer"]),
   upload.single("file"),
   async (req: Request, res: Response) => {
     try {
@@ -231,11 +230,11 @@ router.post(
         return res.status(400).json({ error: "orderId e tipo são obrigatórios" });
       }
 
-      // Verificar se o pedido pertence ao cliente
+      // Verificar se o pedido existe (permite upload sem autenticação para checkout)
       const [order] = await db
         .select()
         .from(ecommerceOrders)
-        .where(and(eq(ecommerceOrders.id, orderId), eq(ecommerceOrders.clientId, user.clientId)))
+        .where(eq(ecommerceOrders.id, orderId))
         .limit(1);
 
       if (!order) {
@@ -252,7 +251,7 @@ router.post(
         filePath: file.path,
         fileSize: file.size,
         mimeType: file.mimetype,
-        uploadedBy: user.id,
+        uploadedBy: user?.id || null,
       });
 
       res.json({

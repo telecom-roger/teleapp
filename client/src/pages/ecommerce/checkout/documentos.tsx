@@ -55,7 +55,7 @@ export default function CheckoutDocumentos() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="documento">{tipoPessoa === "PF" ? "RG ou CNH" : "Contrato Social"}</Label>
+                <Label htmlFor="documento">{tipoPessoa === "PF" ? "CNH ou CPF/RG" : "Contrato Social"}</Label>
                 <div className="mt-2">
                   <label htmlFor="documento" className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
                     {files.documento ? (

@@ -77,7 +77,15 @@ export default function CheckoutConfirmacao() {
     const enderecoStr = localStorage.getItem("checkout-endereco");
     
     if (dadosStr) setDados(JSON.parse(dadosStr));
-    if (enderecoStr) setEndereco(JSON.parse(enderecoStr));
+    if (enderecoStr) {
+      const enderecoParsed = JSON.parse(enderecoStr);
+      // Extrair do wrapper enderecoCadastral se existir
+      if (enderecoParsed.enderecoCadastral) {
+        setEndereco(enderecoParsed.enderecoCadastral);
+      } else {
+        setEndereco(enderecoParsed);
+      }
+    }
   }, [customerData]);
   
   const formatPreco = (centavos: number) => {

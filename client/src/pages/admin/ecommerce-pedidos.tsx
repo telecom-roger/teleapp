@@ -61,6 +61,7 @@ import { Label } from "@/components/ui/label";
 
 interface EcommerceOrder {
   id: string;
+  orderCode?: string;
   clientId: string;
   tipoPessoa: string;
   nomeCompleto?: string;
@@ -68,6 +69,7 @@ interface EcommerceOrder {
   email: string;
   telefone: string;
   etapa: string;
+  execucaoTipo?: "instalacao" | "entrega" | "ativacao_remota" | "provisionamento" | "outro";
   subtotal: number;
   total: number;
   observacoes?: string;
@@ -103,21 +105,29 @@ interface EcommerceStats {
 
 const etapas = [
   { value: "novo_pedido", label: "Novo Pedido", color: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+  { value: "em_analise", label: "Em Análise", color: "bg-indigo-100 text-indigo-800 border-indigo-300" },
   { value: "aguardando_documentos", label: "Aguardando Docs", color: "bg-orange-100 text-orange-800 border-orange-300" },
-  { value: "em_analise", label: "Em Análise", color: "bg-blue-100 text-blue-800 border-blue-300" },
+  { value: "validando_documentos", label: "Validando Docs", color: "bg-amber-100 text-amber-800 border-amber-300" },
+  { value: "contrato_enviado", label: "Contrato Enviado", color: "bg-blue-100 text-blue-800 border-blue-300" },
+  { value: "contrato_assinado", label: "Contrato Assinado", color: "bg-cyan-100 text-cyan-800 border-cyan-300" },
+  { value: "analise_credito", label: "Análise de Crédito", color: "bg-violet-100 text-violet-800 border-violet-300" },
   { value: "aprovado", label: "Aprovado", color: "bg-green-100 text-green-800 border-green-300" },
-  { value: "em_instalacao", label: "Em Instalação", color: "bg-purple-100 text-purple-800 border-purple-300" },
-  { value: "concluido", label: "Concluído", color: "bg-green-100 text-green-800 border-green-300" },
+  { value: "em_andamento", label: "Em Andamento", color: "bg-purple-100 text-purple-800 border-purple-300" },
+  { value: "concluido", label: "Concluído", color: "bg-emerald-100 text-emerald-800 border-emerald-300" },
   { value: "cancelado", label: "Cancelado", color: "bg-red-100 text-red-800 border-red-300" },
 ];
 
 const getEtapaIcon = (etapa: string) => {
   switch (etapa) {
     case "novo_pedido": return Clock;
-    case "aguardando_documentos": return FileText;
     case "em_analise": return AlertCircle;
+    case "aguardando_documentos": return FileText;
+    case "validando_documentos": return FileText;
+    case "contrato_enviado": return FileText;
+    case "contrato_assinado": return CheckCircle2;
+    case "analise_credito": return AlertCircle;
     case "aprovado": return CheckCircle2;
-    case "em_instalacao": return Package;
+    case "em_andamento": return Package;
     case "concluido": return CheckCircle2;
     default: return Package;
   }
@@ -129,6 +139,7 @@ export default function AdminEcommercePedidos() {
   const [selectedOrder, setSelectedOrder] = useState<EcommerceOrder | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [novaEtapa, setNovaEtapa] = useState("");
+  const [execucaoTipo, setExecucaoTipo] = useState<string>("");
   const [observacoes, setObservacoes] = useState("");
   const [draggedOrder, setDraggedOrder] = useState<{ id: string; fromEtapa: string } | null>(null);
   const [dragOverEtapa, setDragOverEtapa] = useState<string | null>(null);
@@ -146,10 +157,14 @@ export default function AdminEcommercePedidos() {
 
   const { data: stats } = useQuery<EcommerceStats>({
     queryKey: ["/api/admin/ecommerce/stats"],
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   const { data: orders } = useQuery<EcommerceOrder[]>({
     queryKey: ["/api/admin/ecommerce/orders"],
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
   });
 
   // Check URL for pedido parameter to auto-open order details

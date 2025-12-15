@@ -921,6 +921,7 @@ export const ecommerceOrders = pgTable("ecommerce_orders", {
   cidade: varchar("cidade", { length: 100 }),
   uf: varchar("uf", { length: 2 }),
   etapa: varchar("etapa", { length: 100 }).notNull().default("novo_pedido"),
+  execucaoTipo: varchar("execucao_tipo", { length: 50 }), // instalacao, entrega, ativacao_remota, provisionamento, outro
   subtotal: integer("subtotal").notNull().default(0), // em centavos
   total: integer("total").notNull().default(0), // em centavos
   taxaInstalacao: integer("taxa_instalacao").notNull().default(0), // em centavos
