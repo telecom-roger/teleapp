@@ -9,6 +9,7 @@ import {
   ecommerceOrderDocuments,
   ecommerceOrderRequestedDocuments,
   interactions,
+  ecommerceBanners,
 } from "@shared/schema";
 import { eq, desc, and, or, like, sql, isNull, asc } from "drizzle-orm";
 import { requireRole, requireAuth, blockCustomers } from "./middleware/auth";
@@ -745,8 +746,121 @@ router.post(
 );
 
 // ==================== BANNERS ====================
-// NOTA: Rotas de banners comentadas - tabela ecommerceBanners não existe no schema
-// TODO: Implementar tabela ecommerceBanners se necessário
+
+/**
+ * GET /api/admin/ecommerce/banners
+ * Lista todos os banners (admin)
+ */
+router.get("/banners", blockCustomers, async (req: Request, res: Response) => {
+  try {
+    const banners = await db
+      .select()
+      .from(ecommerceBanners)
+      .orderBy(asc(ecommerceBanners.ordem), desc(ecommerceBanners.createdAt));
+    
+    res.json(banners);
+  } catch (error: any) {
+    console.error("Erro ao listar banners:", error);
+    res.status(500).json({ error: "Erro ao listar banners" });
+  }
+});
+
+/**
+ * POST /api/admin/ecommerce/banners
+ * Cria um novo banner
+ */
+router.post("/banners", requireRole(["admin"]), async (req: Request, res: Response) => {
+  try {
+    const {
+      titulo,
+      subtitulo,
+      imagemUrl,
+      imagemMobileUrl,
+      pagina,
+      posicao,
+      linkDestino,
+      linkTexto,
+      ordem,
+      ativo,
+      dataInicio,
+      dataFim,
+    } = req.body;
+
+    if (!titulo || !imagemUrl || !pagina) {
+      return res.status(400).json({ error: "Campos obrigatórios: titulo, imagemUrl, pagina" });
+    }
+
+    const [banner] = await db
+      .insert(ecommerceBanners)
+      .values({
+        titulo,
+        subtitulo,
+        imagemUrl,
+        imagemMobileUrl,
+        pagina,
+        posicao: posicao || "topo",
+        linkDestino,
+        linkTexto,
+        ordem: ordem || 0,
+        ativo: ativo !== undefined ? ativo : true,
+        dataInicio: dataInicio ? new Date(dataInicio) : null,
+        dataFim: dataFim ? new Date(dataFim) : null,
+      })
+      .returning();
+
+    res.json(banner);
+  } catch (error: any) {
+    console.error("Erro ao criar banner:", error);
+    res.status(500).json({ error: "Erro ao criar banner" });
+  }
+});
+
+/**
+ * PUT /api/admin/ecommerce/banners/:id
+ * Atualiza um banner
+ */
+router.put("/banners/:id", requireRole(["admin"]), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Converter datas se necessário
+    if (updates.dataInicio) updates.dataInicio = new Date(updates.dataInicio);
+    if (updates.dataFim) updates.dataFim = new Date(updates.dataFim);
+
+    const [banner] = await db
+      .update(ecommerceBanners)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(ecommerceBanners.id, id))
+      .returning();
+
+    if (!banner) {
+      return res.status(404).json({ error: "Banner não encontrado" });
+    }
+
+    res.json(banner);
+  } catch (error: any) {
+    console.error("Erro ao atualizar banner:", error);
+    res.status(500).json({ error: "Erro ao atualizar banner" });
+  }
+});
+
+/**
+ * DELETE /api/admin/ecommerce/banners/:id
+ * Remove um banner
+ */
+router.delete("/banners/:id", requireRole(["admin"]), async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    await db.delete(ecommerceBanners).where(eq(ecommerceBanners.id, id));
+
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Erro ao deletar banner:", error);
+    res.status(500).json({ error: "Erro ao deletar banner" });
+  }
+});
 
 // ==================== DOCUMENTOS SOLICITADOS ====================
 
