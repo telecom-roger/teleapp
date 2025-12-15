@@ -905,6 +905,7 @@ export type InsertEcommerceStage = z.infer<typeof insertEcommerceStageSchema>;
 // ==================== E-COMMERCE ORDERS ====================
 export const ecommerceOrders = pgTable("ecommerce_orders", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderCode: varchar("order_code", { length: 20 }),
   clientId: varchar("client_id").notNull().references(() => clients.id, { onDelete: "cascade" }),
   tipoPessoa: varchar("tipo_pessoa", { length: 10 }).notNull(), // PF, PJ
   cpf: varchar("cpf", { length: 11 }),
@@ -1001,3 +1002,28 @@ export const insertEcommerceOrderDocumentSchema = createInsertSchema(ecommerceOr
 
 export type EcommerceOrderDocument = typeof ecommerceOrderDocuments.$inferSelect;
 export type InsertEcommerceOrderDocument = z.infer<typeof insertEcommerceOrderDocumentSchema>;
+
+// ==================== E-COMMERCE ORDER REQUESTED DOCUMENTS ====================
+export const ecommerceOrderRequestedDocuments = pgTable("ecommerce_order_requested_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+  tipo: varchar("tipo", { length: 50 }).notNull(), // rg, cpf, cnpj, contrato_social, comprovante_endereco, etc
+  nome: varchar("nome", { length: 255 }).notNull(), // Display name for the client
+  obrigatorio: boolean("obrigatorio").notNull().default(true),
+  status: varchar("status", { length: 20 }).notNull().default("pendente"), // pendente, enviado, aprovado, reprovado
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_order_requested_documents_order").on(table.orderId),
+  index("idx_ecommerce_order_requested_documents_status").on(table.status),
+]);
+
+export const insertEcommerceOrderRequestedDocumentSchema = createInsertSchema(ecommerceOrderRequestedDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceOrderRequestedDocument = typeof ecommerceOrderRequestedDocuments.$inferSelect;
+export type InsertEcommerceOrderRequestedDocument = z.infer<typeof insertEcommerceOrderRequestedDocumentSchema>;
