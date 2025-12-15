@@ -7,12 +7,15 @@ Sistema completo de contratação multi-linha com cálculo dinâmico de preço t
 ## ✨ Funcionalidades
 
 ### 1. **Seleção de Múltiplas Linhas**
+
 - Cada linha pode ter um plano diferente
 - Suporte para operadoras diferentes (VIVO, CLARO, TIM)
 - Sistema inteligente de recomendação por linha
 
 ### 2. **Adicionais por Linha**
+
 Cada linha pode ter seus próprios adicionais:
+
 - **Apps ilimitados**: WhatsApp, Instagram, YouTube, Netflix
 - **GB extras**: 5GB, 10GB, 20GB
 - **Equipamentos**: Repetidor, Roteador Wi-Fi 6, Modem GPON
@@ -20,6 +23,7 @@ Cada linha pode ter seus próprios adicionais:
 - **Serviços**: Backup em nuvem, IP fixo, Suporte premium
 
 ### 3. **Cálculo Automático em Tempo Real**
+
 - **Preço Total**: Soma de todos os planos + adicionais
 - **Total GB**: Soma de franquias + GB extras
 - Atualização instantânea ao adicionar/remover
@@ -27,11 +31,13 @@ Cada linha pode ter seus próprios adicionais:
 ### 4. **Interface Responsiva**
 
 #### Desktop (≥1024px)
+
 - **Sidebar fixa** à direita com resumo completo
 - Visualização simultânea de produtos e resumo
 - Scroll independente para muitos produtos
 
 #### Mobile (<1024px)
+
 - **Botão flutuante** no rodapé mostrando:
   - Número de linhas
   - Total GB
@@ -44,18 +50,21 @@ Cada linha pode ter seus próprios adicionais:
 ### Para o Usuário Final:
 
 1. **Adicionar Linha**
+
    - Navegue até uma categoria (ex: `/ecommerce/fibra`)
    - Encontre o plano desejado
    - Clique em **"Nova Linha"** no card do produto
    - A linha é adicionada ao resumo automaticamente
 
 2. **Adicionar Extras**
+
    - No resumo (sidebar ou drawer), localize a linha
    - Clique em **"Adicionar extras"**
    - Selecione os adicionais desejados
    - Total é recalculado automaticamente
 
 3. **Gerenciar Linhas**
+
    - **Remover linha**: Clique no ✕ ao lado da linha
    - **Remover adicional**: Clique no ✕ ao lado do adicional
    - **Limpar tudo**: Clique em "Limpar tudo" no topo do resumo
@@ -82,7 +91,7 @@ addAdicional(linhaId, {
   nome: "WhatsApp Ilimitado",
   tipo: "apps-ilimitados",
   preco: 500, // em centavos
-  gbExtra: 0
+  gbExtra: 0,
 });
 
 // Obter resumo
@@ -101,6 +110,7 @@ const resumo = useMultiLinhaStore((state) => state.getResumoDetalhado());
 ## 📊 Estrutura de Dados
 
 ### LinhaPlano
+
 ```typescript
 {
   id: "uuid",
@@ -111,6 +121,7 @@ const resumo = useMultiLinhaStore((state) => state.getResumoDetalhado());
 ```
 
 ### AdicionalSelecionado
+
 ```typescript
 {
   id: "uuid",
@@ -122,6 +133,7 @@ const resumo = useMultiLinhaStore((state) => state.getResumoDetalhado());
 ```
 
 ### ResumoDetalhado
+
 ```typescript
 {
   totalPreco: 27000, // centavos
@@ -153,16 +165,16 @@ export default function CategoriaPage() {
     <div className="lg:grid lg:grid-cols-[1fr_380px] lg:gap-8">
       {/* Produtos */}
       <div>
-        {produtos.map(produto => (
+        {produtos.map((produto) => (
           <CardInteligente produto={produto} />
         ))}
       </div>
-      
+
       {/* Resumo Desktop */}
       <div className="hidden lg:block">
         <ResumoMultiLinha />
       </div>
-      
+
       {/* Resumo Mobile */}
       <div className="lg:hidden">
         <ResumoMultiLinha />
@@ -175,13 +187,16 @@ export default function CategoriaPage() {
 ## 🔧 Configuração
 
 ### Requisitos:
+
 - Zustand (state management)
 - React Query (API calls)
 - Shadcn/ui (componentes)
 - Tailwind CSS (estilos)
 
 ### Instalação:
+
 Todos os arquivos já foram criados:
+
 - ✅ `stores/multiLinhaStore.ts`
 - ✅ `components/ecommerce/ResumoMultiLinha.tsx`
 - ✅ `components/ecommerce/ResumoMultiLinhaDesktop.tsx`
@@ -193,6 +208,7 @@ Todos os arquivos já foram criados:
 ## 📱 Screenshots Esperados
 
 ### Desktop
+
 ```
 ┌─────────────────────────────────┬────────────────┐
 │ [Filtros PF/PJ] [Novo/Portab.]  │  ┌──────────┐  │
@@ -212,6 +228,7 @@ Todos os arquivos já foram criados:
 ```
 
 ### Mobile
+
 ```
 ┌────────────────────┐
 │ [Filtros]          │

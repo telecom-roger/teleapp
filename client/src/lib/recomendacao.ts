@@ -82,7 +82,9 @@ function calcularScore(produto: any, filtros: FiltrosRecomendacao): number {
 
   // ✅ 5. Uso recomendado (peso: 15)
   if (filtros.uso && filtros.uso.length > 0 && produto.usoRecomendado) {
-    const matches = filtros.uso.filter((u) => produto.usoRecomendado.includes(u));
+    const matches = filtros.uso.filter((u) =>
+      produto.usoRecomendado.includes(u)
+    );
     score += matches.length * 5; // +5 por cada uso compatível
   }
 
@@ -90,7 +92,7 @@ function calcularScore(produto: any, filtros: FiltrosRecomendacao): number {
   if (filtros.numDispositivos) {
     const min = produto.limiteDispositivosMin || 1;
     const max = produto.limiteDispositivosMax || 999;
-    
+
     if (filtros.numDispositivos >= min && filtros.numDispositivos <= max) {
       score += 10; // Perfeitamente dentro da faixa
     } else if (filtros.numDispositivos < min) {
@@ -104,10 +106,10 @@ function calcularScore(produto: any, filtros: FiltrosRecomendacao): number {
   if (filtros.quantidadeLinhas) {
     const linhasUsuario = parseQuantidadeLinhas(filtros.quantidadeLinhas);
     const linhasPlano = produto.linhasInclusas || 1;
-    
+
     if (linhasPlano >= linhasUsuario) {
       score += 12; // Plano atende a quantidade de linhas
-      
+
       // Bonus se for exatamente o que precisa (sem desperdício)
       if (linhasPlano === linhasUsuario) {
         score += 3;
@@ -126,7 +128,10 @@ function calcularScore(produto: any, filtros: FiltrosRecomendacao): number {
   // ✅ 8. Preço (normalizado de 0-10, menor preço = maior score)
   // Assumindo preços entre 2000 (R$ 20) e 50000 (R$ 500)
   if (produto.preco) {
-    const precoNormalizado = Math.max(0, Math.min(10, 10 - (produto.preco / 5000)));
+    const precoNormalizado = Math.max(
+      0,
+      Math.min(10, 10 - produto.preco / 5000)
+    );
     score += precoNormalizado;
   }
 
@@ -136,7 +141,10 @@ function calcularScore(produto: any, filtros: FiltrosRecomendacao): number {
 /**
  * Gera texto explicativo do por quê o produto é recomendado
  */
-function gerarRazaoRecomendacao(produto: any, filtros: FiltrosRecomendacao): string {
+function gerarRazaoRecomendacao(
+  produto: any,
+  filtros: FiltrosRecomendacao
+): string {
   const razoes: string[] = [];
 
   if (filtros.tipoPessoa === "PF") {
@@ -144,11 +152,14 @@ function gerarRazaoRecomendacao(produto: any, filtros: FiltrosRecomendacao): str
     if (produto.franquia) razoes.push(`${produto.franquia} de dados`);
   } else {
     if (produto.sla) razoes.push("Com garantia de SLA");
-    if (produto.linhasInclusas > 1) razoes.push(`${produto.linhasInclusas} linhas inclusas`);
+    if (produto.linhasInclusas > 1)
+      razoes.push(`${produto.linhasInclusas} linhas inclusas`);
   }
 
   if (filtros.uso && produto.usoRecomendado) {
-    const matches = filtros.uso.filter((u) => produto.usoRecomendado.includes(u));
+    const matches = filtros.uso.filter((u) =>
+      produto.usoRecomendado.includes(u)
+    );
     if (matches.length > 0) {
       razoes.push(`Ideal para ${matches.join(", ")}`);
     }
@@ -158,14 +169,18 @@ function gerarRazaoRecomendacao(produto: any, filtros: FiltrosRecomendacao): str
     const min = produto.limiteDispositivosMin || 1;
     const max = produto.limiteDispositivosMax || 999;
     if (filtros.numDispositivos >= min && filtros.numDispositivos <= max) {
-      razoes.push(`Perfeito para ${filtros.numDispositivos} dispositivo${filtros.numDispositivos > 1 ? 's' : ''}`);
+      razoes.push(
+        `Perfeito para ${filtros.numDispositivos} dispositivo${
+          filtros.numDispositivos > 1 ? "s" : ""
+        }`
+      );
     }
   }
 
   if (filtros.quantidadeLinhas) {
     const linhasUsuario = parseQuantidadeLinhas(filtros.quantidadeLinhas);
     const linhasPlano = produto.linhasInclusas || 1;
-    
+
     if (linhasPlano >= linhasUsuario) {
       if (linhasPlano === 1) {
         razoes.push("Perfeito para linha individual");
@@ -181,7 +196,11 @@ function gerarRazaoRecomendacao(produto: any, filtros: FiltrosRecomendacao): str
 /**
  * Gera badge contextual baseado no tipo de cliente e score
  */
-function gerarBadgeRecomendacao(produto: any, filtros: FiltrosRecomendacao, posicao: number): string {
+function gerarBadgeRecomendacao(
+  produto: any,
+  filtros: FiltrosRecomendacao,
+  posicao: number
+): string {
   // Se o produto tem badge customizado, usa ele
   if (produto.badgeTexto) {
     return produto.badgeTexto;
@@ -189,15 +208,21 @@ function gerarBadgeRecomendacao(produto: any, filtros: FiltrosRecomendacao, posi
 
   // Badges contextuais baseados em posição e tipo
   if (posicao === 0) {
-    return filtros.tipoPessoa === "PF" ? "✨ Melhor para você" : "🏆 Ideal para sua empresa";
+    return filtros.tipoPessoa === "PF"
+      ? "✨ Melhor para você"
+      : "🏆 Ideal para sua empresa";
   }
 
   if (posicao === 1) {
-    return filtros.tipoPessoa === "PF" ? "⚡ Mais rápido" : "💼 Perfeito para equipes";
+    return filtros.tipoPessoa === "PF"
+      ? "⚡ Mais rápido"
+      : "💼 Perfeito para equipes";
   }
 
   if (posicao === 2) {
-    return filtros.tipoPessoa === "PF" ? "💰 Melhor custo-benefício" : "📊 Recomendado para negócios";
+    return filtros.tipoPessoa === "PF"
+      ? "💰 Melhor custo-benefício"
+      : "📊 Recomendado para negócios";
   }
 
   if (produto.destaque) {
@@ -222,7 +247,11 @@ export function recomendarProdutos(
   // 🔥 FILTRAR por compatibilidade OBRIGATÓRIA antes de calcular scores
   produtosAtivos = produtosAtivos.filter((produto) => {
     // Tipo de pessoa - obrigatório
-    if (filtros.tipoPessoa && produto.tipoPessoa !== "ambos" && produto.tipoPessoa !== filtros.tipoPessoa) {
+    if (
+      filtros.tipoPessoa &&
+      produto.tipoPessoa !== "ambos" &&
+      produto.tipoPessoa !== filtros.tipoPessoa
+    ) {
       return false;
     }
 
@@ -242,7 +271,7 @@ export function recomendarProdutos(
   // Calcular score para cada produto
   const produtosComScore: ProdutoComScore[] = produtosAtivos.map((produto) => {
     const score = calcularScore(produto, filtros);
-    
+
     return {
       ...produto,
       scoreCalculado: score,
@@ -276,9 +305,16 @@ export function obterTopRecomendacoes(
 /**
  * Verifica se um produto é compatível com os filtros básicos
  */
-export function isProdutoCompativel(produto: any, filtros: FiltrosRecomendacao): boolean {
+export function isProdutoCompativel(
+  produto: any,
+  filtros: FiltrosRecomendacao
+): boolean {
   // Tipo de pessoa
-  if (filtros.tipoPessoa && produto.tipoPessoa !== "ambos" && produto.tipoPessoa !== filtros.tipoPessoa) {
+  if (
+    filtros.tipoPessoa &&
+    produto.tipoPessoa !== "ambos" &&
+    produto.tipoPessoa !== filtros.tipoPessoa
+  ) {
     return false;
   }
 

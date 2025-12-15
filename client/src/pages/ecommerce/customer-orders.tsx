@@ -1,5 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { CustomerHeader, CustomerSidebar, CustomerMobileNav } from "@/components/ecommerce/CustomerLayout";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  CustomerHeader,
+  CustomerSidebar,
+  CustomerMobileNav,
+} from "@/components/ecommerce/CustomerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,14 +17,24 @@ import {
   ArrowLeft,
   Calendar,
   DollarSign,
+  Upload,
+  Eye,
+  Download,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
   clientId: string;
   etapa: string;
+  execucaoTipo?:
+    | "em_rota"
+    | "aguardando_instalacao"
+    | "instalacao"
+    | "entrega"
+    | "personalizado";
   total: number;
   subtotal: number;
   taxaInstalacao: number;
@@ -41,12 +55,32 @@ interface OrderItem {
   subtotal: number;
 }
 
+interface RequestedDocument {
+  id: string;
+  orderId: string;
+  tipo: string;
+  nome: string;
+  obrigatorio: boolean;
+  status: "pendente" | "enviado" | "aprovado" | "reprovado";
+  observacoes: string | null;
+  hasUpload: boolean;
+  uploads: any[];
+}
+
 export default function CustomerOrders() {
   const params = useParams();
   const orderId = params.orderId as string | undefined;
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
-  const { data: customerData, isLoading: loadingAuth, isError } = useQuery({
+  const {
+    data: customerData,
+    isLoading: loadingAuth,
+    isError,
+  } = useQuery<{ client: any }>({
     queryKey: ["/api/ecommerce/auth/customer"],
     retry: false,
   });
@@ -58,21 +92,125 @@ export default function CustomerOrders() {
     }
   }, [loadingAuth, isError, customerData, setLocation]);
 
-  const { data: orders, isLoading } = useQuery<Order[]>({
+  const { data, isLoading } = useQuery<{ orders: Order[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData?.client,
     refetchInterval: 5000, // Atualizar a cada 5 segundos para pegar novos pedidos
     refetchOnWindowFocus: true,
     // Atualização em tempo real via SSE
   });
+  const orders = data?.orders ?? [];
 
   const { data: orderDetail, isLoading: loadingDetail } = useQuery<Order>({
-    queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
-    enabled: !!orderId,
-    // Atualização em tempo real via SSE
+    queryKey: [`/api/ecommerce/customer/orders/${orderCode}`],
+    enabled: !!orderCode,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   });
 
-  const getStatusInfo = (etapa: string) => {
+  const { data: requestedDocuments, isLoading: loadingDocs } = useQuery<
+    RequestedDocument[]
+  >({
+    queryKey: [
+      `/api/ecommerce/customer/orders/${orderCode}/requested-documents`,
+    ],
+    enabled: !!orderCode,
+    refetchInterval: 3000, // Atualizar a cada 3 segundos
+    refetchOnWindowFocus: true,
+  });
+
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      tipo,
+      file,
+    }: {
+      orderId: string;
+      tipo: string;
+      file: File;
+    }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("orderId", orderId);
+      formData.append("tipo", tipo);
+
+      const res = await fetch("/api/ecommerce/customer/documents/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Erro ao enviar documento");
+      }
+
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          `/api/ecommerce/customer/orders/${orderCode}/requested-documents`,
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/ecommerce/customer/orders/${orderCode}`],
+      });
+      setUploadingDoc(null);
+      toast({
+        title: "Documento enviado",
+        description:
+          "Seu documento foi enviado com sucesso e está sendo analisado.",
+      });
+    },
+    onError: (error: Error) => {
+      setUploadingDoc(null);
+      toast({
+        title: "Erro ao enviar",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFileSelect = (
+    docId: string,
+    tipo: string,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !orderDetail) return;
+
+    // Validar tipo de arquivo
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Apenas arquivos PDF, JPG e PNG são permitidos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O arquivo deve ter no máximo 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingDoc(docId);
+    uploadDocumentMutation.mutate({ orderId: orderDetail.id, tipo, file });
+  };
+
+  const getStatusInfo = (etapa: string, execucaoTipo?: string) => {
     switch (etapa) {
       case "novo_pedido":
         return {
@@ -80,7 +218,19 @@ export default function CustomerOrders() {
           color: "text-yellow-600",
           bg: "bg-yellow-50",
           badge: "secondary",
-          label: "Novo Pedido",
+          label: "Pedido recebido",
+          description:
+            "Recebemos seu pedido e ele já está em nossa fila de processamento.",
+        };
+      case "em_analise":
+        return {
+          icon: AlertCircle,
+          color: "text-indigo-600",
+          bg: "bg-indigo-50",
+          badge: "default",
+          label: "Pedido em análise",
+          description:
+            "Estamos avaliando as informações iniciais do seu pedido. Caso seja necessário, poderemos solicitar documentos para continuar.",
         };
       case "aguardando_documentos":
         return {
@@ -88,15 +238,49 @@ export default function CustomerOrders() {
           color: "text-orange-600",
           bg: "bg-orange-50",
           badge: "warning",
-          label: "Aguardando Documentos",
+          label: "Envio de documentos necessário",
+          description:
+            "Para dar continuidade ao seu pedido, precisamos que você envie os documentos solicitados abaixo.",
         };
-      case "em_analise":
+      case "validando_documentos":
         return {
-          icon: AlertCircle,
+          icon: FileText,
+          color: "text-amber-600",
+          bg: "bg-amber-50",
+          badge: "default",
+          label: "Documentos em validação",
+          description:
+            "Recebemos seus documentos e estamos conferindo as informações enviadas. Esse processo pode levar um curto período.",
+        };
+      case "contrato_enviado":
+        return {
+          icon: FileText,
           color: "text-blue-600",
           bg: "bg-blue-50",
           badge: "default",
-          label: "Em Análise",
+          label: "Contrato enviado para assinatura",
+          description:
+            "O contrato foi enviado para você assinar. Assim que a assinatura for confirmada, seu pedido seguirá para a próxima etapa.",
+        };
+      case "contrato_assinado":
+        return {
+          icon: CheckCircle2,
+          color: "text-cyan-600",
+          bg: "bg-cyan-50",
+          badge: "default",
+          label: "Contrato assinado",
+          description:
+            "Recebemos sua assinatura. Agora seguimos com as validações finais do seu pedido.",
+        };
+      case "analise_credito":
+        return {
+          icon: AlertCircle,
+          color: "text-violet-600",
+          bg: "bg-violet-50",
+          badge: "default",
+          label: "Análise de crédito em andamento",
+          description:
+            "Estamos realizando a análise de crédito junto à operadora. Essa etapa é necessária para a aprovação do serviço.",
         };
       case "aprovado":
         return {
@@ -104,23 +288,63 @@ export default function CustomerOrders() {
           color: "text-green-600",
           bg: "bg-green-50",
           badge: "success",
-          label: "Aprovado",
+          label: "Pedido aprovado",
+          description:
+            "Tudo certo! Seu pedido foi aprovado e seguirá para a etapa de ativação.",
         };
-      case "em_instalacao":
+      case "em_andamento":
+        // Texto dinâmico baseado no tipo de execução
+        const substatusTexts = {
+          em_rota: {
+            label: "Técnico a caminho",
+            description:
+              "Nosso técnico já está em rota para realizar a instalação no endereço informado.",
+          },
+          aguardando_instalacao: {
+            label: "Aguardando instalação",
+            description:
+              "Seu pedido está pronto. Em breve agendaremos a instalação com você.",
+          },
+          instalacao: {
+            label: "Instalação em andamento",
+            description:
+              "Nosso técnico está realizando a instalação no seu endereço. Em breve estará concluído.",
+          },
+          entrega: {
+            label: "Entrega em andamento",
+            description:
+              "Seu chip ou equipamento já está em rota de entrega. Em breve ele chegará ao endereço informado.",
+          },
+          personalizado: {
+            label: "Em andamento",
+            description:
+              "Seu pedido está em execução. Em breve você receberá atualizações.",
+          },
+        };
+        const substatus = substatusTexts[
+          execucaoTipo as keyof typeof substatusTexts
+        ] || {
+          label: "Em andamento",
+          description:
+            "Seu pedido está em execução. Em breve você receberá atualizações.",
+        };
         return {
           icon: Package,
           color: "text-purple-600",
           bg: "bg-purple-50",
           badge: "default",
-          label: "Em Instalação",
+          label: substatus.label,
+          description: substatus.description,
         };
       case "concluido":
         return {
           icon: CheckCircle2,
-          color: "text-green-600",
-          bg: "bg-green-50",
+          color: "text-emerald-600",
+          bg: "bg-emerald-50",
           badge: "success",
-          label: "Concluído",
+          label: "Pedido concluído",
+          description:
+            "Seu serviço foi ativado com sucesso. Se precisar de algo, estamos à disposição.",
         };
       case "cancelado":
         return {
@@ -128,7 +352,9 @@ export default function CustomerOrders() {
           color: "text-red-600",
           bg: "bg-red-50",
           badge: "destructive",
-          label: "Cancelado",
+          label: "Pedido cancelado",
+          description:
+            "Este pedido foi encerrado. Caso tenha dúvidas ou queira mais informações, entre em contato com nosso suporte.",
         };
       default:
         return {
@@ -137,22 +363,25 @@ export default function CustomerOrders() {
           bg: "bg-gray-50",
           badge: "secondary",
           label: etapa,
+          description: "",
         };
     }
   };
 
   // Visualização detalhada do pedido
-  if (orderId) {
-    const statusInfo = orderDetail ? getStatusInfo(orderDetail.etapa) : null;
+  if (orderCode) {
+    const statusInfo = orderDetail
+      ? getStatusInfo(orderDetail.etapa, orderDetail.execucaoTipo)
+      : null;
     const StatusIcon = statusInfo?.icon;
 
     return (
       <div className="min-h-screen bg-gray-50">
         <CustomerHeader />
-        
+
         <div className="flex">
           <CustomerSidebar />
-          
+
           <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="flex items-center gap-4">
@@ -177,17 +406,26 @@ export default function CustomerOrders() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle>Pedido #{orderDetail.id.slice(0, 8)}</CardTitle>
+                          <CardTitle>
+                            Pedido #{orderDetail.id.slice(0, 8)}
+                          </CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
-                            Realizado em {new Date(orderDetail.createdAt).toLocaleDateString("pt-BR", {
-                              day: "2-digit",
-                              month: "long",
-                              year: "numeric",
-                            })}
+                            Realizado em{" "}
+                            {new Date(orderDetail.createdAt).toLocaleDateString(
+                              "pt-BR",
+                              {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                              }
+                            )}
                           </p>
                         </div>
                         {StatusIcon && (
-                          <Badge variant={statusInfo?.badge as any} className="flex items-center gap-2">
+                          <Badge
+                            variant={statusInfo?.badge as any}
+                            className="flex items-center gap-2"
+                          >
                             <StatusIcon className="h-4 w-4" />
                             {statusInfo?.label}
                           </Badge>
@@ -195,20 +433,52 @@ export default function CustomerOrders() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      {statusInfo?.description && (
+                        <div
+                          className={`p-4 rounded-lg ${statusInfo.bg} border border-gray-200`}
+                        >
+                          <p
+                            className={`text-sm ${statusInfo.color} leading-relaxed`}
+                          >
+                            {statusInfo.description}
+                          </p>
+                        </div>
+                      )}
+                      {orderDetail.observacoes && (
+                        <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-blue-900 mb-1">
+                                Status do Pedido
+                              </p>
+                              <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-line">
+                                {orderDetail.observacoes}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="grid gap-4 sm:grid-cols-3">
                         <div className="flex items-center gap-3">
                           <Calendar className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="text-sm text-muted-foreground">Data</p>
+                            <p className="text-sm text-muted-foreground">
+                              Data
+                            </p>
                             <p className="font-medium">
-                              {new Date(orderDetail.createdAt).toLocaleDateString("pt-BR")}
+                              {new Date(
+                                orderDetail.createdAt
+                              ).toLocaleDateString("pt-BR")}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
                           <DollarSign className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="text-sm text-muted-foreground">Valor Total</p>
+                            <p className="text-sm text-muted-foreground">
+                              Valor Total
+                            </p>
                             <p className="font-medium text-lg">
                               R$ {(orderDetail.total / 100).toFixed(2)}
                             </p>
@@ -217,11 +487,41 @@ export default function CustomerOrders() {
                         <div className="flex items-center gap-3">
                           <Package className="h-5 w-5 text-muted-foreground" />
                           <div>
-                            <p className="text-sm text-muted-foreground">Itens</p>
-                            <p className="font-medium">{orderDetail.items.length}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Itens
+                            </p>
+                            <p className="font-medium">
+                              {orderDetail.items.length}
+                            </p>
                           </div>
                         </div>
                       </div>
+
+                      {/* Endereço de Entrega/Instalação */}
+                      {(orderDetail.endereco || orderDetail.cidade) && (
+                        <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <p className="text-sm text-muted-foreground mb-2 font-medium">
+                            Endereço de Entrega/Instalação
+                          </p>
+                          <p className="text-sm text-slate-900">
+                            {orderDetail.endereco}
+                            {orderDetail.numero
+                              ? `, ${orderDetail.numero}`
+                              : ""}
+                            {orderDetail.complemento
+                              ? ` - ${orderDetail.complemento}`
+                              : ""}
+                            <br />
+                            {orderDetail.bairro
+                              ? `${orderDetail.bairro} - `
+                              : ""}
+                            {orderDetail.cidade}/{orderDetail.uf}
+                            {orderDetail.cep
+                              ? ` - CEP: ${orderDetail.cep}`
+                              : ""}
+                          </p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
 
@@ -232,10 +532,15 @@ export default function CustomerOrders() {
                     <CardContent>
                       <div className="space-y-4">
                         {orderDetail.items.map((item) => (
-                          <div key={item.id} className="border rounded-lg p-4 space-y-2">
+                          <div
+                            key={item.id}
+                            className="border rounded-lg p-4 space-y-2"
+                          >
                             <div className="flex justify-between items-start">
                               <div>
-                                <h3 className="font-semibold">{item.productNome}</h3>
+                                <h3 className="font-semibold">
+                                  {item.productNome}
+                                </h3>
                                 {item.productDescricao && (
                                   <p className="text-sm text-muted-foreground">
                                     {item.productDescricao}
@@ -249,9 +554,14 @@ export default function CustomerOrders() {
                             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                               <span>Quantidade: {item.quantidade}</span>
                               {item.linhasAdicionais > 0 && (
-                                <span>Linhas Adicionais: {item.linhasAdicionais}</span>
+                                <span>
+                                  Linhas Adicionais: {item.linhasAdicionais}
+                                </span>
                               )}
-                              <span>Preço Unitário: R$ {(item.precoUnitario / 100).toFixed(2)}</span>
+                              <span>
+                                Preço Unitário: R${" "}
+                                {(item.precoUnitario / 100).toFixed(2)}
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -259,19 +569,29 @@ export default function CustomerOrders() {
 
                       <div className="border-t mt-6 pt-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Subtotal</span>
-                          <span>R$ {(orderDetail.subtotal / 100).toFixed(2)}</span>
+                          <span className="text-muted-foreground">
+                            Subtotal
+                          </span>
+                          <span>
+                            R$ {(orderDetail.subtotal / 100).toFixed(2)}
+                          </span>
                         </div>
                         {orderDetail.economia > 0 && (
                           <div className="flex justify-between text-sm text-green-600">
                             <span>Economia</span>
-                            <span>-R$ {(orderDetail.economia / 100).toFixed(2)}</span>
+                            <span>
+                              -R$ {(orderDetail.economia / 100).toFixed(2)}
+                            </span>
                           </div>
                         )}
                         {orderDetail.taxaInstalacao > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Taxa de Instalação</span>
-                            <span>R$ {(orderDetail.taxaInstalacao / 100).toFixed(2)}</span>
+                            <span className="text-muted-foreground">
+                              Taxa de Instalação
+                            </span>
+                            <span>
+                              R$ {(orderDetail.taxaInstalacao / 100).toFixed(2)}
+                            </span>
                           </div>
                         )}
                         <div className="flex justify-between text-lg font-bold border-t pt-2">
@@ -282,23 +602,287 @@ export default function CustomerOrders() {
                     </CardContent>
                   </Card>
 
-                  {orderDetail.etapa === "aguardando_documentos" && (
-                    <Card className="border-orange-200 bg-orange-50">
-                      <CardContent className="flex items-start gap-4 p-6">
-                        <FileText className="h-6 w-6 text-orange-600 mt-1" />
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-orange-900">
-                            Documentos Pendentes
-                          </h3>
-                          <p className="text-sm text-orange-700 mt-1">
-                            Por favor, envie os documentos necessários para dar continuidade ao seu pedido.
+                  {/* Documentos - Mostrar sempre que houver documentos solicitados */}
+                  {requestedDocuments && requestedDocuments.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Documentos Solicitados
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          {orderDetail.etapa === "aguardando_documentos"
+                            ? "Envie todos os documentos solicitados. Assim que o envio estiver completo, seu pedido seguirá automaticamente para validação."
+                            : "Documentos solicitados para este pedido. Envie os pendentes o quanto antes."}
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        {loadingDocs ? (
+                          <div className="space-y-3">
+                            {[1, 2, 3].map((i) => (
+                              <Skeleton key={i} className="h-20 w-full" />
+                            ))}
+                          </div>
+                        ) : requestedDocuments &&
+                          requestedDocuments.length > 0 ? (
+                          <div className="space-y-3">
+                            {requestedDocuments.map((doc) => {
+                              const getDocStatusInfo = () => {
+                                switch (doc.status) {
+                                  case "pendente":
+                                    return {
+                                      icon: Clock,
+                                      color: "text-orange-600",
+                                      bg: "bg-orange-50",
+                                      borderColor: "border-orange-200",
+                                      label: "Pendente",
+                                      badgeVariant: "secondary" as const,
+                                    };
+                                  case "enviado":
+                                    return {
+                                      icon: FileText,
+                                      color: "text-blue-600",
+                                      bg: "bg-blue-50",
+                                      borderColor: "border-blue-200",
+                                      label: "Recebido",
+                                      badgeVariant: "default" as const,
+                                    };
+                                  case "aprovado":
+                                    return {
+                                      icon: CheckCircle2,
+                                      color: "text-green-600",
+                                      bg: "bg-green-50",
+                                      borderColor: "border-green-200",
+                                      label: "Aprovado",
+                                      badgeVariant: "default" as const,
+                                    };
+                                  case "reprovado":
+                                    return {
+                                      icon: AlertCircle,
+                                      color: "text-red-600",
+                                      bg: "bg-red-50",
+                                      borderColor: "border-red-200",
+                                      label: "Ajuste necessário",
+                                      badgeVariant: "destructive" as const,
+                                    };
+                                }
+                              };
+
+                              const statusInfo = getDocStatusInfo();
+                              const StatusIcon = statusInfo.icon;
+
+                              return (
+                                <div
+                                  key={doc.id}
+                                  className={`p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bg}`}
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex items-start gap-3 flex-1">
+                                      <StatusIcon
+                                        className={`h-5 w-5 ${statusInfo.color} mt-0.5`}
+                                      />
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="font-medium">
+                                            {doc.nome}
+                                          </span>
+                                          {doc.obrigatorio && (
+                                            <Badge
+                                              variant="outline"
+                                              className="text-xs"
+                                            >
+                                              Obrigatório
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        {doc.observacoes && (
+                                          <p className="text-sm text-muted-foreground mt-1">
+                                            {doc.observacoes}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <Badge variant={statusInfo.badgeVariant}>
+                                      {statusInfo.label}
+                                    </Badge>
+                                  </div>
+                                  {/* Arquivos enviados */}
+                                  {doc.uploads && doc.uploads.length > 0 && (
+                                    <div className="mt-3 pt-3 border-t">
+                                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                                        Arquivo(s) enviado(s):
+                                      </p>
+                                      {doc.uploads.map((upload: any) => (
+                                        <div
+                                          key={upload.id}
+                                          className="flex items-center justify-between p-2 bg-slate-50 rounded mb-2"
+                                        >
+                                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                                            <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                            <span className="text-sm truncate">
+                                              {upload.fileName}
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() =>
+                                                window.open(
+                                                  `/api/ecommerce/documents/${upload.id}`,
+                                                  "_blank"
+                                                )
+                                              }
+                                              className="flex-shrink-0"
+                                            >
+                                              <Eye className="h-3 w-3 mr-1" />
+                                              Ver
+                                            </Button>
+                                            {orderDetail.etapa !==
+                                              "validando_documentos" &&
+                                              orderDetail.etapa !==
+                                                "contrato_enviado" &&
+                                              orderDetail.etapa !==
+                                                "contrato_assinado" &&
+                                              orderDetail.etapa !==
+                                                "analise_credito" &&
+                                              orderDetail.etapa !==
+                                                "aprovado" &&
+                                              orderDetail.etapa !==
+                                                "em_andamento" &&
+                                              orderDetail.etapa !==
+                                                "concluido" && (
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="text-red-600 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                                                  onClick={async () => {
+                                                    if (
+                                                      confirm(
+                                                        "Tem certeza que deseja excluir este documento?"
+                                                      )
+                                                    ) {
+                                                      try {
+                                                        const res = await fetch(
+                                                          `/api/ecommerce/customer/documents/${upload.id}`,
+                                                          {
+                                                            method: "DELETE",
+                                                          }
+                                                        );
+                                                        if (res.ok) {
+                                                          alert(
+                                                            "Documento excluído com sucesso!"
+                                                          );
+                                                          window.location.reload();
+                                                        } else {
+                                                          alert(
+                                                            "Erro ao excluir documento"
+                                                          );
+                                                        }
+                                                      } catch (error) {
+                                                        alert(
+                                                          "Erro ao excluir documento"
+                                                        );
+                                                      }
+                                                    }
+                                                  }}
+                                                >
+                                                  ✕
+                                                </Button>
+                                              )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {/* Botão de upload */}
+                                  {(doc.status === "pendente" ||
+                                    doc.status === "reprovado") && (
+                                    <div className="mt-3">
+                                      <input
+                                        ref={(el) =>
+                                          (fileInputRefs.current[doc.id] = el)
+                                        }
+                                        type="file"
+                                        accept=".pdf,.jpg,.jpeg,.png"
+                                        className="hidden"
+                                        onChange={(e) =>
+                                          handleFileSelect(doc.id, doc.tipo, e)
+                                        }
+                                        disabled={uploadingDoc === doc.id}
+                                      />
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() =>
+                                          fileInputRefs.current[doc.id]?.click()
+                                        }
+                                        disabled={uploadingDoc === doc.id}
+                                        className="w-full"
+                                      >
+                                        {uploadingDoc === doc.id ? (
+                                          <>
+                                            <Clock className="h-4 w-4 mr-2 animate-spin" />
+                                            Enviando...
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            {doc.status === "reprovado"
+                                              ? "Enviar novamente"
+                                              : "Enviar documento"}
+                                          </>
+                                        )}
+                                      </Button>
+                                      <p className="text-xs text-muted-foreground mt-1 text-center">
+                                        PDF, JPG ou PNG • Máx 5MB
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+
+                            {/* Barra de progresso */}
+                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm font-medium">
+                                  Progresso
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {
+                                    requestedDocuments.filter(
+                                      (d) =>
+                                        d.status === "enviado" ||
+                                        d.status === "aprovado"
+                                    ).length
+                                  }{" "}
+                                  de {requestedDocuments.length}
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                  className="bg-blue-600 h-2 rounded-full transition-all"
+                                  style={{
+                                    width: `${
+                                      (requestedDocuments.filter(
+                                        (d) =>
+                                          d.status === "enviado" ||
+                                          d.status === "aprovado"
+                                      ).length /
+                                        requestedDocuments.length) *
+                                      100
+                                    }%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground text-center py-4">
+                            Nenhum documento solicitado no momento.
                           </p>
-                          <Link href="/ecommerce/painel/documentos">
-                            <Button variant="outline" size="sm" className="mt-3">
-                              Enviar Documentos
-                            </Button>
-                          </Link>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   )}
@@ -323,10 +907,10 @@ export default function CustomerOrders() {
   return (
     <div className="min-h-screen bg-gray-50">
       <CustomerHeader />
-      
+
       <div className="flex">
         <CustomerSidebar />
-        
+
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
           <div className="max-w-6xl mx-auto space-y-6">
             <h1 className="text-3xl font-bold">Meus Pedidos</h1>
@@ -340,17 +924,27 @@ export default function CustomerOrders() {
             ) : orders && orders.length > 0 ? (
               <div className="space-y-4">
                 {orders.map((order) => {
-                  const statusInfo = getStatusInfo(order.etapa);
+                  const statusInfo = getStatusInfo(
+                    order.etapa,
+                    order.execucaoTipo
+                  );
                   const StatusIcon = statusInfo.icon;
-                  
+
                   return (
-                    <Link key={order.id} href={`/ecommerce/painel/pedidos/${order.id}`}>
+                    <Link
+                      key={order.id}
+                      href={`/ecommerce/painel/pedidos/${order.id}`}
+                    >
                       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4 flex-1">
-                              <div className={`p-3 rounded-lg ${statusInfo.bg}`}>
-                                <StatusIcon className={`h-6 w-6 ${statusInfo.color}`} />
+                              <div
+                                className={`p-3 rounded-lg ${statusInfo.bg}`}
+                              >
+                                <StatusIcon
+                                  className={`h-6 w-6 ${statusInfo.color}`}
+                                />
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 flex-wrap">
@@ -362,11 +956,14 @@ export default function CustomerOrders() {
                                   </Badge>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1">
-                                  {new Date(order.createdAt).toLocaleDateString("pt-BR", {
-                                    day: "2-digit",
-                                    month: "long",
-                                    year: "numeric",
-                                  })}
+                                  {new Date(order.createdAt).toLocaleDateString(
+                                    "pt-BR",
+                                    {
+                                      day: "2-digit",
+                                      month: "long",
+                                      year: "numeric",
+                                    }
+                                  )}
                                 </p>
                               </div>
                             </div>
@@ -374,7 +971,11 @@ export default function CustomerOrders() {
                               <p className="text-lg font-bold">
                                 R$ {(order.total / 100).toFixed(2)}
                               </p>
-                              <Button variant="ghost" size="sm" className="mt-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="mt-2"
+                              >
                                 Ver Detalhes
                               </Button>
                             </div>

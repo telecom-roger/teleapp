@@ -63,9 +63,9 @@ import { Textarea } from "@/components/ui/textarea";
 const mapOperadora = (operadora: string | undefined): string => {
   if (!operadora) return "N/A";
   const map: Record<string, string> = {
-    "C": "CLARO",
-    "T": "TIM",
-    "V": "VIVO",
+    C: "CLARO",
+    T: "TIM",
+    V: "VIVO",
   };
   return map[operadora.toUpperCase()] || operadora;
 };
@@ -74,15 +74,19 @@ const mapOperadora = (operadora: string | undefined): string => {
 const getOperadoraColor = (operadora: string | undefined): string => {
   if (!operadora) return "bg-gray-100 text-gray-800 border-gray-200";
   const colors: Record<string, string> = {
-    "C": "bg-red-100 text-red-800 border-red-200",
-    "T": "bg-blue-100 text-blue-800 border-blue-200",
-    "V": "bg-purple-100 text-purple-800 border-purple-200",
+    C: "bg-red-100 text-red-800 border-red-200",
+    T: "bg-blue-100 text-blue-800 border-blue-200",
+    V: "bg-purple-100 text-purple-800 border-purple-200",
   };
-  return colors[operadora.toUpperCase()] || "bg-gray-100 text-gray-800 border-gray-200";
+  return (
+    colors[operadora.toUpperCase()] ||
+    "bg-gray-100 text-gray-800 border-gray-200"
+  );
 };
 
 interface Order {
   id: string;
+  orderCode: string;
   clientId: string;
   tipoPessoa: string;
   nomeCompleto?: string;
@@ -140,7 +144,7 @@ export default function EcommerceListagemPedidos() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location] = useLocation();
-  
+
   const [filters, setFilters] = useState<Filters>({
     search: "",
     dataInicio: "",
@@ -184,15 +188,15 @@ export default function EcommerceListagemPedidos() {
   // Abrir modal de detalhes automaticamente se houver parâmetro 'pedido' na URL
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const pedidoId = searchParams.get('pedido');
-    
+    const pedidoId = searchParams.get("pedido");
+
     if (pedidoId && orders.length > 0 && !showDetailsDialog) {
-      const order = orders.find(o => o.id === pedidoId);
+      const order = orders.find((o) => o.id === pedidoId);
       if (order) {
         setSelectedOrder(order);
         setShowDetailsDialog(true);
         // Limpar o parâmetro da URL sem recarregar a página
-        window.history.replaceState({}, '', '/admin/ecommerce-listagem');
+        window.history.replaceState({}, "", "/admin/ecommerce-listagem");
       }
     }
   }, [orders, showDetailsDialog]);
@@ -208,7 +212,15 @@ export default function EcommerceListagemPedidos() {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ orderId, etapa, obs }: { orderId: string; etapa: string; obs: string }) => {
+    mutationFn: async ({
+      orderId,
+      etapa,
+      obs,
+    }: {
+      orderId: string;
+      etapa: string;
+      obs: string;
+    }) => {
       const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/etapa`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -218,8 +230,12 @@ export default function EcommerceListagemPedidos() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/orders/list"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/orders"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/orders/list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/orders"],
+      });
       toast({ title: "Status atualizado com sucesso!" });
       setShowStatusDialog(false);
       setSelectedOrder(null);
@@ -231,7 +247,13 @@ export default function EcommerceListagemPedidos() {
   });
 
   const assignAgentMutation = useMutation({
-    mutationFn: async ({ orderId, agentId }: { orderId: string; agentId: string }) => {
+    mutationFn: async ({
+      orderId,
+      agentId,
+    }: {
+      orderId: string;
+      agentId: string;
+    }) => {
       const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/agent`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -241,7 +263,9 @@ export default function EcommerceListagemPedidos() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/ecommerce/orders/list"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/admin/ecommerce/orders/list"],
+      });
       toast({ title: "Agente atribuído com sucesso!" });
       setShowAgentDialog(false);
       setSelectedOrder(null);
@@ -252,16 +276,53 @@ export default function EcommerceListagemPedidos() {
   });
 
   const getEtapaInfo = (etapa: string) => {
-    const etapas: Record<string, { label: string; color: string; variant: any }> = {
-      novo_pedido: { label: "Novo Pedido", color: "bg-yellow-100 text-yellow-800", variant: "secondary" },
-      aguardando_documentos: { label: "Aguardando Docs", color: "bg-orange-100 text-orange-800", variant: "warning" },
-      em_analise: { label: "Em Análise", color: "bg-blue-100 text-blue-800", variant: "default" },
-      aprovado: { label: "Aprovado", color: "bg-green-100 text-green-800", variant: "success" },
-      em_instalacao: { label: "Em Instalação", color: "bg-purple-100 text-purple-800", variant: "default" },
-      concluido: { label: "Concluído", color: "bg-green-100 text-green-800", variant: "success" },
-      cancelado: { label: "Cancelado", color: "bg-red-100 text-red-800", variant: "destructive" },
+    const etapas: Record<
+      string,
+      { label: string; color: string; variant: any }
+    > = {
+      novo_pedido: {
+        label: "Novo Pedido",
+        color: "bg-yellow-100 text-yellow-800",
+        variant: "secondary",
+      },
+      aguardando_documentos: {
+        label: "Aguardando Docs",
+        color: "bg-orange-100 text-orange-800",
+        variant: "warning",
+      },
+      em_analise: {
+        label: "Em Análise",
+        color: "bg-blue-100 text-blue-800",
+        variant: "default",
+      },
+      aprovado: {
+        label: "Aprovado",
+        color: "bg-green-100 text-green-800",
+        variant: "success",
+      },
+      em_instalacao: {
+        label: "Em Instalação",
+        color: "bg-purple-100 text-purple-800",
+        variant: "default",
+      },
+      concluido: {
+        label: "Concluído",
+        color: "bg-green-100 text-green-800",
+        variant: "success",
+      },
+      cancelado: {
+        label: "Cancelado",
+        color: "bg-red-100 text-red-800",
+        variant: "destructive",
+      },
     };
-    return etapas[etapa] || { label: etapa, color: "bg-gray-100 text-gray-800", variant: "secondary" };
+    return (
+      etapas[etapa] || {
+        label: etapa,
+        color: "bg-gray-100 text-gray-800",
+        variant: "secondary",
+      }
+    );
   };
 
   const handleClearFilters = () => {
@@ -281,7 +342,10 @@ export default function EcommerceListagemPedidos() {
 
   const handleExportCSV = () => {
     // TODO: Implementar exportação CSV
-    toast({ title: "Exportando CSV...", description: "Funcionalidade em desenvolvimento" });
+    toast({
+      title: "Exportando CSV...",
+      description: "Funcionalidade em desenvolvimento",
+    });
   };
 
   return (
@@ -298,7 +362,9 @@ export default function EcommerceListagemPedidos() {
             <Download className="h-4 w-4 mr-2" />
             Exportar CSV
           </Button>
-          <Button onClick={() => window.location.href = "/admin/ecommerce-pedidos"}>
+          <Button
+            onClick={() => (window.location.href = "/admin/ecommerce-pedidos")}
+          >
             <Kanban className="h-4 w-4 mr-2" />
             Ver Kanban
           </Button>
@@ -320,7 +386,9 @@ export default function EcommerceListagemPedidos() {
               <Input
                 placeholder="Digite para buscar..."
                 value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, search: e.target.value })
+                }
               />
             </div>
 
@@ -329,7 +397,9 @@ export default function EcommerceListagemPedidos() {
               <Input
                 type="date"
                 value={filters.dataInicio}
-                onChange={(e) => setFilters({ ...filters, dataInicio: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, dataInicio: e.target.value })
+                }
               />
             </div>
 
@@ -338,20 +408,29 @@ export default function EcommerceListagemPedidos() {
               <Input
                 type="date"
                 value={filters.dataFim}
-                onChange={(e) => setFilters({ ...filters, dataFim: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, dataFim: e.target.value })
+                }
               />
             </div>
 
             <div>
               <Label>Etapa</Label>
-              <Select value={filters.etapa} onValueChange={(value) => setFilters({ ...filters, etapa: value })}>
+              <Select
+                value={filters.etapa}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, etapa: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas</SelectItem>
                   <SelectItem value="novo_pedido">Novo Pedido</SelectItem>
-                  <SelectItem value="aguardando_documentos">Aguardando Docs</SelectItem>
+                  <SelectItem value="aguardando_documentos">
+                    Aguardando Docs
+                  </SelectItem>
                   <SelectItem value="em_analise">Em Análise</SelectItem>
                   <SelectItem value="aprovado">Aprovado</SelectItem>
                   <SelectItem value="em_instalacao">Em Instalação</SelectItem>
@@ -363,7 +442,12 @@ export default function EcommerceListagemPedidos() {
 
             <div>
               <Label>Tipo Pessoa</Label>
-              <Select value={filters.tipoPessoa} onValueChange={(value) => setFilters({ ...filters, tipoPessoa: value })}>
+              <Select
+                value={filters.tipoPessoa}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, tipoPessoa: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -377,7 +461,12 @@ export default function EcommerceListagemPedidos() {
 
             <div>
               <Label>Operadora</Label>
-              <Select value={filters.operadora} onValueChange={(value) => setFilters({ ...filters, operadora: value })}>
+              <Select
+                value={filters.operadora}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, operadora: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
@@ -392,7 +481,12 @@ export default function EcommerceListagemPedidos() {
 
             <div>
               <Label>Categoria</Label>
-              <Select value={filters.categoria} onValueChange={(value) => setFilters({ ...filters, categoria: value })}>
+              <Select
+                value={filters.categoria}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, categoria: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
@@ -409,7 +503,12 @@ export default function EcommerceListagemPedidos() {
 
             <div>
               <Label>Agente</Label>
-              <Select value={filters.agentId} onValueChange={(value) => setFilters({ ...filters, agentId: value })}>
+              <Select
+                value={filters.agentId}
+                onValueChange={(value) =>
+                  setFilters({ ...filters, agentId: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -430,7 +529,9 @@ export default function EcommerceListagemPedidos() {
                 type="number"
                 placeholder="0.00"
                 value={filters.valorMin}
-                onChange={(e) => setFilters({ ...filters, valorMin: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, valorMin: e.target.value })
+                }
               />
             </div>
 
@@ -440,7 +541,9 @@ export default function EcommerceListagemPedidos() {
                 type="number"
                 placeholder="9999.99"
                 value={filters.valorMax}
-                onChange={(e) => setFilters({ ...filters, valorMax: e.target.value })}
+                onChange={(e) =>
+                  setFilters({ ...filters, valorMax: e.target.value })
+                }
               />
             </div>
           </div>
@@ -457,9 +560,7 @@ export default function EcommerceListagemPedidos() {
       {/* Tabela de Pedidos */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            Pedidos ({orders.length})
-          </CardTitle>
+          <CardTitle>Pedidos ({orders.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -488,16 +589,22 @@ export default function EcommerceListagemPedidos() {
                 <TableBody>
                   {orders.map((order) => {
                     const etapaInfo = getEtapaInfo(order.etapa);
-                    const nomeCliente = order.tipoPessoa === "PJ" ? order.razaoSocial : order.nomeCompleto;
-                    const documento = order.tipoPessoa === "PJ" ? order.cnpj : order.cpf;
-                    
+                    const nomeCliente =
+                      order.tipoPessoa === "PJ"
+                        ? order.razaoSocial
+                        : order.nomeCompleto;
+                    const documento =
+                      order.tipoPessoa === "PJ" ? order.cnpj : order.cpf;
+
                     return (
                       <TableRow key={order.id}>
                         <TableCell className="font-mono text-xs">
                           {order.id.slice(0, 8)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {new Date(order.createdAt).toLocaleDateString("pt-BR")}
+                          {new Date(order.createdAt).toLocaleDateString(
+                            "pt-BR"
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="max-w-[200px] truncate">
@@ -512,20 +619,25 @@ export default function EcommerceListagemPedidos() {
                         </TableCell>
                         <TableCell>
                           <div className="max-w-[150px] truncate">
-                            {order.items.map(i => i.productNome).join(", ")}
+                            {order.items.map((i) => i.productNome).join(", ")}
                           </div>
                         </TableCell>
                         <TableCell className="font-semibold">
                           R$ {(order.total / 100).toFixed(2)}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={etapaInfo.variant} className={etapaInfo.color}>
+                          <Badge
+                            variant={etapaInfo.variant}
+                            className={etapaInfo.color}
+                          >
                             {etapaInfo.label}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           {order.agentName || (
-                            <span className="text-muted-foreground text-xs">Não atribuído</span>
+                            <span className="text-muted-foreground text-xs">
+                              Não atribuído
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -590,7 +702,9 @@ export default function EcommerceListagemPedidos() {
                                 onClick={() => {
                                   setSelectedOrder(order);
                                   setNewStatus("cancelado");
-                                  setObservacao("Pedido cancelado pelo administrador");
+                                  setObservacao(
+                                    "Pedido cancelado pelo administrador"
+                                  );
                                   setShowStatusDialog(true);
                                 }}
                               >
@@ -617,19 +731,24 @@ export default function EcommerceListagemPedidos() {
             <DialogTitle className="flex items-center justify-between">
               <span>Detalhes do Pedido #{selectedOrder?.id.slice(0, 8)}</span>
               {selectedOrder && (
-                <Badge variant={getEtapaInfo(selectedOrder.etapa).variant} className={getEtapaInfo(selectedOrder.etapa).color}>
+                <Badge
+                  variant={getEtapaInfo(selectedOrder.etapa).variant}
+                  className={getEtapaInfo(selectedOrder.etapa).color}
+                >
                   {getEtapaInfo(selectedOrder.etapa).label}
                 </Badge>
               )}
             </DialogTitle>
             <DialogDescription>
-              Realizado em {selectedOrder && new Date(selectedOrder.createdAt).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit"
-              })}
+              Realizado em{" "}
+              {selectedOrder &&
+                new Date(selectedOrder.createdAt).toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
             </DialogDescription>
           </DialogHeader>
           {selectedOrder && (
@@ -642,40 +761,65 @@ export default function EcommerceListagemPedidos() {
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-xs text-muted-foreground">Nome/Razão Social</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Nome/Razão Social
+                    </Label>
                     <p className="font-medium">
-                      {selectedOrder.tipoPessoa === "PJ" ? selectedOrder.razaoSocial : selectedOrder.nomeCompleto}
+                      {selectedOrder.tipoPessoa === "PJ"
+                        ? selectedOrder.razaoSocial
+                        : selectedOrder.nomeCompleto}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Tipo</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Tipo
+                    </Label>
                     <p className="font-medium">
-                      <Badge variant="outline">{selectedOrder.tipoPessoa}</Badge>
+                      <Badge variant="outline">
+                        {selectedOrder.tipoPessoa}
+                      </Badge>
                     </p>
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">
                       {selectedOrder.tipoPessoa === "PJ" ? "CNPJ" : "CPF"}
                     </Label>
-                    <p className="font-mono text-sm">{selectedOrder.tipoPessoa === "PJ" ? selectedOrder.cnpj : selectedOrder.cpf}</p>
+                    <p className="font-mono text-sm">
+                      {selectedOrder.tipoPessoa === "PJ"
+                        ? selectedOrder.cnpj
+                        : selectedOrder.cpf}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">E-mail</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      E-mail
+                    </Label>
                     <p className="text-sm">{selectedOrder.email}</p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Telefone</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Telefone
+                    </Label>
                     <p className="font-medium">{selectedOrder.telefone}</p>
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground">Responsável</Label>
-                    <p className="font-medium">{selectedOrder.agentName || "Não atribuído"}</p>
+                    <Label className="text-xs text-muted-foreground">
+                      Responsável
+                    </Label>
+                    <p className="font-medium">
+                      {selectedOrder.agentName || "Não atribuído"}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Endereço */}
-              {(selectedOrder.endereco || selectedOrder.numero || selectedOrder.bairro || selectedOrder.cidade || selectedOrder.estado || selectedOrder.cep) && (
+              {(selectedOrder.endereco ||
+                selectedOrder.numero ||
+                selectedOrder.bairro ||
+                selectedOrder.cidade ||
+                selectedOrder.estado ||
+                selectedOrder.cep) && (
                 <div className="border rounded-lg p-4">
                   <h3 className="font-semibold mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
@@ -684,31 +828,45 @@ export default function EcommerceListagemPedidos() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {selectedOrder.endereco && (
                       <div className="col-span-2">
-                        <Label className="text-xs text-muted-foreground">Logradouro</Label>
-                        <p>{selectedOrder.endereco}, {selectedOrder.numero}</p>
+                        <Label className="text-xs text-muted-foreground">
+                          Logradouro
+                        </Label>
+                        <p>
+                          {selectedOrder.endereco}, {selectedOrder.numero}
+                        </p>
                       </div>
                     )}
                     {selectedOrder.complemento && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">Complemento</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Complemento
+                        </Label>
                         <p>{selectedOrder.complemento}</p>
                       </div>
                     )}
                     {selectedOrder.bairro && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">Bairro</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          Bairro
+                        </Label>
                         <p>{selectedOrder.bairro}</p>
                       </div>
                     )}
                     {selectedOrder.cidade && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">Cidade</Label>
-                        <p>{selectedOrder.cidade} - {selectedOrder.estado}</p>
+                        <Label className="text-xs text-muted-foreground">
+                          Cidade
+                        </Label>
+                        <p>
+                          {selectedOrder.cidade} - {selectedOrder.estado}
+                        </p>
                       </div>
                     )}
                     {selectedOrder.cep && (
                       <div>
-                        <Label className="text-xs text-muted-foreground">CEP</Label>
+                        <Label className="text-xs text-muted-foreground">
+                          CEP
+                        </Label>
                         <p>{selectedOrder.cep}</p>
                       </div>
                     )}
@@ -720,11 +878,15 @@ export default function EcommerceListagemPedidos() {
               <div className="border rounded-lg p-4">
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4" />
-                  Planos Contratados ({selectedOrder.items.length} {selectedOrder.items.length === 1 ? 'item' : 'itens'})
+                  Planos Contratados ({selectedOrder.items.length}{" "}
+                  {selectedOrder.items.length === 1 ? "item" : "itens"})
                 </h3>
                 <div className="space-y-4">
                   {selectedOrder.items.map((item, index) => (
-                    <div key={item.id} className="border-2 rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                      key={item.id}
+                      className="border-2 rounded-lg p-5 bg-white shadow-sm hover:shadow-md transition-shadow"
+                    >
                       {/* Cabeçalho do Item */}
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-3">
@@ -733,18 +895,26 @@ export default function EcommerceListagemPedidos() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <Badge className={`text-xs font-semibold border ${getOperadoraColor(item.productOperadora)}`}>
+                              <Badge
+                                className={`text-xs font-semibold border ${getOperadoraColor(
+                                  item.productOperadora
+                                )}`}
+                              >
                                 {mapOperadora(item.productOperadora)}
                               </Badge>
                               <Badge variant="secondary" className="text-xs">
                                 {item.productCategoria || "Categoria"}
                               </Badge>
                             </div>
-                            <h4 className="font-bold text-lg text-slate-900">{item.productNome}</h4>
+                            <h4 className="font-bold text-lg text-slate-900">
+                              {item.productNome}
+                            </h4>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-muted-foreground mb-1">Subtotal</p>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Subtotal
+                          </p>
                           <p className="text-2xl font-bold text-primary">
                             R$ {(item.subtotal / 100).toFixed(2)}
                           </p>
@@ -763,23 +933,33 @@ export default function EcommerceListagemPedidos() {
                       {/* Detalhes do Item */}
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-3 border-t">
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground mb-1">Quantidade</span>
-                          <span className="text-lg font-bold text-slate-900">{item.quantidade}x</span>
+                          <span className="text-xs text-muted-foreground mb-1">
+                            Quantidade
+                          </span>
+                          <span className="text-lg font-bold text-slate-900">
+                            {item.quantidade}x
+                          </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground mb-1">Preço Unitário</span>
+                          <span className="text-xs text-muted-foreground mb-1">
+                            Preço Unitário
+                          </span>
                           <span className="text-lg font-semibold text-slate-700">
                             R$ {(item.precoUnitario / 100).toFixed(2)}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground mb-1">Operadora</span>
+                          <span className="text-xs text-muted-foreground mb-1">
+                            Operadora
+                          </span>
                           <span className="text-sm font-medium text-slate-900">
                             {mapOperadora(item.productOperadora)}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-muted-foreground mb-1">Categoria</span>
+                          <span className="text-xs text-muted-foreground mb-1">
+                            Categoria
+                          </span>
                           <span className="text-sm font-medium text-slate-900">
                             {item.productCategoria || "N/A"}
                           </span>
@@ -788,7 +968,10 @@ export default function EcommerceListagemPedidos() {
 
                       {/* Cálculo Visual */}
                       <div className="mt-3 pt-3 border-t flex items-center justify-end gap-2 text-sm text-muted-foreground">
-                        <span>{item.quantidade} × R$ {(item.precoUnitario / 100).toFixed(2)}</span>
+                        <span>
+                          {item.quantidade} × R${" "}
+                          {(item.precoUnitario / 100).toFixed(2)}
+                        </span>
                         <span>=</span>
                         <span className="font-bold text-primary text-base">
                           R$ {(item.subtotal / 100).toFixed(2)}
@@ -800,7 +983,9 @@ export default function EcommerceListagemPedidos() {
 
                 {/* Resumo de Categorias */}
                 <div className="mt-4 p-4 bg-slate-100 rounded-lg">
-                  <h4 className="font-semibold text-sm mb-2">Resumo por Categoria:</h4>
+                  <h4 className="font-semibold text-sm mb-2">
+                    Resumo por Categoria:
+                  </h4>
                   <div className="flex flex-wrap gap-3">
                     {Object.entries(
                       selectedOrder.items.reduce((acc, item) => {
@@ -809,8 +994,13 @@ export default function EcommerceListagemPedidos() {
                         return acc;
                       }, {} as Record<string, number>)
                     ).map(([categoria, quantidade]) => (
-                      <div key={categoria} className="flex items-center gap-2 bg-white px-3 py-2 rounded-md border">
-                        <Badge variant="outline" className="text-xs">{categoria}</Badge>
+                      <div
+                        key={categoria}
+                        className="flex items-center gap-2 bg-white px-3 py-2 rounded-md border"
+                      >
+                        <Badge variant="outline" className="text-xs">
+                          {categoria}
+                        </Badge>
                         <span className="font-bold text-sm">{quantidade}x</span>
                       </div>
                     ))}
@@ -826,24 +1016,36 @@ export default function EcommerceListagemPedidos() {
                 </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal dos Planos</span>
-                    <span className="font-medium">R$ {(selectedOrder.subtotal / 100).toFixed(2)}</span>
+                    <span className="text-muted-foreground">
+                      Subtotal dos Planos
+                    </span>
+                    <span className="font-medium">
+                      R$ {(selectedOrder.subtotal / 100).toFixed(2)}
+                    </span>
                   </div>
                   {selectedOrder.economia > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
                       <span className="font-medium">Desconto/Economia</span>
-                      <span className="font-bold">-R$ {(selectedOrder.economia / 100).toFixed(2)}</span>
+                      <span className="font-bold">
+                        -R$ {(selectedOrder.economia / 100).toFixed(2)}
+                      </span>
                     </div>
                   )}
                   {selectedOrder.taxaInstalacao > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Taxa de Instalação</span>
-                      <span className="font-medium">R$ {(selectedOrder.taxaInstalacao / 100).toFixed(2)}</span>
+                      <span className="text-muted-foreground">
+                        Taxa de Instalação
+                      </span>
+                      <span className="font-medium">
+                        R$ {(selectedOrder.taxaInstalacao / 100).toFixed(2)}
+                      </span>
                     </div>
                   )}
                   <div className="flex justify-between text-lg font-bold border-t pt-3 mt-3">
                     <span>Valor Total</span>
-                    <span className="text-primary">R$ {(selectedOrder.total / 100).toFixed(2)}</span>
+                    <span className="text-primary">
+                      R$ {(selectedOrder.total / 100).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -889,7 +1091,18 @@ export default function EcommerceListagemPedidos() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => window.location.href = `/admin/ecommerce-pedidos`}
+                  onClick={() =>
+                    (window.location.href = `/admin/ecommerce-pedidos?pedido=${selectedOrder.id}`)
+                  }
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Gerenciar Documentos
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    (window.location.href = `/admin/ecommerce-pedidos`)
+                  }
                 >
                   <Kanban className="h-4 w-4 mr-2" />
                   Ver no Kanban
@@ -918,7 +1131,9 @@ export default function EcommerceListagemPedidos() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="novo_pedido">Novo Pedido</SelectItem>
-                  <SelectItem value="aguardando_documentos">Aguardando Documentos</SelectItem>
+                  <SelectItem value="aguardando_documentos">
+                    Aguardando Documentos
+                  </SelectItem>
                   <SelectItem value="em_analise">Em Análise</SelectItem>
                   <SelectItem value="aprovado">Aprovado</SelectItem>
                   <SelectItem value="em_instalacao">Em Instalação</SelectItem>
@@ -938,7 +1153,10 @@ export default function EcommerceListagemPedidos() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowStatusDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowStatusDialog(false)}
+            >
               Cancelar
             </Button>
             <Button

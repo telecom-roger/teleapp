@@ -18,6 +18,9 @@ import {
   Package,
   Folder,
   LayoutGrid,
+  Image,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
@@ -34,6 +37,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
 
 const operacoesItems = [
   {
@@ -133,6 +137,9 @@ const adminItems = [
     url: "/admin/templates",
     icon: Layout,
   },
+];
+
+const ecommerceItems = [
   {
     title: "Listagem de Pedidos",
     url: "/admin/ecommerce-listagem",
@@ -144,15 +151,23 @@ const adminItems = [
     icon: LayoutGrid,
   },
   {
-    title: "Produtos E-commerce",
+    title: "Produtos",
     url: "/admin/ecommerce-produtos",
     icon: Package,
   },
   {
-    title: "Categorias E-commerce",
+    title: "Categorias",
     url: "/admin/ecommerce-categorias",
     icon: Folder,
   },
+  {
+    title: "Banners",
+    url: "/admin/ecommerce-banners",
+    icon: Image,
+  },
+];
+
+const automacaoItems = [
   {
     title: "Automação",
     url: "/admin/automacao",
@@ -179,6 +194,8 @@ export function AppSidebar() {
   const [location] = useLocation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
+  const [ecommerceOpen, setEcommerceOpen] = useState(true);
+  const [automacaoOpen, setAutomacaoOpen] = useState(true);
 
   return (
     <Sidebar>
@@ -197,7 +214,7 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Operações</SidebarGroupLabel>
@@ -292,28 +309,104 @@ export function AppSidebar() {
         </SidebarGroup>
 
         {isAdmin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={location === item.url}
-                      data-testid={`link-admin-${item.title.toLowerCase()}`}
-                      className="hover:bg-muted/50 data-[active=true]:bg-muted/50 text-foreground hover:text-foreground data-[active=true]:text-foreground rounded-md"
-                    >
-                      <Link href={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>Administração</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={location === item.url}
+                        data-testid={`link-admin-${item.title.toLowerCase()}`}
+                        className="hover:bg-muted/50 data-[active=true]:bg-muted/50 text-foreground hover:text-foreground data-[active=true]:text-foreground rounded-md"
+                      >
+                        <Link href={item.url}>
+                          <item.icon className="h-4 w-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setEcommerceOpen(!ecommerceOpen)}
+                  className="flex items-center justify-between w-full hover:opacity-80 transition-opacity"
+                >
+                  <span>E-commerce</span>
+                  {ecommerceOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {ecommerceOpen && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {ecommerceItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location === item.url}
+                          data-testid={`link-ecommerce-${item.title.toLowerCase()}`}
+                          className="hover:bg-muted/50 data-[active=true]:bg-muted/50 text-foreground hover:text-foreground data-[active=true]:text-foreground rounded-md"
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>
+                <button
+                  onClick={() => setAutomacaoOpen(!automacaoOpen)}
+                  className="flex items-center justify-between w-full hover:opacity-80 transition-opacity"
+                >
+                  <span>Automação</span>
+                  {automacaoOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {automacaoOpen && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {automacaoItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={location === item.url}
+                          data-testid={`link-automacao-${item.title.toLowerCase()}`}
+                          className="hover:bg-muted/50 data-[active=true]:bg-muted/50 text-foreground hover:text-foreground data-[active=true]:text-foreground rounded-md"
+                        >
+                          <Link href={item.url}>
+                            <item.icon className="h-4 w-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+          </>
         )}
       </SidebarContent>
 
@@ -322,7 +415,8 @@ export function AppSidebar() {
           <Avatar className="h-8 w-8">
             <AvatarImage src={user?.profileImageUrl || undefined} />
             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+              {user?.firstName?.[0]}
+              {user?.lastName?.[0]}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col flex-1 min-w-0">

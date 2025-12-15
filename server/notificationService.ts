@@ -142,7 +142,8 @@ export async function notifyNewOrder(
   totalValue: number
 ) {
   // Buscar todos os admins
-  const admins = await db.select({ id: users.id })
+  const admins = await db
+    .select({ id: users.id })
     .from(users)
     .where(eq(users.role, "admin"));
 
@@ -152,7 +153,9 @@ export async function notifyNewOrder(
       userId: admin.id,
       tipo: "new_order",
       titulo: "🛍️ Novo Pedido Recebido",
-      descricao: `${clientName} fez um pedido de R$ ${(totalValue / 100).toFixed(2)}`,
+      descricao: `${clientName} fez um pedido de R$ ${(
+        totalValue / 100
+      ).toFixed(2)}`,
       metadata: {
         orderId,
         link: `/admin/ecommerce-pedidos`,
@@ -160,4 +163,3 @@ export async function notifyNewOrder(
     });
   }
 }
-

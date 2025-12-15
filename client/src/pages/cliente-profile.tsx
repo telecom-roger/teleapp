@@ -28,6 +28,7 @@ import {
   Share2,
   MoreVertical,
   CheckCircle,
+  Eye,
 } from "lucide-react";
 import { EditableField } from "@/components/EditableField";
 import { SelectableField } from "@/components/SelectableField";
@@ -39,11 +40,15 @@ import type { Client, Interaction, ClientNote } from "@shared/schema";
 const STATUS_COLORS: Record<string, string> = {
   lead_quente: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   engajado: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  em_negociacao: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  em_fechamento: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  ativo: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
+  em_negociacao:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  em_fechamento:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  ativo:
+    "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   perdido: "bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-200",
-  remarketing: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
+  remarketing:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200",
 };
 
 export default function ClienteProfile() {
@@ -70,16 +75,20 @@ export default function ClienteProfile() {
     enabled: isAuthenticated && !!id,
   });
 
-  const { data: timeline, isLoading: timelineLoading } = useQuery<Interaction[]>({
+  const { data: timeline, isLoading: timelineLoading } = useQuery<
+    Interaction[]
+  >({
     queryKey: ["/api/timeline", id],
     enabled: isAuthenticated && !!id,
     refetchOnWindowFocus: true,
   });
 
-  const { data: clientNotes, isLoading: notesLoading } = useQuery<ClientNote[]>({
-    queryKey: ["/api/client-notes", id],
-    enabled: isAuthenticated && !!id,
-  });
+  const { data: clientNotes, isLoading: notesLoading } = useQuery<ClientNote[]>(
+    {
+      queryKey: ["/api/client-notes", id],
+      enabled: isAuthenticated && !!id,
+    }
+  );
 
   const manualFollowUpMutation = useMutation({
     mutationFn: async () => {
@@ -111,14 +120,27 @@ export default function ClienteProfile() {
       {/* Header */}
       <div className="border-b px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between bg-white dark:bg-slate-900">
         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <Button variant="ghost" size="sm" asChild data-testid="button-back" className="h-8 w-8 sm:h-9 sm:w-9">
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            data-testid="button-back"
+            className="h-8 w-8 sm:h-9 sm:w-9"
+          >
             <Link href="/clientes">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h2 className="font-semibold text-sm sm:text-lg truncate">{cliente?.nome || "Cliente"}</h2>
+          <h2 className="font-semibold text-sm sm:text-lg truncate">
+            {cliente?.nome || "Cliente"}
+          </h2>
         </div>
-        <Button size="icon" variant="ghost" data-testid="button-options" className="h-8 w-8 sm:h-9 sm:w-9">
+        <Button
+          size="icon"
+          variant="ghost"
+          data-testid="button-options"
+          className="h-8 w-8 sm:h-9 sm:w-9"
+        >
           <MoreVertical className="h-4 w-4" />
         </Button>
       </div>
@@ -144,13 +166,19 @@ export default function ClienteProfile() {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold text-sm" data-testid="text-cliente-nome">
+                    <h3
+                      className="font-semibold text-sm"
+                      data-testid="text-cliente-nome"
+                    >
                       {cliente?.nome}
                     </h3>
                     {cliente?.status && (
                       <div className="mt-2" data-testid="badge-status">
-                        <Badge 
-                          className={`text-xs ${STATUS_COLORS[cliente.status] || 'bg-slate-200 text-slate-800'}`}
+                        <Badge
+                          className={`text-xs ${
+                            STATUS_COLORS[cliente.status] ||
+                            "bg-slate-200 text-slate-800"
+                          }`}
                         >
                           {cliente.status.toUpperCase()}
                         </Badge>
@@ -164,9 +192,11 @@ export default function ClienteProfile() {
 
               {/* Quick Actions */}
               <div className="space-y-2">
-                <p className="text-xs font-semibold text-muted-foreground px-2">AÇÕES RÁPIDAS</p>
-                <Button 
-                  variant="ghost" 
+                <p className="text-xs font-semibold text-muted-foreground px-2">
+                  AÇÕES RÁPIDAS
+                </p>
+                <Button
+                  variant="ghost"
                   className="w-full justify-start text-sm h-9"
                   onClick={() => navigate(`/chat?clientId=${id}`)}
                   data-testid="button-enviar-whatsapp"
@@ -174,8 +204,8 @@ export default function ClienteProfile() {
                   <MessageSquare className="h-4 w-4 mr-2" />
                   Enviar WhatsApp
                 </Button>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-start text-sm h-9"
                   data-testid="button-enviar-email"
                 >
@@ -183,8 +213,8 @@ export default function ClienteProfile() {
                   Enviar Email
                 </Button>
                 {cliente && <CreateOpportunityPopover client={cliente} />}
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-start text-sm h-9"
                   onClick={() => navigate(`/clientes/editar/${id}`)}
                   data-testid="button-edit-cliente"
@@ -198,7 +228,9 @@ export default function ClienteProfile() {
 
               {/* Contact Information */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground px-2">INFORMAÇÕES DE CONTATO</p>
+                <p className="text-xs font-semibold text-muted-foreground px-2">
+                  INFORMAÇÕES DE CONTATO
+                </p>
                 <EditableField
                   value={cliente?.celular}
                   field="celular"
@@ -227,7 +259,9 @@ export default function ClienteProfile() {
 
               {/* Address Information */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground px-2">ENDEREÇO</p>
+                <p className="text-xs font-semibold text-muted-foreground px-2">
+                  ENDEREÇO
+                </p>
                 <EditableField
                   value={cliente?.endereco}
                   field="endereco"
@@ -273,7 +307,9 @@ export default function ClienteProfile() {
 
               {/* Additional Information */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-muted-foreground px-2">DADOS ADICIONAIS</p>
+                <p className="text-xs font-semibold text-muted-foreground px-2">
+                  DADOS ADICIONAIS
+                </p>
                 <EditableField
                   value={cliente?.cnpj}
                   field="cnpj"
@@ -295,10 +331,16 @@ export default function ClienteProfile() {
                 <>
                   <Separator />
                   <div className="space-y-3">
-                    <p className="text-xs font-semibold text-muted-foreground px-2">TAGS</p>
+                    <p className="text-xs font-semibold text-muted-foreground px-2">
+                      TAGS
+                    </p>
                     <div className="flex flex-wrap gap-2">
                       {cliente.tags.map((tag, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs cursor-pointer hover-elevate">
+                        <Badge
+                          key={i}
+                          variant="secondary"
+                          className="text-xs cursor-pointer hover-elevate"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -329,12 +371,23 @@ export default function ClienteProfile() {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-base" data-testid="text-cliente-nome-mobile">
+                            <h3
+                              className="font-semibold text-base"
+                              data-testid="text-cliente-nome-mobile"
+                            >
                               {cliente.nome}
                             </h3>
                             {cliente.status && (
-                              <div className="mt-2" data-testid="badge-status-mobile">
-                                <Badge className={`text-xs ${STATUS_COLORS[cliente.status] || 'bg-slate-200 text-slate-800'}`}>
+                              <div
+                                className="mt-2"
+                                data-testid="badge-status-mobile"
+                              >
+                                <Badge
+                                  className={`text-xs ${
+                                    STATUS_COLORS[cliente.status] ||
+                                    "bg-slate-200 text-slate-800"
+                                  }`}
+                                >
                                   {cliente.status.toUpperCase()}
                                 </Badge>
                               </div>
@@ -350,8 +403,8 @@ export default function ClienteProfile() {
                     <Card className="bg-white dark:bg-slate-800">
                       <CardContent className="pt-4">
                         <div className="grid grid-cols-2 gap-2">
-                          <Button 
-                            variant="default" 
+                          <Button
+                            variant="default"
                             size="sm"
                             className="justify-center text-xs sm:text-sm h-9 sm:h-10"
                             onClick={() => navigate(`/chat?clientId=${id}`)}
@@ -360,8 +413,8 @@ export default function ClienteProfile() {
                             <MessageSquare className="h-4 w-4 mr-1" />
                             WhatsApp
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             className="justify-center text-xs sm:text-sm h-9 sm:h-10"
                             data-testid="button-enviar-email-mobile"
@@ -369,8 +422,8 @@ export default function ClienteProfile() {
                             <Mail className="h-4 w-4 mr-1" />
                             Email
                           </Button>
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             className="justify-center text-xs sm:text-sm h-9 sm:h-10"
                             onClick={() => navigate(`/clientes/editar/${id}`)}
@@ -379,7 +432,9 @@ export default function ClienteProfile() {
                             <Edit className="h-4 w-4 mr-1" />
                             Editar
                           </Button>
-                          {cliente && <CreateOpportunityPopover client={cliente} />}
+                          {cliente && (
+                            <CreateOpportunityPopover client={cliente} />
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -388,7 +443,9 @@ export default function ClienteProfile() {
                   {/* Timeline/Feed Card */}
                   <Card className="bg-white dark:bg-slate-800">
                     <CardHeader className="pb-4">
-                      <CardTitle className="text-base sm:text-lg">Histórico de Interações</CardTitle>
+                      <CardTitle className="text-base sm:text-lg">
+                        Histórico de Interações
+                      </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {!clienteLoading && cliente && (
@@ -413,7 +470,11 @@ export default function ClienteProfile() {
                       ) : clientNotes && clientNotes.length > 0 ? (
                         <div className="space-y-4">
                           {clientNotes.map((note) => (
-                            <ClientNoteItem key={note.id} note={note} clientId={id || ""} />
+                            <ClientNoteItem
+                              key={note.id}
+                              note={note}
+                              clientId={id || ""}
+                            />
                           ))}
                           {timeline && timeline.length > 0 && (
                             <>
@@ -433,7 +494,9 @@ export default function ClienteProfile() {
                       ) : (
                         <div className="flex flex-col items-center justify-center py-8 text-center">
                           <FileText className="h-12 w-12 text-muted-foreground/30 mb-3" />
-                          <p className="text-sm text-muted-foreground">Nenhuma interação registrada</p>
+                          <p className="text-sm text-muted-foreground">
+                            Nenhuma interação registrada
+                          </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             As interações com este cliente aparecerão aqui
                           </p>
@@ -463,20 +526,26 @@ function TimelineItem({ item }: { item: any }) {
   };
 
   const formatDate = (date: string | Date | null) => {
-    if (!date) return 'Data desconhecida';
+    if (!date) return "Data desconhecida";
     const d = new Date(date);
-    return d.toLocaleString('pt-BR', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+    const dateStr = d.toLocaleDateString("pt-BR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
     });
+    const timeStr = d.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `${dateStr} às ${timeStr}`;
   };
 
   const tipoMovimento = (item.meta as any)?.tipo_movimento || item.origem;
-  const userName = item.userName || 'Sistema';
-  const isAutomation = tipoMovimento === 'automática' || item.origem === 'system' || item.origem === 'automation';
+  const userName = item.userName || "Sistema";
+  const isAutomation =
+    tipoMovimento === "automática" ||
+    item.origem === "system" ||
+    item.origem === "automation";
   const metaData = item.meta as any;
   const origem = metaData?.origem_disparo || metaData?.origem;
 
@@ -487,31 +556,64 @@ function TimelineItem({ item }: { item: any }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h4 className="font-semibold text-sm" data-testid={`timeline-item-title-${item.id}`}>
+          <h4
+            className="font-semibold text-sm"
+            data-testid={`timeline-item-title-${item.id}`}
+          >
             {item.titulo || item.tipo}
           </h4>
           {origem && (
             <Badge variant="outline" className="text-xs">
-              {origem === 'envio_imediato' ? '⚡ Imediato' : '📅 Agendado'}
+              {origem === "envio_imediato" ? "⚡ Imediato" : "📅 Agendado"}
             </Badge>
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          {formatDate(item.createdAt)} - {isAutomation ? (
-            <span className="italic">por IA</span>
-          ) : (
-            <>por {userName}</>
-          )}
+          {item.texto} - enviado por{" "}
+          {isAutomation ? <span className="italic">IA</span> : <>{userName}</>}{" "}
+          em {formatDate(item.createdAt)}
         </p>
-        {item.texto && (
-          <p className="text-sm text-muted-foreground mt-2 leading-relaxed break-words">
-            {item.texto}
-          </p>
+        {/* Anexo de documento (ecommerce) */}
+        {metaData?.anexo && (
+          <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-2 text-sm">
+              <FileText className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-slate-700 dark:text-slate-300 truncate">
+                  {metaData.anexo.fileName}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {(metaData.anexo.fileSize / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              <a
+                href={metaData.anexo.downloadUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+              >
+                <Eye className="h-3 w-3" />
+                Ver
+              </a>
+            </div>
+          </div>
         )}
         {metaData?.status && (
           <div className="mt-2">
-            <Badge className={`text-xs ${metaData.status === 'enviado' ? 'bg-green-500' : metaData.status === 'erro' ? 'bg-red-500' : 'bg-yellow-500'}`}>
-              {metaData.status === 'enviado' ? '✅ Enviado' : metaData.status === 'erro' ? '❌ Erro' : '⏳ Pendente'}
+            <Badge
+              className={`text-xs ${
+                metaData.status === "enviado"
+                  ? "bg-green-500"
+                  : metaData.status === "erro"
+                  ? "bg-red-500"
+                  : "bg-yellow-500"
+              }`}
+            >
+              {metaData.status === "enviado"
+                ? "✅ Enviado"
+                : metaData.status === "erro"
+                ? "❌ Erro"
+                : "⏳ Pendente"}
             </Badge>
           </div>
         )}

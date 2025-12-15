@@ -13,6 +13,7 @@
 ### 1. Sistema de Carrinho de Compras 🛒
 
 #### **CartContext** (`client/src/contexts/CartContext.tsx`)
+
 - ✅ React Context global para gerenciar estado do carrinho
 - ✅ Persistência em localStorage (mantém carrinho após reload)
 - ✅ Funções: `addItem()`, `removeItem()`, `updateQuantity()`, `clearCart()`
@@ -21,6 +22,7 @@
 - ✅ Hook personalizado `useCart()` para acesso fácil
 
 **Features:**
+
 ```typescript
 - addItem(product, quantidade, linhasAdicionais)
 - removeItem(productId)
@@ -32,6 +34,7 @@
 ```
 
 #### **CartSidebar** (`client/src/components/ecommerce/CartSidebar.tsx`)
+
 - ✅ Sidebar fixa no desktop (320px largura, direita)
 - ✅ Bottom bar no mobile com sheet full-screen
 - ✅ Mini-cards dos produtos com info resumida
@@ -45,12 +48,14 @@
 ### 2. Fluxo de Checkout Completo (5 Páginas) 💳
 
 #### **Página 1: Tipo de Cliente** (`checkout/tipo-cliente.tsx`)
+
 - ✅ Cards grandes e clicáveis para PF e PJ
 - ✅ Ícones visuais (User / Building2)
 - ✅ Passa parâmetro `?tipo=PF|PJ` para próxima página
 - ✅ Design gradient purple/blue
 
 #### **Página 2: Dados Cadastrais** (`checkout/dados.tsx`)
+
 - ✅ Form condicional baseado em PF/PJ
 - ✅ PF: Nome completo + CPF
 - ✅ PJ: Razão Social + CNPJ
@@ -59,6 +64,7 @@
 - ✅ Salva em localStorage e passa para próxima etapa
 
 #### **Página 3: Endereço** (`checkout/endereco.tsx`)
+
 - ✅ Campo CEP com botão de busca
 - ✅ Integração com ViaCEP (API /api/ecommerce/cep/:cep)
 - ✅ Auto-preenchimento de logradouro, bairro, cidade, UF
@@ -66,6 +72,7 @@
 - ✅ Salva em localStorage
 
 #### **Página 4: Documentos** (`checkout/documentos.tsx`)
+
 - ✅ Upload de RG/CNH (PF) ou Contrato Social (PJ)
 - ✅ Upload de Comprovante de Residência
 - ✅ Upload de Cartão CNPJ (apenas PJ)
@@ -74,6 +81,7 @@
 - ✅ Salva referências em localStorage
 
 #### **Página 5: Confirmação** (`checkout/confirmacao.tsx`)
+
 - ✅ Resumo completo de todos os dados
 - ✅ Card com dados pessoais
 - ✅ Card com endereço formatado
@@ -85,6 +93,7 @@
 - ✅ Limpa localStorage do checkout
 
 #### **Página Obrigado** (`checkout/obrigado.tsx`)
+
 - ✅ Mensagem de sucesso com ícone CheckCircle
 - ✅ Display do número do pedido (#ID)
 - ✅ Informações sobre credenciais de acesso
@@ -97,6 +106,7 @@
 ### 3. Kanban Visual Admin 📊
 
 #### **Página Admin Kanban** (`admin/ecommerce-kanban.tsx`)
+
 - ✅ Layout em colunas representando etapas do pedido
 - ✅ Cores dinâmicas por stage (vindas do DB)
 - ✅ Cards de pedidos por coluna
@@ -111,6 +121,7 @@
 - ✅ Badge com total de pedidos no header
 
 **API Endpoint Criado:**
+
 ```typescript
 PUT /api/ecommerce/orders/:id/status
 Body: { status: "novo_status" }
@@ -121,44 +132,58 @@ Body: { status: "novo_status" }
 ### 4. Sistema de E-mails Automatizados 📧
 
 #### **EmailService** (`server/emailService.ts`)
+
 - ✅ Configuração com nodemailer
 - ✅ Suporte a múltiplos provedores SMTP (Gmail, Outlook, SendGrid, etc)
 - ✅ Detecção automática de configuração via `isEmailConfigured()`
 - ✅ 3 templates HTML responsivos
 
 **Template 1: Boas-vindas com Credenciais**
+
 ```typescript
 enviarEmailBoasVindas({
-  nome, email, username, senha
-})
+  nome,
+  email,
+  username,
+  senha,
+});
 ```
+
 - Design gradient purple/blue
 - Box destacado com credenciais
 - Botão CTA para acessar sistema
 - Aviso de segurança para trocar senha
 
 **Template 2: Pedido Recebido**
+
 ```typescript
 enviarEmailPedidoRecebido({
   nome, email, pedidoId, produtos[]
 })
 ```
+
 - Design gradient verde (sucesso)
 - Lista formatada de produtos
 - Número do pedido destacado
 - Info sobre próximos passos
 
 **Template 3: Status Atualizado**
+
 ```typescript
 enviarEmailStatusPedido({
-  nome, email, pedidoId, novoStatus
-})
+  nome,
+  email,
+  pedidoId,
+  novoStatus,
+});
 ```
+
 - Design gradient azul (informativo)
 - Badge com novo status
 - Link implícito para acompanhar
 
 #### **Integração no Backend**
+
 - ✅ POST `/api/ecommerce/orders`: Envia boas-vindas + pedido recebido
 - ✅ PUT `/api/ecommerce/orders/:id/status`: Envia atualização de status
 - ✅ Envios assíncronos (não bloqueiam resposta da API)
@@ -172,6 +197,7 @@ enviarEmailStatusPedido({
 ### Novos Arquivos (Sessão 2)
 
 **Frontend:**
+
 ```
 client/src/contexts/CartContext.tsx
 client/src/components/ecommerce/CartSidebar.tsx
@@ -185,11 +211,13 @@ client/src/pages/admin/ecommerce-kanban.tsx
 ```
 
 **Backend:**
+
 ```
 server/emailService.ts
 ```
 
 **Documentação:**
+
 ```
 ECOMMERCE_SESSION2_README.md
 ECOMMERCE_SESSION2_COMPLETE.md (este arquivo)
@@ -198,6 +226,7 @@ ECOMMERCE_SESSION2_COMPLETE.md (este arquivo)
 ### Arquivos Modificados
 
 **Frontend:**
+
 ```
 client/src/main.tsx
   - Adicionado <CartProvider>
@@ -214,6 +243,7 @@ client/src/pages/ecommerce/planos.tsx
 ```
 
 **Backend:**
+
 ```
 server/ecommerceRoutes.ts
   - Importado emailService
@@ -223,6 +253,7 @@ server/ecommerceRoutes.ts
 ```
 
 **Dependencies:**
+
 ```
 package.json
   - Adicionado: nodemailer, @types/nodemailer
@@ -261,6 +292,7 @@ APP_URL=http://localhost:5000
 ## 📊 FLUXO COMPLETO DO USUÁRIO
 
 ### 1. Navegação Pública (Sem Login)
+
 ```
 /ecommerce (home)
   → /ecommerce/planos (catálogo com filtros)
@@ -269,6 +301,7 @@ APP_URL=http://localhost:5000
 ```
 
 ### 2. Checkout (5 Etapas)
+
 ```
 /ecommerce/checkout (escolher PF/PJ)
   → /ecommerce/checkout/dados (form cadastral)
@@ -280,12 +313,14 @@ APP_URL=http://localhost:5000
 ```
 
 ### 3. Criação Automática de Conta
+
 - Sistema verifica se cliente já existe (por CPF/CNPJ ou email)
 - Se novo: cria registro em `clients` com `origin: "ecommerce"`
 - Cria usuário em `users` com senha temporária
 - Envia email com credenciais
 
 ### 4. Gestão Admin (Com Login)
+
 ```
 /admin/ecommerce-kanban
   → Visualiza pedidos em colunas por etapa
@@ -299,12 +334,14 @@ APP_URL=http://localhost:5000
 ## 🎨 DESIGN HIGHLIGHTS
 
 ### Identidade Visual Consistente
+
 - **Gradients:** Purple-to-Blue (principal), Green (sucesso), Blue (info)
 - **Responsivo:** Desktop (sidebar fixa) + Mobile (bottom bar)
 - **Shadcn/UI:** Todos os componentes seguem design system
 - **Ícones:** Lucide React (consistente com resto do app)
 
 ### UX Features
+
 - ✅ Feedback visual em todas as ações
 - ✅ Loading states (spinners, disabled buttons)
 - ✅ Validação de formulários
@@ -318,6 +355,7 @@ APP_URL=http://localhost:5000
 ## 🧪 TESTES REALIZADOS
 
 ### Build Test
+
 ```bash
 npm run build
 ✅ Exit code: 0
@@ -327,6 +365,7 @@ npm run build
 ```
 
 ### Validações
+
 - ✅ CartContext persiste no localStorage
 - ✅ Rotas de checkout passam dados corretamente
 - ✅ API POST /orders cria pedido + cliente + usuário
@@ -339,6 +378,7 @@ npm run build
 ## 📈 ESTATÍSTICAS DA SESSÃO 2
 
 ### Código Produzido
+
 - **Arquivos Criados:** 11 arquivos
 - **Linhas de Código:** ~2.000 LOC
 - **Componentes React:** 9 componentes
@@ -346,6 +386,7 @@ npm run build
 - **Templates Email:** 3 templates HTML
 
 ### Features Implementadas
+
 - ✅ Context API com localStorage
 - ✅ Sidebar responsivo (desktop + mobile)
 - ✅ 5 páginas de checkout sequenciais
@@ -364,12 +405,14 @@ npm run build
 ### Sessão 3 - Melhorias Avançadas (Opcional)
 
 #### Opção A: Upload Real de Documentos
+
 - Implementar storage físico (multer/disk ou S3/cloud)
 - Criar endpoint POST /orders/:id/documents
 - Visualização de documentos no admin
 - Download de documentos enviados
 
 #### Opção B: Painel do Cliente
+
 - Página /meus-pedidos (cliente logado)
 - Visualizar histórico de pedidos
 - Acompanhar status em tempo real
@@ -377,12 +420,14 @@ npm run build
 - Reenviar documentos pendentes
 
 #### Opção C: Drag & Drop no Kanban
+
 - Instalar react-beautiful-dnd
 - Implementar arrastar e soltar cards
 - Atualização automática ao soltar
 - Animações suaves
 
 #### Opção D: Relatórios e Analytics
+
 - Dashboard de vendas
 - Gráficos de produtos mais vendidos
 - Funil de conversão (abandono de carrinho)
@@ -390,12 +435,14 @@ npm run build
 - Export para CSV/PDF
 
 #### Opção E: Notificações Push
+
 - WebSockets para atualizações em tempo real
 - Notificação quando pedido muda de status
 - Badge de novos pedidos no sidebar admin
 - Som/vibração em novos pedidos
 
 #### Opção F: Refinamentos
+
 - Máscaras de input (CPF, CNPJ, CEP, telefone)
 - Validação real de CPF/CNPJ (dígitos verificadores)
 - Proteção contra pedidos duplicados
@@ -407,27 +454,32 @@ npm run build
 ## 🎓 APRENDIZADOS E DECISÕES TÉCNICAS
 
 ### Por que Context API?
+
 - Global state leve sem Redux
 - Persistência fácil com localStorage
 - Performance adequada para carrinho de compras
 
 ### Por que localStorage?
+
 - Carrinho persiste entre sessões
 - Não requer backend para carrinho temporário
 - UX melhorada (usuário não perde itens)
 
 ### Por que múltiplas páginas de checkout?
+
 - Evita forms longos e intimidadores
 - Melhor UX em mobile
 - Facilita validação por etapa
 - Permite salvar progresso
 
 ### Por que emails assíncronos?
+
 - Não bloqueiam resposta da API
 - Falha de email não quebra criação do pedido
 - Logs permitem debug de problemas SMTP
 
 ### Por que nodemailer?
+
 - Biblioteca madura e confiável
 - Suporta qualquer provedor SMTP
 - Fácil criar templates HTML
@@ -438,6 +490,7 @@ npm run build
 ## ✅ CHECKLIST FINAL
 
 ### Backend
+
 - [x] API POST /orders com criação de cliente/usuário
 - [x] API PUT /orders/:id/status
 - [x] Integração ViaCEP (GET /cep/:cep)
@@ -447,6 +500,7 @@ npm run build
 - [x] Validação de dados
 
 ### Frontend
+
 - [x] CartContext com localStorage
 - [x] CartSidebar responsivo
 - [x] 5 páginas de checkout
@@ -458,12 +512,14 @@ npm run build
 - [x] Error handling
 
 ### Documentação
+
 - [x] README de configuração SMTP
 - [x] Documento de checkpoint completo
 - [x] Comentários no código
 - [x] Instruções de uso
 
 ### Testes
+
 - [x] Build passing
 - [x] No TypeScript errors
 - [x] No console errors críticos
@@ -476,6 +532,7 @@ npm run build
 **Status: ✅ SESSÃO 2 COMPLETA E FUNCIONAL**
 
 Você agora tem um módulo de e-commerce completo com:
+
 - ✅ Catálogo de produtos público
 - ✅ Carrinho de compras funcional
 - ✅ Checkout em 5 etapas
@@ -486,6 +543,7 @@ Você agora tem um módulo de e-commerce completo com:
 - ✅ Totalmente integrado ao sistema existente
 
 **Pronto para produção?** Quase! Falta apenas:
+
 1. Configurar SMTP em produção
 2. Implementar upload real de documentos (opcional)
 3. Adicionar SSL/HTTPS

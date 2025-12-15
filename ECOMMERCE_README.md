@@ -21,10 +21,12 @@ psql -d seu_banco -f scripts/init-ecommerce-stages.sql
 ### 2. Acessar o E-commerce
 
 **Público:**
+
 - Home: `http://localhost:5000/ecommerce`
 - Planos: `http://localhost:5000/ecommerce/planos`
 
 **Admin (requer login):**
+
 - Produtos: `http://localhost:5000/admin/ecommerce-produtos`
 - Pedidos: `http://localhost:5000/admin/ecommerce-pedidos`
 
@@ -121,11 +123,13 @@ GET /api/cep/01310100
 ### Campos Importantes
 
 **ecommerce_products:**
+
 - `preco` - Em centavos (ex: 9900 = R$ 99,00)
 - `operadora` - V, C ou T
 - `tipoPessoa` - PF, PJ ou ambos
 
 **ecommerce_orders:**
+
 - `etapa` - Status atual no fluxo
 - `origin` - system ou ecommerce
 
@@ -135,11 +139,11 @@ GET /api/cep/01310100
 
 ### Operadoras (Sem Logos Oficiais)
 
-| Operadora | Label         | Cor    | Hex      |
-|-----------|---------------|--------|----------|
-| V         | Operadora V   | Roxo   | #9333ea  |
-| C         | Operadora C   | Vermelho | #dc2626  |
-| T         | Operadora T   | Azul   | #2563eb  |
+| Operadora | Label       | Cor      | Hex     |
+| --------- | ----------- | -------- | ------- |
+| V         | Operadora V | Roxo     | #9333ea |
+| C         | Operadora C | Vermelho | #dc2626 |
+| T         | Operadora T | Azul     | #2563eb |
 
 **⚠️ Importante:** Não usar logos oficiais. Usar apenas cores e labels.
 
@@ -148,16 +152,19 @@ GET /api/cep/01310100
 ## 🔒 Validações
 
 ### CPF
+
 - Algoritmo completo de validação
 - Remove caracteres não numéricos
 - Verifica dígitos verificadores
 
 ### CNPJ
+
 - Algoritmo completo de validação
 - Remove caracteres não numéricos
 - Verifica dígitos verificadores
 
 ### CEP
+
 - Integração com ViaCEP
 - Autocomplete de endereço
 
@@ -195,12 +202,12 @@ client/src/
   components/ecommerce/
     EcommerceHeader.tsx      ← Header público
     EcommerceFooter.tsx      ← Footer público
-  
+
   pages/
     ecommerce/
       home.tsx               ← Home pública
       planos.tsx             ← Lista de planos
-    
+
     admin/
       ecommerce-produtos.tsx ← Admin CRUD produtos
       ecommerce-pedidos.tsx  ← Admin lista pedidos
@@ -217,6 +224,7 @@ ECOMMERCE_README.md          ← Este arquivo
 ## ✅ Checklist de Funcionalidades (MVP)
 
 ### Backend
+
 - ✅ CRUD Produtos completo
 - ✅ CRUD Pedidos completo
 - ✅ Validação CPF/CNPJ
@@ -225,12 +233,14 @@ ECOMMERCE_README.md          ← Este arquivo
 - ✅ Criação automática de usuário
 
 ### Frontend Público
+
 - ✅ Home page com categorias
 - ✅ Lista de planos com filtros
 - ✅ Cards de produtos responsivos
 - ✅ Header e Footer
 
 ### Frontend Admin
+
 - ✅ CRUD visual de produtos
 - ✅ Listagem de pedidos
 
@@ -287,15 +297,18 @@ GET http://localhost:5000/api/cep/01310100
 ## 🐛 Troubleshooting
 
 ### Produtos não aparecem
+
 - Verificar se `ativo = true`
 - Verificar filtro `tipoPessoa`
 - Checar console do navegador
 
 ### Erro 401 no admin
+
 - Fazer login no sistema
 - Verificar role do usuário
 
 ### CEP não retorna
+
 - Verificar conexão com internet
 - ViaCEP pode estar fora
 - Tentar CEP diferente
@@ -305,16 +318,19 @@ GET http://localhost:5000/api/cep/01310100
 ## 📝 Observações Importantes
 
 ### LGPD
+
 - Campo `origin` rastreia fonte dos dados
 - Footer com links de privacidade
 - Coleta mínima de dados
 
 ### Performance
+
 - Índices criados nas tabelas
 - Queries otimizadas
 - Paginação preparada
 
 ### Isolamento
+
 - Não afeta Kanban atual
 - Rotas separadas `/api/ecommerce/*`
 - Páginas públicas isoladas

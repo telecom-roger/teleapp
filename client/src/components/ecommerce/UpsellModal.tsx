@@ -22,10 +22,13 @@ interface UpsellModalProps {
 function processarTexto(texto: string, svasProdutos: SVAProduct[]): string {
   // Se houver múltiplos SVAs, usar o primeiro para o exemplo
   if (svasProdutos.length === 0) return texto;
-  
+
   const svaExemplo = svasProdutos[0];
-  const preco = (svaExemplo.preco / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  
+  const preco = (svaExemplo.preco / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return texto
     .replace(/\[nome_servico\]/g, svaExemplo.nome)
     .replace(/\[preco\]/g, preco);
@@ -39,14 +42,17 @@ export function UpsellModal({
   onAddToCart,
 }: UpsellModalProps) {
   const [selectedSvas, setSelectedSvas] = useState<Set<string>>(new Set());
-  
+
   // Escolher um texto aleatório do array ou usar padrão
-  const textoSelecionado = textosPersonalizados && textosPersonalizados.length > 0
-    ? processarTexto(
-        textosPersonalizados[Math.floor(Math.random() * textosPersonalizados.length)],
-        svas
-      )
-    : "Aproveite para adicionar serviços extras ao seu pedido!";
+  const textoSelecionado =
+    textosPersonalizados && textosPersonalizados.length > 0
+      ? processarTexto(
+          textosPersonalizados[
+            Math.floor(Math.random() * textosPersonalizados.length)
+          ],
+          svas
+        )
+      : "Aproveite para adicionar serviços extras ao seu pedido!";
 
   if (!isOpen || svas.length === 0) return null;
 
@@ -103,9 +109,7 @@ export function UpsellModal({
                 <h2 className="text-2xl font-bold mb-2">
                   ✨ Complemente seu plano
                 </h2>
-                <p className="text-white/90 text-sm">
-                  {textoSelecionado}
-                </p>
+                <p className="text-white/90 text-sm">{textoSelecionado}</p>
               </div>
               <Button
                 variant="ghost"
@@ -175,7 +179,10 @@ export function UpsellModal({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-600">
-                      {selectedSvas.size} {selectedSvas.size === 1 ? "serviço selecionado" : "serviços selecionados"}
+                      {selectedSvas.size}{" "}
+                      {selectedSvas.size === 1
+                        ? "serviço selecionado"
+                        : "serviços selecionados"}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
                       Valor adicional por mês

@@ -4,7 +4,13 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, Loader2 } from "lucide-react";
 
@@ -23,10 +29,10 @@ export default function CustomerLogin() {
   // Auto-format CPF/CNPJ
   const formatDocument = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
-    
+
     // Limitar a 14 dígitos (CNPJ)
     const limited = cleaned.substring(0, 14);
-    
+
     if (limited.length <= 11) {
       // CPF: 123.456.789-10
       return limited
@@ -45,7 +51,7 @@ export default function CustomerLogin() {
 
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
+
     // Se contém @ ou letras, é email - não formata
     if (isEmail(value)) {
       setIdentifier(value);
@@ -75,15 +81,19 @@ export default function CustomerLogin() {
         title: "Login realizado!",
         description: "Bem-vindo ao seu painel",
       });
-      
+
       // Invalidar TODAS as queries de autenticação
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/auth/customer"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
-      
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/ecommerce/auth/customer"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/ecommerce/customer/orders"],
+      });
+
       // Forçar refetch imediato da autenticação
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-      
+
       // Redirecionar após garantir que a autenticação foi recarregada
       setTimeout(() => {
         setLocation("/ecommerce/painel");
@@ -108,7 +118,7 @@ export default function CustomerLogin() {
       });
       return;
     }
-    
+
     // Validar email se for email
     if (isEmail(identifier)) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -121,7 +131,7 @@ export default function CustomerLogin() {
         return;
       }
     }
-    
+
     loginMutation.mutate({ identifier, password });
   };
 

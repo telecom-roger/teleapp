@@ -25,7 +25,9 @@ export function CartSidebar() {
 
   const [upsellModalAberto, setUpsellModalAberto] = useState(false);
   const [svasParaOferecer, setSvasParaOferecer] = useState<any[]>([]);
-  const [textosUpsellAtuais, setTextosUpsellAtuais] = useState<string[] | null>(null);
+  const [textosUpsellAtuais, setTextosUpsellAtuais] = useState<string[] | null>(
+    null
+  );
 
   // Buscar todos os produtos para pegar os SVAs
   const { data: todosOsProdutos = [] } = useQuery<any[]>({
@@ -62,9 +64,11 @@ export function CartSidebar() {
 
     // Remover SVAs que já estão no carrinho
     const svasJaNoCarrinho = new Set(
-      items.filter(item => item.categoria === 'sva').map(item => item.product.id)
+      items
+        .filter((item) => item.categoria === "sva")
+        .map((item) => item.product.id)
     );
-    svasIds.forEach(id => {
+    svasIds.forEach((id) => {
       if (svasJaNoCarrinho.has(id)) {
         svasIds.delete(id);
       }
@@ -75,7 +79,9 @@ export function CartSidebar() {
 
     if (svasProdutos.length > 0) {
       setSvasParaOferecer(svasProdutos);
-      setTextosUpsellAtuais(textosColetados.length > 0 ? textosColetados : null);
+      setTextosUpsellAtuais(
+        textosColetados.length > 0 ? textosColetados : null
+      );
       setUpsellModalAberto(true);
     } else {
       // Ir direto para checkout se não houver SVAs para oferecer
@@ -120,9 +126,7 @@ export function CartSidebar() {
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <ShoppingCart className="w-5 h-5 text-primary" />
-            <h3 className="font-semibold text-lg">
-              Resumo da Contratação
-            </h3>
+            <h3 className="font-semibold text-lg">Resumo da Contratação</h3>
           </div>
           <Button variant="ghost" size="icon" onClick={closeCart}>
             <X className="w-5 h-5" />
@@ -137,7 +141,7 @@ export function CartSidebar() {
               C: "CLARO",
               T: "TIM",
             };
-            
+
             const operadoraColors = {
               V: "bg-purple-100 text-purple-700 border-purple-200",
               C: "bg-red-100 text-red-700 border-red-200",
@@ -150,7 +154,10 @@ export function CartSidebar() {
                 (item.product.valorPorLinhaAdicional || 0);
 
             return (
-              <Card key={`${item.product.id}-${index}`} className="p-3 space-y-2">
+              <Card
+                key={`${item.product.id}-${index}`}
+                className="p-3 space-y-2"
+              >
                 {/* Product Header */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -158,10 +165,14 @@ export function CartSidebar() {
                       <span
                         className={cn(
                           "px-2 py-0.5 text-xs font-medium rounded border",
-                          operadoraColors[item.product.operadora as keyof typeof operadoraColors] || "bg-gray-100"
+                          operadoraColors[
+                            item.product
+                              .operadora as keyof typeof operadoraColors
+                          ] || "bg-gray-100"
                         )}
                       >
-                        {operadoraNames[item.product.operadora] || item.product.operadora}
+                        {operadoraNames[item.product.operadora] ||
+                          item.product.operadora}
                       </span>
                     </div>
                     <h4 className="font-medium text-sm line-clamp-2">
@@ -182,38 +193,48 @@ export function CartSidebar() {
                 </div>
 
                 {/* GB Info */}
-                {item.product.franquia && (item.quantidade > 1 || (item.linhasAdicionais || 0) > 0) && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2">
-                    <div className="text-xs space-y-0.5">
-                      <div className="flex justify-between text-blue-700">
-                        <span className="font-medium">GB por linha:</span>
-                        <span className="font-semibold">{item.product.franquia}</span>
-                      </div>
-                      <div className="flex justify-between text-blue-900">
-                        <span className="font-bold">GB Total:</span>
-                        <span className="font-bold">
-                          {(() => {
-                            const totalLinhas = item.quantidade + (item.linhasAdicionais || 0);
-                            const gbMatch = item.product.franquia?.match(/(\d+)\s*GB/i);
-                            if (gbMatch) {
-                              const gbPorLinha = parseInt(gbMatch[1]);
-                              const gbTotal = gbPorLinha * totalLinhas;
-                              return item.product.franquia.toLowerCase().includes("ilimitado") 
-                                ? "Ilimitado" 
-                                : `${gbTotal}GB`;
-                            }
-                            return item.product.franquia?.toLowerCase().includes("ilimitado") 
-                              ? "Ilimitado" 
-                              : item.product.franquia;
-                          })()}
-                        </span>
-                      </div>
-                      <div className="text-blue-600 text-[10px] mt-1">
-                        {item.quantidade + (item.linhasAdicionais || 0)} linha(s) × {item.product.franquia}
+                {item.product.franquia &&
+                  (item.quantidade > 1 || (item.linhasAdicionais || 0) > 0) && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-2">
+                      <div className="text-xs space-y-0.5">
+                        <div className="flex justify-between text-blue-700">
+                          <span className="font-medium">GB por linha:</span>
+                          <span className="font-semibold">
+                            {item.product.franquia}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-blue-900">
+                          <span className="font-bold">GB Total:</span>
+                          <span className="font-bold">
+                            {(() => {
+                              const totalLinhas =
+                                item.quantidade + (item.linhasAdicionais || 0);
+                              const gbMatch =
+                                item.product.franquia?.match(/(\d+)\s*GB/i);
+                              if (gbMatch) {
+                                const gbPorLinha = parseInt(gbMatch[1]);
+                                const gbTotal = gbPorLinha * totalLinhas;
+                                return item.product.franquia
+                                  .toLowerCase()
+                                  .includes("ilimitado")
+                                  ? "Ilimitado"
+                                  : `${gbTotal}GB`;
+                              }
+                              return item.product.franquia
+                                ?.toLowerCase()
+                                .includes("ilimitado")
+                                ? "Ilimitado"
+                                : item.product.franquia;
+                            })()}
+                          </span>
+                        </div>
+                        <div className="text-blue-600 text-[10px] mt-1">
+                          {item.quantidade + (item.linhasAdicionais || 0)}{" "}
+                          linha(s) × {item.product.franquia}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Quantity Control */}
                 <div className="flex items-center justify-between">
@@ -225,7 +246,9 @@ export function CartSidebar() {
                       variant="outline"
                       size="icon"
                       className="h-7 w-7"
-                      onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantidade - 1)
+                      }
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
@@ -236,7 +259,9 @@ export function CartSidebar() {
                       variant="outline"
                       size="icon"
                       className="h-7 w-7"
-                      onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantidade + 1)
+                      }
                     >
                       <Plus className="w-3 h-3" />
                     </Button>
@@ -244,38 +269,45 @@ export function CartSidebar() {
                 </div>
 
                 {/* Linhas Adicionais (para PJ) */}
-                {item.product.tipoPessoa === "PJ" && item.product.valorPorLinhaAdicional > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-muted-foreground">
-                      Linhas Adicionais
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() =>
-                          updateLinhas(item.product.id, Math.max(0, (item.linhasAdicionais || 0) - 1))
-                        }
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-8 text-center text-sm font-medium">
-                        {item.linhasAdicionais || 0}
+                {item.product.tipoPessoa === "PJ" &&
+                  item.product.valorPorLinhaAdicional > 0 && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        Linhas Adicionais
                       </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() =>
-                          updateLinhas(item.product.id, (item.linhasAdicionais || 0) + 1)
-                        }
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            updateLinhas(
+                              item.product.id,
+                              Math.max(0, (item.linhasAdicionais || 0) - 1)
+                            )
+                          }
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                        <span className="w-8 text-center text-sm font-medium">
+                          {item.linhasAdicionais || 0}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() =>
+                            updateLinhas(
+                              item.product.id,
+                              (item.linhasAdicionais || 0) + 1
+                            )
+                          }
+                        >
+                          <Plus className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Item Total & Actions */}
                 <div className="flex items-center justify-between pt-2 border-t">
@@ -360,16 +392,14 @@ export function CartBottomBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background border-t shadow-lg z-30 p-4">
-      <Button
-        size="lg"
-        className="w-full"
-        onClick={toggleCart}
-      >
+      <Button size="lg" className="w-full" onClick={toggleCart}>
         <ShoppingCart className="w-5 h-5 mr-2" />
-        Ver Resumo ({getItemCount()}) • {(getTotal() / 100).toLocaleString("pt-BR", {
+        Ver Resumo ({getItemCount()}) •{" "}
+        {(getTotal() / 100).toLocaleString("pt-BR", {
           style: "currency",
           currency: "BRL",
-        })}/mês
+        })}
+        /mês
       </Button>
     </div>
   );

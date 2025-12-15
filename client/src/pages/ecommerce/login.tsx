@@ -26,10 +26,10 @@ export default function EcommerceLogin() {
   // Auto-format CPF/CNPJ
   const formatDocument = (value: string) => {
     const cleaned = value.replace(/\D/g, "");
-    
+
     // Limitar a 14 dígitos (CNPJ)
     const limited = cleaned.substring(0, 14);
-    
+
     if (limited.length <= 11) {
       // CPF: 123.456.789-10
       return limited
@@ -48,7 +48,7 @@ export default function EcommerceLogin() {
 
   const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    
+
     // Se contém @ ou letras, é email - não formata
     if (isEmail(value)) {
       setIdentifier(value);
@@ -77,12 +77,16 @@ export default function EcommerceLogin() {
     onSuccess: async () => {
       // Invalidar TODAS as queries de autenticação
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/auth/customer"] });
-      await queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
-      
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/ecommerce/auth/customer"],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["/api/ecommerce/customer/orders"],
+      });
+
       // Forçar refetch imediato da autenticação
       await queryClient.refetchQueries({ queryKey: ["/api/auth/user"] });
-      
+
       // Redirecionar após garantir que a autenticação foi recarregada
       setTimeout(() => {
         navigate("/ecommerce/painel");
@@ -96,7 +100,7 @@ export default function EcommerceLogin() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
+
     if (!identifier || !password) {
       setError("Preencha todos os campos");
       return;
@@ -152,7 +156,8 @@ export default function EcommerceLogin() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Você pode usar CPF (11 dígitos), CNPJ (14 dígitos) ou seu e-mail cadastrado
+                Você pode usar CPF (11 dígitos), CNPJ (14 dígitos) ou seu e-mail
+                cadastrado
               </p>
             </div>
 
@@ -174,7 +179,11 @@ export default function EcommerceLogin() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -192,7 +201,9 @@ export default function EcommerceLogin() {
               <button
                 type="button"
                 className="text-sm text-primary hover:underline"
-                onClick={() => alert("Em breve: recuperação de senha por email")}
+                onClick={() =>
+                  alert("Em breve: recuperação de senha por email")
+                }
               >
                 Esqueci minha senha
               </button>

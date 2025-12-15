@@ -1,6 +1,10 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
-import { ecommerceCategories, ecommerceProducts, ecommerceAdicionais } from "@shared/schema";
+import {
+  ecommerceCategories,
+  ecommerceProducts,
+  ecommerceAdicionais,
+} from "@shared/schema";
 import { eq, and, asc } from "drizzle-orm";
 
 const router = Router();
@@ -32,7 +36,7 @@ router.get("/categories", async (req: Request, res: Response) => {
 router.get("/products", async (req: Request, res: Response) => {
   try {
     const { categoria } = req.query;
-    
+
     let conditions = [eq(ecommerceProducts.ativo, true)];
 
     if (categoria && typeof categoria === "string") {
@@ -59,7 +63,7 @@ router.get("/products", async (req: Request, res: Response) => {
 router.get("/categories/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
-    
+
     const category = await db
       .select()
       .from(ecommerceCategories)

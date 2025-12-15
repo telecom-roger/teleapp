@@ -85,7 +85,9 @@ export function CalculadoraMultiLinhasSidebar({
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Produto Info */}
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 border-2 border-indigo-200">
-              <h3 className="font-semibold text-gray-900 mb-1">{produto.nome}</h3>
+              <h3 className="font-semibold text-gray-900 mb-1">
+                {produto.nome}
+              </h3>
               <p className="text-sm text-gray-600">{produto.descricao}</p>
             </div>
 
@@ -99,7 +101,9 @@ export function CalculadoraMultiLinhasSidebar({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onQuantidadeChange(Math.max(1, quantidade - 1))}
+                  onClick={() =>
+                    onQuantidadeChange(Math.max(1, quantidade - 1))
+                  }
                   disabled={quantidade <= 1}
                   className="h-10 w-10 rounded-lg border-2 hover:border-indigo-500 hover:text-indigo-600"
                 >
@@ -119,7 +123,9 @@ export function CalculadoraMultiLinhasSidebar({
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => onQuantidadeChange(Math.min(50, quantidade + 1))}
+                  onClick={() =>
+                    onQuantidadeChange(Math.min(50, quantidade + 1))
+                  }
                   disabled={quantidade >= 50}
                   className="h-10 w-10 rounded-lg border-2 hover:border-indigo-500 hover:text-indigo-600"
                 >
@@ -160,7 +166,9 @@ export function CalculadoraMultiLinhasSidebar({
 
             {/* Preço Calculation */}
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 space-y-2 border border-emerald-200">
-              <h4 className="font-semibold text-emerald-800 mb-3">Valor Total</h4>
+              <h4 className="font-semibold text-emerald-800 mb-3">
+                Valor Total
+              </h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Valor por linha:</span>
@@ -181,9 +189,7 @@ export function CalculadoraMultiLinhasSidebar({
                       R$ {precoTotal.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1 text-right">
-                    /mês
-                  </p>
+                  <p className="text-xs text-gray-500 mt-1 text-right">/mês</p>
                 </div>
               </div>
             </div>
@@ -191,7 +197,8 @@ export function CalculadoraMultiLinhasSidebar({
             {/* Info adicional */}
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
               <p className="text-xs text-amber-800">
-                💡 <strong>Economia:</strong> Contratando {quantidade} linhas você economiza na gestão e tem melhor controle dos gastos.
+                💡 <strong>Economia:</strong> Contratando {quantidade} linhas
+                você economiza na gestão e tem melhor controle dos gastos.
               </p>
             </div>
           </div>
@@ -206,7 +213,8 @@ export function CalculadoraMultiLinhasSidebar({
               Contratar Agora
             </Button>
             <p className="text-xs text-center text-gray-500 mt-2">
-              {quantidade} {quantidade === 1 ? "linha" : "linhas"} • {formatarGB(gbTotal)} • R$ {precoTotal.toFixed(2)}/mês
+              {quantidade} {quantidade === 1 ? "linha" : "linhas"} •{" "}
+              {formatarGB(gbTotal)} • R$ {precoTotal.toFixed(2)}/mês
             </p>
           </div>
         </div>

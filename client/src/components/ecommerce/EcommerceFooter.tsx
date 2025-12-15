@@ -1,5 +1,13 @@
 import { Link } from "wouter";
-import { Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import {
+  Facebook,
+  Twitter,
+  Instagram,
+  Linkedin,
+  Mail,
+  Phone,
+  MapPin,
+} from "lucide-react";
 
 export function EcommerceFooter() {
   return (
@@ -14,21 +22,33 @@ export function EcommerceFooter() {
               Transparência e facilidade para você.
             </p>
             <div className="flex space-x-3">
-              <a href="#" className="text-slate-400 hover:text-purple-600 transition-colors">
+              <a
+                href="#"
+                className="text-slate-400 hover:text-purple-600 transition-colors"
+              >
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-slate-400 hover:text-purple-600 transition-colors">
+              <a
+                href="#"
+                className="text-slate-400 hover:text-purple-600 transition-colors"
+              >
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-slate-400 hover:text-purple-600 transition-colors">
+              <a
+                href="#"
+                className="text-slate-400 hover:text-purple-600 transition-colors"
+              >
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-slate-400 hover:text-purple-600 transition-colors">
+              <a
+                href="#"
+                className="text-slate-400 hover:text-purple-600 transition-colors"
+              >
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
           </div>
-          
+
           {/* Links */}
           <div>
             <h3 className="font-bold text-sm mb-4">Navegação</h3>
@@ -63,7 +83,7 @@ export function EcommerceFooter() {
               </li>
             </ul>
           </div>
-          
+
           {/* Legal */}
           <div>
             <h3 className="font-bold text-sm mb-4">Legal</h3>
@@ -91,7 +111,7 @@ export function EcommerceFooter() {
               </li>
             </ul>
           </div>
-          
+
           {/* Contact */}
           <div>
             <h3 className="font-bold text-sm mb-4">Contato</h3>
@@ -111,13 +131,14 @@ export function EcommerceFooter() {
             </ul>
           </div>
         </div>
-        
+
         <div className="border-t mt-8 pt-8 text-center text-sm text-slate-600">
           <p className="mb-2">
             Esta plataforma realiza comparação de planos entre operadoras.
           </p>
           <p>
-            © {new Date().getFullYear()} TelePlanos. Todos os direitos reservados.
+            © {new Date().getFullYear()} TelePlanos. Todos os direitos
+            reservados.
           </p>
         </div>
       </div>

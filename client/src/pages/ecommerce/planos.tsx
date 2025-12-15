@@ -9,9 +9,22 @@ import { CartSidebar, CartBottomBar } from "@/components/ecommerce/CartSidebar";
 import { CalculadoraMultiLinhasSidebar } from "@/components/ecommerce/CalculadoraMultiLinhasSidebar";
 import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
-import { 
-  Check, Wifi, Smartphone, Tv, Briefcase, Star, Plus, User, 
-  Filter, X, ChevronDown, Zap, Shield, Package, Calculator
+import {
+  Check,
+  Wifi,
+  Smartphone,
+  Tv,
+  Briefcase,
+  Star,
+  Plus,
+  User,
+  Filter,
+  X,
+  ChevronDown,
+  Zap,
+  Shield,
+  Package,
+  Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -24,33 +37,36 @@ interface CustomerData {
 
 type TipoPessoa = "ambos" | "PF" | "PJ";
 
-const OPERADORA_COLORS: Record<string, { 
-  bg: string; 
-  text: string; 
-  name: string;
-  badge: string;
-  border: string;
-}> = {
-  V: { 
-    bg: "bg-purple-600", 
-    text: "text-purple-700", 
+const OPERADORA_COLORS: Record<
+  string,
+  {
+    bg: string;
+    text: string;
+    name: string;
+    badge: string;
+    border: string;
+  }
+> = {
+  V: {
+    bg: "bg-purple-600",
+    text: "text-purple-700",
     name: "VIVO",
     badge: "bg-purple-50 text-purple-700 border-purple-200",
-    border: "border-purple-200"
+    border: "border-purple-200",
   },
-  C: { 
-    bg: "bg-red-600", 
-    text: "text-red-700", 
+  C: {
+    bg: "bg-red-600",
+    text: "text-red-700",
     name: "CLARO",
     badge: "bg-red-50 text-red-700 border-red-200",
-    border: "border-red-200"
+    border: "border-red-200",
   },
-  T: { 
-    bg: "bg-blue-600", 
-    text: "text-blue-700", 
+  T: {
+    bg: "bg-blue-600",
+    text: "text-blue-700",
     name: "TIM",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
-    border: "border-blue-200"
+    border: "border-blue-200",
   },
 };
 
@@ -59,9 +75,11 @@ export default function EcommercePlanos() {
   const [operadoraFiltro, setOperadoraFiltro] = useState<string>("todos");
   const [tipoPessoaFiltro, setTipoPessoaFiltro] = useState<TipoPessoa>("ambos");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
-  const [sidebarCalculadoraAberto, setSidebarCalculadoraAberto] = useState(false);
+  const [sidebarCalculadoraAberto, setSidebarCalculadoraAberto] =
+    useState(false);
   const [produtoCalculadora, setProdutoCalculadora] = useState<any>(null);
-  const [quantidadeLinhasCalculadora, setQuantidadeLinhasCalculadora] = useState(2);
+  const [quantidadeLinhasCalculadora, setQuantidadeLinhasCalculadora] =
+    useState(2);
   const [filtrosCarregadosDaUrl, setFiltrosCarregadosDaUrl] = useState(false);
 
   const { addItem } = useCartStore();
@@ -102,7 +120,7 @@ export default function EcommercePlanos() {
   const { data: products, isLoading } = useQuery<any[]>({
     queryKey: ["/api/ecommerce/public/products", categoriaUrl],
     queryFn: async () => {
-      const url = categoriaUrl 
+      const url = categoriaUrl
         ? `/api/ecommerce/public/products?categoria=${categoriaUrl}`
         : "/api/ecommerce/public/products";
       const res = await fetch(url);
@@ -118,16 +136,19 @@ export default function EcommercePlanos() {
     });
   };
 
-  const produtosFiltrados = products?.filter((product) => {
-    if (!product.ativo) return false;
-    if (categoriaFiltro !== "todos" && product.categoria !== categoriaFiltro) return false;
-    if (operadoraFiltro !== "todos" && product.operadora !== operadoraFiltro) return false;
-    if (tipoPessoaFiltro !== "ambos") {
-      if (product.tipoPessoa === "ambos") return true;
-      if (product.tipoPessoa !== tipoPessoaFiltro) return false;
-    }
-    return true;
-  }) || [];
+  const produtosFiltrados =
+    products?.filter((product) => {
+      if (!product.ativo) return false;
+      if (categoriaFiltro !== "todos" && product.categoria !== categoriaFiltro)
+        return false;
+      if (operadoraFiltro !== "todos" && product.operadora !== operadoraFiltro)
+        return false;
+      if (tipoPessoaFiltro !== "ambos") {
+        if (product.tipoPessoa === "ambos") return true;
+        if (product.tipoPessoa !== tipoPessoaFiltro) return false;
+      }
+      return true;
+    }) || [];
 
   const handleAddToCart = (product: any) => {
     addItem(product, 1);
@@ -160,16 +181,19 @@ export default function EcommercePlanos() {
     setOperadoraFiltro("todos");
     setTipoPessoaFiltro("ambos");
     // Limpar URL também
-    window.history.replaceState({}, '', '/ecommerce/planos');
+    window.history.replaceState({}, "", "/ecommerce/planos");
   };
 
   // Quando usuário mudar qualquer filtro manualmente, limpar URL
-  const handleChangeFiltro = (tipo: 'categoria' | 'operadora' | 'pessoa', valor: any) => {
-    if (tipo === 'categoria') setCategoriaFiltro(valor);
-    if (tipo === 'operadora') setOperadoraFiltro(valor);
-    if (tipo === 'pessoa') setTipoPessoaFiltro(valor);
+  const handleChangeFiltro = (
+    tipo: "categoria" | "operadora" | "pessoa",
+    valor: any
+  ) => {
+    if (tipo === "categoria") setCategoriaFiltro(valor);
+    if (tipo === "operadora") setOperadoraFiltro(valor);
+    if (tipo === "pessoa") setTipoPessoaFiltro(valor);
     // Limpar parâmetros da URL quando usuário mudar filtros manualmente
-    window.history.replaceState({}, '', '/ecommerce/planos');
+    window.history.replaceState({}, "", "/ecommerce/planos");
   };
 
   const getIconeCategoria = (slug: string) => {
@@ -183,9 +207,11 @@ export default function EcommercePlanos() {
     return icons[slug] || Package;
   };
 
-  const filtrosAtivos = [categoriaFiltro, operadoraFiltro, tipoPessoaFiltro].filter(
-    f => f !== "todos" && f !== "ambos"
-  ).length;
+  const filtrosAtivos = [
+    categoriaFiltro,
+    operadoraFiltro,
+    tipoPessoaFiltro,
+  ].filter((f) => f !== "todos" && f !== "ambos").length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -201,10 +227,16 @@ export default function EcommercePlanos() {
                 Bem-vindo de volta!
               </p>
               <h2 className="text-2xl font-bold">{customerData.client.nome}</h2>
-              <p className="text-sm opacity-90 mt-1">Seus dados já estão salvos, contrate em 2 minutos</p>
+              <p className="text-sm opacity-90 mt-1">
+                Seus dados já estão salvos, contrate em 2 minutos
+              </p>
             </div>
             <Link href="/ecommerce/painel">
-              <Button variant="secondary" size="sm" className="shadow-lg hover:scale-105 transition-transform">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="shadow-lg hover:scale-105 transition-transform"
+              >
                 Meu Painel
               </Button>
             </Link>
@@ -245,11 +277,18 @@ export default function EcommercePlanos() {
                     </Badge>
                   )}
                 </span>
-                <ChevronDown className={cn("h-4 w-4 transition-transform", mostrarFiltros && "rotate-180")} />
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    mostrarFiltros && "rotate-180"
+                  )}
+                />
               </Button>
             </div>
 
-            <div className={cn("space-y-6", !mostrarFiltros && "hidden md:block")}>
+            <div
+              className={cn("space-y-6", !mostrarFiltros && "hidden md:block")}
+            >
               {/* Tipo de Pessoa */}
               <div>
                 <label className="text-sm font-bold mb-3 block text-slate-900">
@@ -257,13 +296,25 @@ export default function EcommercePlanos() {
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   {[
-                    { value: "ambos" as TipoPessoa, label: "Todos", icon: null },
-                    { value: "PF" as TipoPessoa, label: "Pessoa Física", icon: User },
-                    { value: "PJ" as TipoPessoa, label: "Empresas", icon: Briefcase },
+                    {
+                      value: "ambos" as TipoPessoa,
+                      label: "Todos",
+                      icon: null,
+                    },
+                    {
+                      value: "PF" as TipoPessoa,
+                      label: "Pessoa Física",
+                      icon: User,
+                    },
+                    {
+                      value: "PJ" as TipoPessoa,
+                      label: "Empresas",
+                      icon: Briefcase,
+                    },
                   ].map((tipo) => (
                     <button
                       key={tipo.value}
-                      onClick={() => handleChangeFiltro('pessoa', tipo.value)}
+                      onClick={() => handleChangeFiltro("pessoa", tipo.value)}
                       className={cn(
                         "h-10 px-6 rounded-xl font-semibold border-2 transition-all duration-300 flex items-center gap-2",
                         tipoPessoaFiltro === tipo.value
@@ -285,7 +336,7 @@ export default function EcommercePlanos() {
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   <button
-                    onClick={() => handleChangeFiltro('categoria', 'todos')}
+                    onClick={() => handleChangeFiltro("categoria", "todos")}
                     className={cn(
                       "h-10 px-6 rounded-xl font-semibold border-2 transition-all duration-300",
                       categoriaFiltro === "todos"
@@ -300,7 +351,9 @@ export default function EcommercePlanos() {
                     return (
                       <button
                         key={cat.id}
-                        onClick={() => handleChangeFiltro('categoria', cat.slug)}
+                        onClick={() =>
+                          handleChangeFiltro("categoria", cat.slug)
+                        }
                         className={cn(
                           "h-10 px-6 rounded-xl font-semibold border-2 transition-all duration-300 flex items-center gap-2",
                           categoriaFiltro === cat.slug
@@ -323,7 +376,7 @@ export default function EcommercePlanos() {
                 </label>
                 <div className="flex gap-3 flex-wrap">
                   <button
-                    onClick={() => handleChangeFiltro('operadora', 'todos')}
+                    onClick={() => handleChangeFiltro("operadora", "todos")}
                     className={cn(
                       "h-10 px-6 rounded-xl font-semibold border-2 transition-all duration-300",
                       operadoraFiltro === "todos"
@@ -336,7 +389,7 @@ export default function EcommercePlanos() {
                   {Object.entries(OPERADORA_COLORS).map(([key, config]) => (
                     <button
                       key={key}
-                      onClick={() => handleChangeFiltro('operadora', key)}
+                      onClick={() => handleChangeFiltro("operadora", key)}
                       className={cn(
                         "h-10 px-6 rounded-xl font-bold border-2 transition-all duration-300",
                         operadoraFiltro === key
@@ -371,12 +424,16 @@ export default function EcommercePlanos() {
               {isLoading ? (
                 <span>Carregando...</span>
               ) : (
-                <span>{produtosFiltrados.length} {produtosFiltrados.length === 1 ? 'plano' : 'planos'}</span>
+                <span>
+                  {produtosFiltrados.length}{" "}
+                  {produtosFiltrados.length === 1 ? "plano" : "planos"}
+                </span>
               )}
             </Badge>
             {categoriaFiltro !== "todos" && (
               <Badge className="bg-[#6366F1]/10 text-[#6366F1] border-0 font-semibold">
-                {categorias.find(c => c.slug === categoriaFiltro)?.nome || categoriaFiltro}
+                {categorias.find((c) => c.slug === categoriaFiltro)?.nome ||
+                  categoriaFiltro}
               </Badge>
             )}
             {operadoraFiltro !== "todos" && (
@@ -428,15 +485,18 @@ export default function EcommercePlanos() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20 lg:mb-8">
             {produtosFiltrados.map((product) => {
               const Icon = getIconeCategoria(product.categoria);
-              const colors = OPERADORA_COLORS[product.operadora as keyof typeof OPERADORA_COLORS];
+              const colors =
+                OPERADORA_COLORS[
+                  product.operadora as keyof typeof OPERADORA_COLORS
+                ];
 
               return (
                 <Card
                   key={product.id}
                   className={cn(
                     "group relative overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] border-2",
-                    product.destaque 
-                      ? "border-[#6366F1] shadow-xl" 
+                    product.destaque
+                      ? "border-[#6366F1] shadow-xl"
                       : "border-slate-200 hover:border-[#6366F1] shadow-md"
                   )}
                 >
@@ -471,13 +531,17 @@ export default function EcommercePlanos() {
                       {product.velocidade && (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg">
                           <Zap className="w-4 h-4 text-[#6366F1]" />
-                          <span className="text-sm font-bold text-slate-900">{product.velocidade}</span>
+                          <span className="text-sm font-bold text-slate-900">
+                            {product.velocidade}
+                          </span>
                         </div>
                       )}
                       {product.franquia && (
                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg">
                           <Smartphone className="w-4 h-4 text-[#6366F1]" />
-                          <span className="text-sm font-bold text-slate-900">{product.franquia}</span>
+                          <span className="text-sm font-bold text-slate-900">
+                            {product.franquia}
+                          </span>
                         </div>
                       )}
                     </div>
@@ -498,12 +562,17 @@ export default function EcommercePlanos() {
                     {/* Benefícios */}
                     {product.beneficios && product.beneficios.length > 0 && (
                       <ul className="space-y-2">
-                        {product.beneficios.slice(0, 3).map((beneficio: string, i: number) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-[#666666]">
-                            <Check className="w-4 h-4 text-[#1AD1C1] flex-shrink-0 mt-0.5" />
-                            <span>{beneficio}</span>
-                          </li>
-                        ))}
+                        {product.beneficios
+                          .slice(0, 3)
+                          .map((beneficio: string, i: number) => (
+                            <li
+                              key={i}
+                              className="flex items-start gap-2 text-sm text-[#666666]"
+                            >
+                              <Check className="w-4 h-4 text-[#1AD1C1] flex-shrink-0 mt-0.5" />
+                              <span>{beneficio}</span>
+                            </li>
+                          ))}
                       </ul>
                     )}
 
@@ -574,10 +643,19 @@ export default function EcommercePlanos() {
               Não encontrou o que procura?
             </h3>
             <p className="text-white/90 mb-6 text-lg">
-              Temos consultores prontos para ajudar você a escolher o melhor plano
+              Temos consultores prontos para ajudar você a escolher o melhor
+              plano
             </p>
-            <Button size="lg" className="bg-white text-[#6366F1] hover:bg-slate-100 font-bold h-14 px-8" asChild>
-              <a href="https://wa.me/5519999999999" target="_blank" rel="noopener noreferrer">
+            <Button
+              size="lg"
+              className="bg-white text-[#6366F1] hover:bg-slate-100 font-bold h-14 px-8"
+              asChild
+            >
+              <a
+                href="https://wa.me/5519999999999"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 Falar com Consultor
               </a>
             </Button>
@@ -586,7 +664,7 @@ export default function EcommercePlanos() {
       </main>
 
       <EcommerceFooter />
-      
+
       {/* Sidebar Calculadora */}
       <CalculadoraMultiLinhasSidebar
         isOpen={sidebarCalculadoraAberto}
@@ -596,10 +674,9 @@ export default function EcommercePlanos() {
         onQuantidadeChange={setQuantidadeLinhasCalculadora}
         onContratar={contratarDoSidebar}
       />
-      
+
       <CartSidebar />
       <CartBottomBar />
     </div>
   );
 }
-

@@ -12,9 +12,9 @@ interface EcommerceProtectedRouteProps {
  * Protected route component for e-commerce customer pages
  * Redirects to /ecommerce/login if user is not authenticated with customer role
  */
-export function EcommerceProtectedRoute({ 
-  component: Component, 
-  ...rest 
+export function EcommerceProtectedRoute({
+  component: Component,
+  ...rest
 }: EcommerceProtectedRouteProps) {
   const { data: user, isLoading } = useQuery<User | null>({
     queryKey: ["/api/auth/user"],
@@ -30,14 +30,16 @@ export function EcommerceProtectedRoute({
       <div className="flex h-screen w-full items-center justify-center">
         <div className="text-center">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
-          <p className="text-sm text-muted-foreground">Verificando autenticação...</p>
+          <p className="text-sm text-muted-foreground">
+            Verificando autenticação...
+          </p>
         </div>
       </div>
     );
   }
 
   // Redirect to login if not authenticated or not a customer
-  if (!user || user.role !== 'customer') {
+  if (!user || user.role !== "customer") {
     return <Redirect to="/ecommerce/login" />;
   }
 

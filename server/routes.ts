@@ -42,11 +42,15 @@ import {
   opportunities,
   automationTasks,
   automationConfigs,
+  ecommerceOrderDocuments,
 } from "@shared/schema";
 import * as storage from "./storage";
 import * as whatsappService from "./whatsappService";
 import { setupAuth, isAuthenticated } from "./localAuth";
+import { blockCustomers } from "./middleware/auth";
 import { db } from "./db";
+import fs from "fs";
+import path from "path";
 import {
   simulateClientResponse,
   getAllAutomationTasks,
@@ -166,6 +170,47 @@ export async function registerRoutes(
 
   // ==================== E-COMMERCE ADMIN ROUTES ====================
   app.use("/api/admin/ecommerce", ecommerceAdminRoutes);
+
+  // ==================== E-COMMERCE DOCUMENTS DOWNLOAD (SHARED) ====================
+  app.get(
+    "/api/ecommerce/documents/:documentId",
+    isAuthenticated,
+    async (req: Request, res: Response) => {
+      try {
+        const { documentId } = req.params;
+
+        // Buscar documento
+        const [document] = await db
+          .select()
+          .from(ecommerceOrderDocuments)
+          .where(eq(ecommerceOrderDocuments.id, documentId))
+          .limit(1);
+
+        if (!document) {
+          return res.status(404).json({ error: "Documento não encontrado" });
+        }
+
+        // Verificar se o arquivo existe
+        if (!fs.existsSync(document.filePath)) {
+          return res
+            .status(404)
+            .json({ error: "Arquivo não encontrado no servidor" });
+        }
+
+        // Enviar arquivo
+        const mimeType = document.mimeType || "application/octet-stream";
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader(
+          "Content-Disposition",
+          `inline; filename="${encodeURIComponent(document.fileName)}"`
+        );
+        res.sendFile(path.resolve(document.filePath));
+      } catch (error: any) {
+        console.error("Erro ao buscar documento:", error);
+        res.status(500).json({ error: "Erro ao buscar documento" });
+      }
+    }
+  );
 
   // ==================== E-COMMERCE MANAGEMENT ROUTES (CATEGORIES & PRODUCTS) ====================
   app.use("/api/admin/ecommerce/manage", ecommerceManagementRoutes);
@@ -774,11 +819,9 @@ export async function registerRoutes(
       }
       // Se tiver permissão "visualizar", não pode editar
       if (access.permissao === "visualizar") {
-        return res
-          .status(403)
-          .json({
-            error: "Você só pode visualizar este cliente, não pode editá-lo",
-          });
+        return res.status(403).json({
+          error: "Você só pode visualizar este cliente, não pode editá-lo",
+        });
       }
 
       const validatedData = insertClientSchema.partial().parse(req.body);
@@ -847,10 +890,10 @@ export async function registerRoutes(
       // Verificar permissão: apenas admin OU criador do cliente pode deletar
       const isAdmin = user.role === "admin";
       const isOwner = client.createdBy === user.id;
-      
+
       if (!isAdmin && !isOwner) {
-        return res.status(403).json({ 
-          error: "Você não tem permissão para deletar este cliente" 
+        return res.status(403).json({
+          error: "Você não tem permissão para deletar este cliente",
         });
       }
 
@@ -968,12 +1011,10 @@ export async function registerRoutes(
         }
         // Se tiver permissão "visualizar", não pode criar oportunidade
         if (access.permissao === "visualizar") {
-          return res
-            .status(403)
-            .json({
-              error:
-                "Você só pode visualizar este cliente, não pode criar oportunidades",
-            });
+          return res.status(403).json({
+            error:
+              "Você só pode visualizar este cliente, não pode criar oportunidades",
+          });
         }
       }
 
@@ -1064,12 +1105,10 @@ export async function registerRoutes(
           }
           // Se tiver permissão "visualizar", não pode mover oportunidade
           if (access.permissao === "visualizar") {
-            return res
-              .status(403)
-              .json({
-                error:
-                  "Você só pode visualizar este cliente, não pode mover oportunidades",
-              });
+            return res.status(403).json({
+              error:
+                "Você só pode visualizar este cliente, não pode mover oportunidades",
+            });
           }
         }
 
@@ -1260,11 +1299,9 @@ export async function registerRoutes(
         }
         // Se tiver permissão "visualizar", não pode editar oportunidade
         if (access.permissao === "visualizar") {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode visualizar este cliente, não pode editá-lo",
-            });
+          return res.status(403).json({
+            error: "Você só pode visualizar este cliente, não pode editá-lo",
+          });
         }
       }
 
@@ -1495,90 +1532,95 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/campaigns/schedule", isAuthenticated, async (req, res) => {
-    try {
-      const {
-        nome,
-        templateId,
-        agendadaPara,
-        filtros,
-        totalRecipients,
-        tempoFixoSegundos,
-        tempoAleatorioMin,
-        tempoAleatorioMax,
-      } = req.body;
-      if (!nome || !templateId || !agendadaPara) {
-        return res
-          .status(400)
-          .json({ error: "Nome, templateId e agendadaPara são obrigatórios" });
+  app.post(
+    "/api/campaigns/schedule",
+    isAuthenticated,
+    blockCustomers,
+    async (req, res) => {
+      try {
+        const {
+          nome,
+          templateId,
+          agendadaPara,
+          filtros,
+          totalRecipients,
+          tempoFixoSegundos,
+          tempoAleatorioMin,
+          tempoAleatorioMax,
+        } = req.body;
+        if (!nome || !templateId || !agendadaPara) {
+          return res.status(400).json({
+            error: "Nome, templateId e agendadaPara são obrigatórios",
+          });
+        }
+
+        // ✅ Extrair tempos customizados, usar defaults se não informados
+        const tempo_fixo =
+          tempoFixoSegundos !== undefined ? tempoFixoSegundos : 70;
+        const tempo_min =
+          tempoAleatorioMin !== undefined ? tempoAleatorioMin : 30;
+        const tempo_max =
+          tempoAleatorioMax !== undefined ? tempoAleatorioMax : 60;
+
+        // ✅ Salvar origemDisparo nos filtros para exibição correta no histórico
+        const validatedData = insertCampaignSchema.parse({
+          nome,
+          tipo: "whatsapp",
+          templateId,
+          status: "agendada",
+          agendadaPara: new Date(agendadaPara),
+          filtros: { ...(filtros || {}), origemDisparo: "agendamento" },
+          totalRecipients: totalRecipients || 0,
+          createdBy: (req.user as any).id,
+          tempoFixoSegundos: tempo_fixo,
+          tempoAleatorioMin: tempo_min,
+          tempoAleatorioMax: tempo_max,
+        });
+
+        const campaign = await storage.createCampaign(validatedData);
+
+        // ✅ Criar registros em campaign_sendings para cada cliente
+        const clientIds: string[] = (filtros as any)?.clientIds || [];
+        const userId = (req.user as any).id;
+        if (clientIds && clientIds.length > 0) {
+          const sendingsToCreate = clientIds.map((clientId) => ({
+            campaignId: campaign.id,
+            clientId,
+            userId,
+            campaignName: nome,
+            status: "pendente" as const,
+            origemDisparo: "agendamento" as const,
+          }));
+
+          // Insert all at once
+          await db.insert(campaignSendings).values(sendingsToCreate);
+          console.log(
+            `✅ Criados ${sendingsToCreate.length} registros de envio para campanha agendada ${campaign.id}`
+          );
+        }
+
+        await storage.createAuditLog({
+          userId: (req.user as any).id,
+          acao: "criar",
+          entidade: "campaign_scheduled",
+          entidadeId: campaign.id,
+          dadosNovos: campaign as any,
+          ipAddress: req.ip,
+          userAgent: req.get("user-agent"),
+        });
+
+        res.status(201).json(campaign);
+      } catch (error: any) {
+        if (error instanceof z.ZodError) {
+          return res
+            .status(400)
+            .json({ error: "Validation error", details: error.errors });
+        }
+        console.error("Error scheduling campaign:", error);
+        res.status(500).json({ error: "Internal server error" });
       }
-
-      // ✅ Extrair tempos customizados, usar defaults se não informados
-      const tempo_fixo =
-        tempoFixoSegundos !== undefined ? tempoFixoSegundos : 70;
-      const tempo_min =
-        tempoAleatorioMin !== undefined ? tempoAleatorioMin : 30;
-      const tempo_max =
-        tempoAleatorioMax !== undefined ? tempoAleatorioMax : 60;
-
-      // ✅ Salvar origemDisparo nos filtros para exibição correta no histórico
-      const validatedData = insertCampaignSchema.parse({
-        nome,
-        tipo: "whatsapp",
-        templateId,
-        status: "agendada",
-        agendadaPara: new Date(agendadaPara),
-        filtros: { ...(filtros || {}), origemDisparo: "agendamento" },
-        totalRecipients: totalRecipients || 0,
-        createdBy: (req.user as any).id,
-        tempoFixoSegundos: tempo_fixo,
-        tempoAleatorioMin: tempo_min,
-        tempoAleatorioMax: tempo_max,
-      });
-
-      const campaign = await storage.createCampaign(validatedData);
-
-      // ✅ Criar registros em campaign_sendings para cada cliente
-      const clientIds: string[] = (filtros as any)?.clientIds || [];
-      const userId = (req.user as any).id;
-      if (clientIds && clientIds.length > 0) {
-        const sendingsToCreate = clientIds.map((clientId) => ({
-          campaignId: campaign.id,
-          clientId,
-          userId,
-          campaignName: nome,
-          status: "pendente" as const,
-          origemDisparo: "agendamento" as const,
-        }));
-
-        // Insert all at once
-        await db.insert(campaignSendings).values(sendingsToCreate);
-        console.log(
-          `✅ Criados ${sendingsToCreate.length} registros de envio para campanha agendada ${campaign.id}`
-        );
-      }
-
-      await storage.createAuditLog({
-        userId: (req.user as any).id,
-        acao: "criar",
-        entidade: "campaign_scheduled",
-        entidadeId: campaign.id,
-        dadosNovos: campaign as any,
-        ipAddress: req.ip,
-        userAgent: req.get("user-agent"),
-      });
-
-      res.status(201).json(campaign);
-    } catch (error: any) {
-      if (error instanceof z.ZodError) {
-        return res
-          .status(400)
-          .json({ error: "Validation error", details: error.errors });
-      }
-      console.error("Error scheduling campaign:", error);
-      res.status(500).json({ error: "Internal server error" });
     }
-  });
+  );
 
   // Get campaign details with recipients - EXPANDED with full tracking
   app.get("/api/campaigns/:id/details", isAuthenticated, async (req, res) => {
@@ -2843,12 +2885,10 @@ export async function registerRoutes(
         );
 
         if (!sessaoConectada) {
-          return res
-            .status(400)
-            .json({
-              error:
-                "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-            });
+          return res.status(400).json({
+            error:
+              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+          });
         }
 
         // Create campaign tracking ID
@@ -3161,9 +3201,9 @@ export async function registerRoutes(
 
       // Verificar se a campanha está com status "erro"
       if (campaign.status !== "erro") {
-        return res
-          .status(400)
-          .json({ error: "Apenas campanhas com erro podem ser reprocessadas" });
+        return res.status(400).json({
+          error: "Apenas campanhas com erro podem ser reprocessadas",
+        });
       }
 
       // ✅ GUARD: Verificar se campanha já está em progresso
@@ -3195,7 +3235,9 @@ export async function registerRoutes(
         })
         .where(eq(campaignsTable.id, id));
 
-      console.log(`🔄 Campanha ${id} reagendada para reprocessamento (manual)`);
+      console.log(
+        `🔄 Campanha ${id} reagendada para reprocessamento (manual)`
+      );
       res.json({
         success: true,
         message: "Campanha reagendada para execução",
@@ -3228,12 +3270,10 @@ export async function registerRoutes(
         );
 
         if (!sessaoConectada) {
-          return res
-            .status(400)
-            .json({
-              error:
-                "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-            });
+          return res.status(400).json({
+            error:
+              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+          });
         }
 
         // Verify the session is actually alive
@@ -3535,12 +3575,10 @@ export async function registerRoutes(
           }
           // Se tiver permissão "visualizar", não pode enviar mensagens
           if (access.permissao === "visualizar") {
-            return res
-              .status(403)
-              .json({
-                error:
-                  "Você só pode visualizar este cliente, não pode enviar mensagens",
-              });
+            return res.status(403).json({
+              error:
+                "Você só pode visualizar este cliente, não pode enviar mensagens",
+            });
           }
         }
 
@@ -3968,12 +4006,10 @@ export async function registerRoutes(
       // ✅ INDIVIDUAL: Busca a sessão do próprio usuário
       const session = await storage.getConnectedSessionByUserId(user.id);
       if (!session) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
-          });
+        return res.status(400).json({
+          error:
+            "Você não tem sessão WhatsApp conectada. Conecte seu WhatsApp primeiro.",
+        });
       }
 
       // Get or create conversation with target client
@@ -5073,11 +5109,9 @@ export async function registerRoutes(
         const client = await storage.getClientById(clientId);
         if (!client) return res.status(404).json({ error: "Client not found" });
         if (client.createdBy !== user.id) {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode compartilhar seus próprios clientes",
-            });
+          return res.status(403).json({
+            error: "Você só pode compartilhar seus próprios clientes",
+          });
         }
 
         const sharing = await storage.shareClientWithUser({
@@ -5132,11 +5166,9 @@ export async function registerRoutes(
         const client = await storage.getClientById(clientId);
         if (!client) return res.status(404).json({ error: "Client not found" });
         if (client.createdBy !== user.id) {
-          return res
-            .status(403)
-            .json({
-              error: "Você só pode desfazer compartilhamento dos seus clientes",
-            });
+          return res.status(403).json({
+            error: "Você só pode desfazer compartilhamento dos seus clientes",
+          });
         }
 
         await storage.unshareClientWithUser(clientId, sharedWithUserId);
@@ -5178,9 +5210,9 @@ export async function registerRoutes(
 
       const allOwned = clientsToShare.every((c) => c.createdBy === user.id);
       if (!allOwned) {
-        return res
-          .status(403)
-          .json({ error: "Você só pode compartilhar seus próprios clientes" });
+        return res.status(403).json({
+          error: "Você só pode compartilhar seus próprios clientes",
+        });
       }
 
       const sharings = await storage.shareClientsWithUser(
@@ -5219,7 +5251,9 @@ export async function registerRoutes(
       res.json({ success: true, count: sharings.length });
     } catch (error: any) {
       console.error("Error sharing clients:", error);
-      res.status(500).json({ error: error.message || "Internal server error" });
+      res
+        .status(500)
+        .json({ error: error.message || "Internal server error" });
     }
   });
 
@@ -5263,12 +5297,10 @@ export async function registerRoutes(
         console.warn(
           `📤 UNSHARE-BULK: Usuário ${user.id} não tem propriedade de nenhum cliente`
         );
-        return res
-          .status(403)
-          .json({
-            error:
-              "Você só pode remover compartilhamento dos seus próprios clientes",
-          });
+        return res.status(403).json({
+          error:
+            "Você só pode remover compartilhamento dos seus próprios clientes",
+        });
       }
 
       // Delete all sharings for owned clients only
@@ -5347,8 +5379,8 @@ export async function registerRoutes(
         })
         .from(users)
         .where(sql`${users.role} IN ('admin', 'agent', 'user')`);
-      
-      res.json(allUsers.map(u => ({ id: u.id, nome: u.nome || u.id })));
+
+      res.json(allUsers.map((u) => ({ id: u.id, nome: u.nome || u.id })));
     } catch (error: any) {
       console.error("Error fetching agents list:", error);
       res.status(500).json({ error: error.message || "Internal server error" });
@@ -5356,11 +5388,11 @@ export async function registerRoutes(
   });
 
   // ==================== NOTIFICATIONS ROUTES ====================
-  
+
   // SSE endpoint for real-time notifications
   app.get("/api/notifications/sse", isAuthenticated, (req, res) => {
     const user = req.user as any;
-    
+
     // Set SSE headers
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
@@ -5370,7 +5402,7 @@ export async function registerRoutes(
     // Add connection
     import("./notificationService.js").then(({ addConnection }) => {
       addConnection(user.id, res);
-      
+
       // Send initial connection message
       res.write(`data: ${JSON.stringify({ type: "connected" })}\n\n`);
     });

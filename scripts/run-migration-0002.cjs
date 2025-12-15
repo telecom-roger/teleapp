@@ -3,27 +3,27 @@ const { readFileSync } = require('fs');
 const { join } = require('path');
 require('dotenv/config');
 
-const pool = new Pool({ 
-  connectionString: process.env.DATABASE_URL 
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
 });
 
 async function runMigration() {
-  const client = await pool.connect();
-  
-  try {
-    console.log('🚀 Executando migration: múltiplos textos upsell...\n');
+    const client = await pool.connect();
 
-    // Ler arquivo SQL
-    const sqlPath = join(process.cwd(), 'migrations', '0002_multiplos_textos_upsell.sql');
-    const sql = readFileSync(sqlPath, 'utf-8');
+    try {
+        console.log('🚀 Executando migration: múltiplos textos upsell...\n');
 
-    // Executar migration
-    await client.query(sql);
+        // Ler arquivo SQL
+        const sqlPath = join(process.cwd(), 'migrations', '0002_multiplos_textos_upsell.sql');
+        const sql = readFileSync(sqlPath, 'utf-8');
 
-    console.log('✅ Migration executada com sucesso!\n');
-    
-    // Verificar resultado
-    const result = await client.query(`
+        // Executar migration
+        await client.query(sql);
+
+        console.log('✅ Migration executada com sucesso!\n');
+
+        // Verificar resultado
+        const result = await client.query(`
       SELECT 
         id, 
         nome, 
@@ -39,35 +39,35 @@ async function runMigration() {
       LIMIT 10
     `);
 
-    console.log('=== PRODUTOS NO BANCO ===\n');
-    result.rows.forEach(p => {
-      console.log(`📦 ${p.nome}`);
-      console.log(`   Categoria: ${p.categoria}`);
-      console.log(`   Preço: R$ ${(p.preco / 100).toFixed(2)}`);
-      console.log(`   Calculadora: ${p.calculadora ? '✅ SIM' : '❌ NÃO'}`);
-      if (p.qtd_textos > 0) {
-        console.log(`   Textos Upsell: ${p.qtd_textos} texto(s)`);
-        if (p.exemplo_texto) {
-          console.log(`   Exemplo: "${p.exemplo_texto.substring(0, 60)}..."`);
+        console.log('=== PRODUTOS NO BANCO ===\n');
+        result.rows.forEach(p => {
+            console.log(`📦 ${p.nome}`);
+            console.log(`   Categoria: ${p.categoria}`);
+            console.log(`   Preço: R$ ${(p.preco / 100).toFixed(2)}`);
+            console.log(`   Calculadora: ${p.calculadora ? '✅ SIM' : '❌ NÃO'}`);
+            if (p.qtd_textos > 0) {
+                console.log(`   Textos Upsell: ${p.qtd_textos} texto(s)`);
+                if (p.exemplo_texto) {
+                    console.log(`   Exemplo: "${p.exemplo_texto.substring(0, 60)}..."`);
+                }
+            }
+            if (p.qtd_svas > 0) {
+                console.log(`   SVAs: ${p.qtd_svas} produto(s)`);
+            }
+            console.log('');
+        });
+
+    } catch (error) {
+        if (error.code === '42701') {
+            console.log('⚠️  Coluna já existe, pulando...');
+        } else {
+            console.error('❌ Erro:', error.message);
+            throw error;
         }
-      }
-      if (p.qtd_svas > 0) {
-        console.log(`   SVAs: ${p.qtd_svas} produto(s)`);
-      }
-      console.log('');
-    });
-    
-  } catch (error) {
-    if (error.code === '42701') {
-      console.log('⚠️  Coluna já existe, pulando...');
-    } else {
-      console.error('❌ Erro:', error.message);
-      throw error;
+    } finally {
+        client.release();
+        await pool.end();
     }
-  } finally {
-    client.release();
-    await pool.end();
-  }
 }
 
 runMigration();
