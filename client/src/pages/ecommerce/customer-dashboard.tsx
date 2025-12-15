@@ -85,11 +85,12 @@ export default function CustomerDashboard() {
     }
   }, [loadingCustomer, isError, customerData, setLocation]);
 
-  const { data: orders, isLoading: loadingOrders } = useQuery<Order[]>({
+  const { data, isLoading: loadingOrders } = useQuery<{ orders: Order[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData?.client?.id,
     // Removido polling - agora usa SSE em tempo real via CustomerOrderNotifications
   });
+  const orders = data?.orders ?? [];
 
   const getStatusInfo = (etapa: string, execucaoTipo?: string) => {
     switch (etapa) {

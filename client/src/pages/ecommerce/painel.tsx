@@ -32,10 +32,11 @@ export default function EcommercePainel() {
   });
 
   // Buscar pedidos
-  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+  const { data, isLoading: loadingOrders } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData,
   });
+  const orders = data?.orders ?? [];
 
   const logoutMutation = useMutation({
     mutationFn: async () => {

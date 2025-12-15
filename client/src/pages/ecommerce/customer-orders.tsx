@@ -416,7 +416,7 @@ export default function CustomerOrders() {
                       <div className="flex items-start justify-between">
                         <div>
                           <CardTitle>
-                            Pedido #{orderDetail.id.slice(0, 8)}
+                            Pedido #{orderDetail.orderCode || orderDetail.id.slice(0, 8)}
                           </CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
                             Realizado em{" "}
@@ -958,7 +958,7 @@ export default function CustomerOrders() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 flex-wrap">
                                   <h3 className="font-semibold">
-                                    Pedido #{order.id.slice(0, 8)}
+                                    Pedido #{order.orderCode || order.id.slice(0, 8)}
                                   </h3>
                                   <Badge variant={statusInfo.badge as any}>
                                     {statusInfo.label}

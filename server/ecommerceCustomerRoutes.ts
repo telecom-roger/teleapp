@@ -67,7 +67,7 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
       })
     );
 
-    res.json(ordersWithItems);
+    res.json({ orders: ordersWithItems, count: ordersWithItems.length });
   } catch (error: any) {
     console.error("Erro ao buscar pedidos:", error);
     res.status(500).json({ error: "Erro ao buscar pedidos" });

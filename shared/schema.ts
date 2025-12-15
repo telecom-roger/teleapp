@@ -1027,3 +1027,35 @@ export const insertEcommerceOrderRequestedDocumentSchema = createInsertSchema(ec
 
 export type EcommerceOrderRequestedDocument = typeof ecommerceOrderRequestedDocuments.$inferSelect;
 export type InsertEcommerceOrderRequestedDocument = z.infer<typeof insertEcommerceOrderRequestedDocumentSchema>;
+
+// ==================== E-COMMERCE BANNERS ====================
+export const ecommerceBanners = pgTable("ecommerce_banners", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  titulo: varchar("titulo", { length: 200 }).notNull(),
+  subtitulo: text("subtitulo"),
+  imagemUrl: text("imagem_url").notNull(),
+  imagemMobileUrl: text("imagem_mobile_url"),
+  pagina: varchar("pagina", { length: 50 }).notNull(), // home, planos, checkout, etc
+  posicao: varchar("posicao", { length: 50 }).default("topo"), // topo, meio, rodape
+  linkDestino: text("link_destino"),
+  linkTexto: varchar("link_texto", { length: 100 }),
+  ordem: integer("ordem").default(0),
+  ativo: boolean("ativo").default(true),
+  dataInicio: timestamp("data_inicio"),
+  dataFim: timestamp("data_fim"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_banners_pagina").on(table.pagina),
+  index("idx_ecommerce_banners_ativo").on(table.ativo),
+  index("idx_ecommerce_banners_ordem").on(table.ordem),
+]);
+
+export const insertEcommerceBannerSchema = createInsertSchema(ecommerceBanners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceBanner = typeof ecommerceBanners.$inferSelect;
+export type InsertEcommerceBanner = z.infer<typeof insertEcommerceBannerSchema>;
