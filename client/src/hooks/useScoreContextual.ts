@@ -88,7 +88,7 @@ export function calcularScoreContextual(
 
   // ==================== SINAIS COMPORTAMENTAIS (até 30 pontos) ====================
   // Padrões de uso durante a jornada
-  
+
   // Verificar se sinais existe antes de usar
   if (sinais) {
     // Plano já visualizado (8 pontos)
@@ -190,7 +190,11 @@ export function useScoreContextual(
           pontuacaoContextoAtivo += 10;
         if (contextoAtivo.categorias.includes(produto.categoria))
           pontuacaoContextoAtivo += 10;
-        if (Array.isArray(produto.usoRecomendado) && produto.usoRecomendado.length > 0) pontuacaoContextoAtivo += 5;
+        if (
+          Array.isArray(produto.usoRecomendado) &&
+          produto.usoRecomendado.length > 0
+        )
+          pontuacaoContextoAtivo += 5;
         if (produto.destaque) pontuacaoContextoAtivo += 5;
 
         // Sinais

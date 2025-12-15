@@ -318,59 +318,63 @@ export function registerEcommerceRoutes(app: Express): void {
   });
 
   // GET /api/ecommerce/orders/:orderKey - Detalhes de um pedido (admin ou cliente)
-  app.get("/api/ecommerce/orders/:orderKey", isAuthenticated, async (req, res) => {
-    try {
-      // Permite buscar tanto por id (UUID) quanto por orderCode (numérico)
-      const { orderKey } = req.params;
-      let orderData;
-      if (/^\d+$/.test(orderKey)) {
-        // Buscar por orderCode
-        [orderData] = await db
-          .select({ order: ecommerceOrders, client: clients })
-          .from(ecommerceOrders)
-          .leftJoin(clients, eq(ecommerceOrders.clientId, clients.id))
-          .where(eq(ecommerceOrders.orderCode, orderKey))
-          .limit(1);
-      } else {
-        // Buscar por id (UUID)
-        [orderData] = await db
-          .select({ order: ecommerceOrders, client: clients })
-          .from(ecommerceOrders)
-          .leftJoin(clients, eq(ecommerceOrders.clientId, clients.id))
-          .where(eq(ecommerceOrders.id, orderKey))
-          .limit(1);
+  app.get(
+    "/api/ecommerce/orders/:orderKey",
+    isAuthenticated,
+    async (req, res) => {
+      try {
+        // Permite buscar tanto por id (UUID) quanto por orderCode (numérico)
+        const { orderKey } = req.params;
+        let orderData;
+        if (/^\d+$/.test(orderKey)) {
+          // Buscar por orderCode
+          [orderData] = await db
+            .select({ order: ecommerceOrders, client: clients })
+            .from(ecommerceOrders)
+            .leftJoin(clients, eq(ecommerceOrders.clientId, clients.id))
+            .where(eq(ecommerceOrders.orderCode, orderKey))
+            .limit(1);
+        } else {
+          // Buscar por id (UUID)
+          [orderData] = await db
+            .select({ order: ecommerceOrders, client: clients })
+            .from(ecommerceOrders)
+            .leftJoin(clients, eq(ecommerceOrders.clientId, clients.id))
+            .where(eq(ecommerceOrders.id, orderKey))
+            .limit(1);
+        }
+
+        if (!orderData) {
+          return res.status(404).json({ error: "Pedido não encontrado" });
+        }
+
+        // Buscar itens do pedido
+        const items = await db
+          .select({ item: ecommerceOrderItems, product: ecommerceProducts })
+          .from(ecommerceOrderItems)
+          .leftJoin(
+            ecommerceProducts,
+            eq(ecommerceOrderItems.productId, ecommerceProducts.id)
+          )
+          .where(eq(ecommerceOrderItems.orderId, orderData.order.id));
+
+        // Buscar documentos
+        const documents = await db
+          .select()
+          .from(ecommerceOrderDocuments)
+          .where(eq(ecommerceOrderDocuments.orderId, orderData.order.id));
+
+        res.json({
+          ...orderData,
+          items,
+          documents,
+        });
+      } catch (error) {
+        console.error("Erro ao buscar pedido:", error);
+        res.status(500).json({ error: "Erro ao buscar pedido" });
       }
-
-      if (!orderData) {
-        return res.status(404).json({ error: "Pedido não encontrado" });
-      }
-
-      // Buscar itens do pedido
-      const items = await db
-        .select({ item: ecommerceOrderItems, product: ecommerceProducts })
-        .from(ecommerceOrderItems)
-        .leftJoin(
-          ecommerceProducts,
-          eq(ecommerceOrderItems.productId, ecommerceProducts.id)
-        )
-        .where(eq(ecommerceOrderItems.orderId, orderData.order.id));
-
-      // Buscar documentos
-      const documents = await db
-        .select()
-        .from(ecommerceOrderDocuments)
-        .where(eq(ecommerceOrderDocuments.orderId, orderData.order.id));
-
-      res.json({
-        ...orderData,
-        items,
-        documents,
-      });
-    } catch (error) {
-      console.error("Erro ao buscar pedido:", error);
-      res.status(500).json({ error: "Erro ao buscar pedido" });
     }
-  });
+  );
 
   // POST /api/ecommerce/orders - Criar pedido (público com validações)
   app.post("/api/ecommerce/orders", async (req, res) => {
@@ -530,7 +534,10 @@ export function registerEcommerceRoutes(app: Express): void {
       while (exists) {
         orderCode = generateOrderCode();
         // Verifica se já existe
-        const found = await db.select().from(ecommerceOrders).where(eq(ecommerceOrders.orderCode, orderCode));
+        const found = await db
+          .select()
+          .from(ecommerceOrders)
+          .where(eq(ecommerceOrders.orderCode, orderCode));
         exists = found.length > 0;
       }
       const [order] = await db
@@ -594,7 +601,12 @@ export function registerEcommerceRoutes(app: Express): void {
         }
       }
 
-      res.json({ success: true, orderId: order.id, orderCode: order.orderCode, clientId });
+      res.json({
+        success: true,
+        orderId: order.id,
+        orderCode: order.orderCode,
+        clientId,
+      });
     } catch (error: any) {
       console.error("Erro ao criar pedido:", error);
       res.status(500).json({ error: error.message || "Erro ao criar pedido" });

@@ -1,4 +1,3 @@
-
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
 import {

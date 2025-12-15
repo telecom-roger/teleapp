@@ -69,7 +69,7 @@ export function CartSidebar() {
   const handleIrParaCheckout = () => {
     // Limpar SVAs órfãos antes de verificar quais oferecer
     limparSvasOrfaos();
-    
+
     // Coletar todos os SVAs únicos dos produtos no carrinho (baseado nos produtos principais)
     const svasIds = new Set<string>();
     let textosColetados: string[] = [];
@@ -80,7 +80,7 @@ export function CartSidebar() {
       if (item.categoria !== "sva") {
         planosNaoSvaIds.add(item.product.id);
       }
-      
+
       if (item.svasUpsell && item.svasUpsell.length > 0) {
         item.svasUpsell.forEach((svaId: string) => svasIds.add(svaId));
         // Coletar todos os textos encontrados
@@ -97,13 +97,15 @@ export function CartSidebar() {
           // Só considerar SVA como "já no carrinho" se:
           // 1. É um SVA
           // 2. Está associado a um plano que ainda existe no carrinho
-          return item.categoria === "sva" && 
-                 item.planoPrincipalId && 
-                 planosNaoSvaIds.has(item.planoPrincipalId);
+          return (
+            item.categoria === "sva" &&
+            item.planoPrincipalId &&
+            planosNaoSvaIds.has(item.planoPrincipalId)
+          );
         })
         .map((item) => item.product.id)
     );
-    
+
     svasIds.forEach((id) => {
       if (svasJaNoCarrinho.has(id)) {
         svasIds.delete(id);
@@ -128,7 +130,7 @@ export function CartSidebar() {
   const handleAdicionarSvas = (svaQuantidades: Map<string, number>) => {
     // Encontrar o primeiro plano principal (não SVA) no carrinho para associar os SVAs
     const planoPrincipal = items.find((item) => item.categoria !== "sva");
-    
+
     if (!planoPrincipal) {
       // Não deveria acontecer, mas como fallback vai direto para checkout
       window.location.href = "/ecommerce/checkout";
@@ -142,7 +144,7 @@ export function CartSidebar() {
         addItem(sva, quantidade, planoPrincipal.product.id);
       }
     });
-    
+
     // Ir para checkout
     window.location.href = "/ecommerce/checkout";
   };
@@ -500,7 +502,6 @@ export function CartSidebar() {
               </div>
             </div>
 
-
             <div className="flex flex-col gap-3">
               <a
                 onClick={(e) => {
@@ -556,7 +557,9 @@ export function CartSidebar() {
         svas={svasParaOferecer}
         textosPersonalizados={textosUpsellAtuais}
         onAddToCart={handleAdicionarSvas}
-        quantidadeMaxima={items.filter((item) => item.categoria !== "sva").reduce((sum, item) => sum + item.quantidade, 0)}
+        quantidadeMaxima={items
+          .filter((item) => item.categoria !== "sva")
+          .reduce((sum, item) => sum + item.quantidade, 0)}
       />
     </>
   );

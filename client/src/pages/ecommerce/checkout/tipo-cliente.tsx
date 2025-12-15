@@ -63,7 +63,10 @@ export default function CheckoutTipoCliente() {
                   style={{ color: "#1E90FF" }}
                 />
               </div>
-              <h3 className="text-2xl font-black mb-2" style={{ color: "#111111" }}>
+              <h3
+                className="text-2xl font-black mb-2"
+                style={{ color: "#111111" }}
+              >
                 Escolha seu próximo plano
               </h3>
               <p className="text-lg mb-6" style={{ color: "#555555" }}>

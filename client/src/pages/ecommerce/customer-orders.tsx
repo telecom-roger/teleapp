@@ -186,9 +186,7 @@ export default function CustomerOrders() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle>
-                            Pedido #{orderDetail.orderCode}
-                          </CardTitle>
+                          <CardTitle>Pedido #{orderDetail.orderCode}</CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
                             Realizado em{" "}
                             {new Date(orderDetail.createdAt).toLocaleDateString(

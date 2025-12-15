@@ -191,8 +191,8 @@ export default function EcommercePlanos() {
       setIsScrolled(window.scrollY > 100);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // 🆕 Rastrear tempo na página (para sinais comportamentais)
@@ -239,9 +239,13 @@ export default function EcommercePlanos() {
   // 3. Ordenar por score contextual OU por preço/velocidade/popularidade
   let produtosOrdenados = ordenarPorScore(produtosComScore);
   if (ordenacao === "menor-preco") {
-    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (a.preco ?? 0) - (b.preco ?? 0));
+    produtosOrdenados = [...produtosOrdenados].sort(
+      (a, b) => (a.preco ?? 0) - (b.preco ?? 0)
+    );
   } else if (ordenacao === "maior-preco") {
-    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (b.preco ?? 0) - (a.preco ?? 0));
+    produtosOrdenados = [...produtosOrdenados].sort(
+      (a, b) => (b.preco ?? 0) - (a.preco ?? 0)
+    );
   } else if (ordenacao === "velocidade") {
     produtosOrdenados = [...produtosOrdenados].sort((a, b) => {
       // Suporta franquia tipo "10GB", "Ilimitado", etc
@@ -254,7 +258,9 @@ export default function EcommercePlanos() {
       return parseGB(b.franquia) - parseGB(a.franquia);
     });
   } else if (ordenacao === "popularidade") {
-    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (b.popularidade ?? 0) - (a.popularidade ?? 0));
+    produtosOrdenados = [...produtosOrdenados].sort(
+      (a, b) => (b.popularidade ?? 0) - (a.popularidade ?? 0)
+    );
   }
 
   // 4. Calcular badges dinâmicos
@@ -507,7 +513,7 @@ export default function EcommercePlanos() {
         {/* Removido: Badge de múltiplas linhas */}
 
         {/* Botão Filtrar Mobile - Sticky após scroll */}
-        <div 
+        <div
           className={cn(
             "lg:hidden transition-all duration-300 z-40",
             isScrolled && "shadow-md"
@@ -528,18 +534,22 @@ export default function EcommercePlanos() {
               color: "#555555",
               borderRadius: isScrolled ? "0" : "12px",
               border: isScrolled ? "none" : "1px solid #E0E0E0",
-              borderBottom: isScrolled ? "1px solid #E0E0E0" : "1px solid #E0E0E0",
+              borderBottom: isScrolled
+                ? "1px solid #E0E0E0"
+                : "1px solid #E0E0E0",
               padding: "0 1rem",
             }}
           >
             <div className="flex items-center gap-2.5">
               <Filter className="w-4 h-4" style={{ color: "#1E90FF" }} />
               <span style={{ color: "#111111" }}>
-                {filtrosAtivos > 0 ? `Filtros · ${filtrosAtivos} ativos` : "Filtrar"}
+                {filtrosAtivos > 0
+                  ? `Filtros · ${filtrosAtivos} ativos`
+                  : "Filtrar"}
               </span>
             </div>
             {filtrosAtivos > 0 && (
-              <span 
+              <span
                 className="px-2.5 py-1 rounded-full text-xs font-bold"
                 style={{
                   backgroundColor: "#1E90FF",
@@ -973,9 +983,7 @@ export default function EcommercePlanos() {
           style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
         >
           <CardContent className="p-6">
-            <div
-              className={cn("space-y-6")}
-            >
+            <div className={cn("space-y-6")}>
               {/* Tipo de Pessoa - SEM OPÇÃO TODOS */}
               <div>
                 <div className="flex items-center gap-2 mb-3">

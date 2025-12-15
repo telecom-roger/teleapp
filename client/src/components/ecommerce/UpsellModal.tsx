@@ -43,7 +43,9 @@ export function UpsellModal({
   quantidadeMaxima,
 }: UpsellModalProps) {
   // Mapa de SVA ID -> quantidade selecionada
-  const [svaQuantidades, setSvaQuantidades] = useState<Map<string, number>>(new Map());
+  const [svaQuantidades, setSvaQuantidades] = useState<Map<string, number>>(
+    new Map()
+  );
   const [textoSelecionado, setTextoSelecionado] = useState("");
 
   // Escolher texto APENAS quando o modal abrir (isOpen = true)
@@ -107,12 +109,18 @@ export function UpsellModal({
     onClose();
   };
 
-  const totalSelecionado = Array.from(svaQuantidades.entries()).reduce((sum, [svaId, quantidade]) => {
-    const sva = svas.find(s => s.id === svaId);
-    return sum + (sva ? sva.preco * quantidade : 0);
-  }, 0);
+  const totalSelecionado = Array.from(svaQuantidades.entries()).reduce(
+    (sum, [svaId, quantidade]) => {
+      const sva = svas.find((s) => s.id === svaId);
+      return sum + (sva ? sva.preco * quantidade : 0);
+    },
+    0
+  );
 
-  const totalItensAdicionados = Array.from(svaQuantidades.values()).reduce((sum, qty) => sum + qty, 0);
+  const totalItensAdicionados = Array.from(svaQuantidades.values()).reduce(
+    (sum, qty) => sum + qty,
+    0
+  );
 
   return (
     <>
@@ -184,7 +192,7 @@ export function UpsellModal({
             {svas.map((sva) => {
               const quantidadeAtual = svaQuantidades.get(sva.id) || 0;
               const isSelected = quantidadeAtual > 0;
-              
+
               return (
                 <div
                   key={sva.id}
@@ -236,9 +244,9 @@ export function UpsellModal({
                           </p>
                         </div>
                       </div>
-                      
+
                       {/* Controles de Quantidade */}
-                      <div 
+                      <div
                         className="flex items-center justify-between p-3"
                         style={{
                           backgroundColor: "#FAFAFA",
@@ -246,7 +254,10 @@ export function UpsellModal({
                           border: "1px solid #E0E0E0",
                         }}
                       >
-                        <span className="text-sm font-medium" style={{ color: "#111111" }}>
+                        <span
+                          className="text-sm font-medium"
+                          style={{ color: "#111111" }}
+                        >
                           Quantidade
                         </span>
                         <div className="flex items-center gap-3">
@@ -255,7 +266,8 @@ export function UpsellModal({
                             size="icon"
                             className="h-8 w-8 border-0 transition-all"
                             style={{
-                              backgroundColor: quantidadeAtual === 0 ? "#E0E0E0" : "#FFFFFF",
+                              backgroundColor:
+                                quantidadeAtual === 0 ? "#E0E0E0" : "#FFFFFF",
                               borderRadius: "8px",
                               border: "1px solid #E0E0E0",
                             }}
@@ -263,14 +275,16 @@ export function UpsellModal({
                             onClick={() => decrementarSva(sva.id)}
                             onMouseEnter={(e) => {
                               if (quantidadeAtual > 0) {
-                                e.currentTarget.style.backgroundColor = "#FF6B35";
+                                e.currentTarget.style.backgroundColor =
+                                  "#FF6B35";
                                 e.currentTarget.style.borderColor = "#FF6B35";
                                 e.currentTarget.style.color = "#FFFFFF";
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (quantidadeAtual > 0) {
-                                e.currentTarget.style.backgroundColor = "#FFFFFF";
+                                e.currentTarget.style.backgroundColor =
+                                  "#FFFFFF";
                                 e.currentTarget.style.borderColor = "#E0E0E0";
                                 e.currentTarget.style.color = "";
                               }
@@ -278,20 +292,25 @@ export function UpsellModal({
                           >
                             <Minus className="w-3 h-3" />
                           </Button>
-                          
+
                           <span
                             className="w-12 text-center text-base font-bold"
-                            style={{ color: isSelected ? "#1E90FF" : "#111111" }}
+                            style={{
+                              color: isSelected ? "#1E90FF" : "#111111",
+                            }}
                           >
                             {quantidadeAtual}
                           </span>
-                          
+
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 border-0 transition-all"
                             style={{
-                              backgroundColor: quantidadeAtual >= quantidadeMaxima ? "#E0E0E0" : "#FFFFFF",
+                              backgroundColor:
+                                quantidadeAtual >= quantidadeMaxima
+                                  ? "#E0E0E0"
+                                  : "#FFFFFF",
                               borderRadius: "8px",
                               border: "1px solid #E0E0E0",
                             }}
@@ -299,14 +318,16 @@ export function UpsellModal({
                             onClick={() => incrementarSva(sva.id)}
                             onMouseEnter={(e) => {
                               if (quantidadeAtual < quantidadeMaxima) {
-                                e.currentTarget.style.backgroundColor = "#1E90FF";
+                                e.currentTarget.style.backgroundColor =
+                                  "#1E90FF";
                                 e.currentTarget.style.borderColor = "#1E90FF";
                                 e.currentTarget.style.color = "#FFFFFF";
                               }
                             }}
                             onMouseLeave={(e) => {
                               if (quantidadeAtual < quantidadeMaxima) {
-                                e.currentTarget.style.backgroundColor = "#FFFFFF";
+                                e.currentTarget.style.backgroundColor =
+                                  "#FFFFFF";
                                 e.currentTarget.style.borderColor = "#E0E0E0";
                                 e.currentTarget.style.color = "";
                               }
@@ -316,9 +337,9 @@ export function UpsellModal({
                           </Button>
                         </div>
                       </div>
-                      
+
                       {quantidadeAtual > 0 && (
-                        <div 
+                        <div
                           className="mt-2 text-xs text-center p-2"
                           style={{
                             backgroundColor: "rgba(30,144,255,0.1)",
@@ -326,12 +347,16 @@ export function UpsellModal({
                             color: "#1E90FF",
                           }}
                         >
-                          {quantidadeAtual} × {formatPrice(sva.preco)} = {formatPrice(sva.preco * quantidadeAtual)}/mês
+                          {quantidadeAtual} × {formatPrice(sva.preco)} ={" "}
+                          {formatPrice(sva.preco * quantidadeAtual)}/mês
                         </div>
                       )}
-                      
+
                       {quantidadeMaxima > 1 && quantidadeAtual === 0 && (
-                        <p className="mt-2 text-xs text-center" style={{ color: "#555555" }}>
+                        <p
+                          className="mt-2 text-xs text-center"
+                          style={{ color: "#555555" }}
+                        >
                           Máximo {quantidadeMaxima} unidades (1 por plano)
                         </p>
                       )}

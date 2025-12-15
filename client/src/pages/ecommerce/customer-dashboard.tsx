@@ -78,7 +78,6 @@ export default function CustomerDashboard() {
     }
   }, [loadingCustomer, isError, customerData, setLocation]);
 
-
   const { data, isLoading: loadingOrders } = useQuery<{ orders: Order[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData?.client?.id,

@@ -78,9 +78,18 @@ export default function CheckoutResumo() {
   // Se carrinho vazio, mostrar mensagem moderna
   if (!items || items.length === 0) {
     return (
-      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: "#FAFAFA" }}>
+      <div
+        className="min-h-screen py-8 px-4"
+        style={{ backgroundColor: "#FAFAFA" }}
+      >
         <div className="max-w-2xl mx-auto">
-          <Card style={{ borderRadius: "16px", border: "1px solid #E0E0E0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+          <Card
+            style={{
+              borderRadius: "16px",
+              border: "1px solid #E0E0E0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+            }}
+          >
             <CardContent className="p-12 text-center">
               <div
                 className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
@@ -89,9 +98,15 @@ export default function CheckoutResumo() {
                   borderRadius: "50%",
                 }}
               >
-                <ShoppingCart className="h-8 w-8" style={{ color: "#1E90FF" }} />
+                <ShoppingCart
+                  className="h-8 w-8"
+                  style={{ color: "#1E90FF" }}
+                />
               </div>
-              <h2 className="text-2xl font-black mb-2" style={{ color: "#111111" }}>
+              <h2
+                className="text-2xl font-black mb-2"
+                style={{ color: "#111111" }}
+              >
                 Escolha seu próximo plano
               </h2>
               <p className="text-lg mb-6" style={{ color: "#555555" }}>

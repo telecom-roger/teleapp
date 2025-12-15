@@ -33,7 +33,7 @@ const TEXTOS_BADGES = {
     "Top performance",
     "Alinhado a você",
   ],
-  
+
   // Score > 80 - Pessoa Jurídica
   topIdealPJ: [
     "Ideal para sua empresa",
@@ -41,7 +41,7 @@ const TEXTOS_BADGES = {
     "Alinhado ao negócio",
     "Escolha otimizada",
   ],
-  
+
   // Score > 60 - Pessoa Física
   recomendadoPF: [
     "Altamente relevante",
@@ -49,7 +49,7 @@ const TEXTOS_BADGES = {
     "Combinação ideal",
     "Planejado para você",
   ],
-  
+
   // Score > 60 - Pessoa Jurídica
   recomendadoPJ: [
     "Indicado para empresas",
@@ -57,7 +57,7 @@ const TEXTOS_BADGES = {
     "Preço otimizado",
     "Ideal para sua empresa",
   ],
-  
+
   // Score > 40 - Pessoa Física
   boaOpcaoPF: [
     "Boa alternativa",
@@ -66,7 +66,7 @@ const TEXTOS_BADGES = {
     "Plano relevante",
     "Vale conferir",
   ],
-  
+
   // Score > 40 - Pessoa Jurídica
   boaOpcaoPJ: [
     "Uso corporativo",
@@ -74,7 +74,7 @@ const TEXTOS_BADGES = {
     "Ajuste operacional",
     "Boa aderência",
   ],
-  
+
   // Contexto/Personalização - Pessoa Física
   contextualizadoPF: [
     "Baseado no seu uso",
@@ -83,7 +83,7 @@ const TEXTOS_BADGES = {
     "Alinhado às escolhas",
     "Sugestão personalizada",
   ],
-  
+
   // Contexto/Personalização - Pessoa Jurídica
   contextualizadoPJ: [
     "Baseado na operação",
@@ -92,7 +92,7 @@ const TEXTOS_BADGES = {
     "Alinhado às prioridades",
     "Sugestão personalizada",
   ],
-  
+
   // Múltiplas Linhas - Variações de texto
   multiplinhasVariacoes: [
     "{linhas} linhas {total} total",
@@ -105,24 +105,21 @@ const TEXTOS_BADGES = {
 /**
  * Seleciona texto aleatório e salva em sessionStorage para consistência
  */
-function selecionarTextoFixo(
-  textos: string[],
-  chave: string
-): string {
+function selecionarTextoFixo(textos: string[], chave: string): string {
   const STORAGE_KEY = `badge_texto_${chave}`;
-  
+
   // Verificar se já existe texto salvo
   const textoSalvo = sessionStorage.getItem(STORAGE_KEY);
   if (textoSalvo && textos.includes(textoSalvo)) {
     return textoSalvo;
   }
-  
+
   // Sortear novo texto
   const textoEscolhido = textos[Math.floor(Math.random() * textos.length)];
-  
+
   // Salvar para próximas renderizações
   sessionStorage.setItem(STORAGE_KEY, textoEscolhido);
-  
+
   return textoEscolhido;
 }
 
@@ -146,9 +143,9 @@ export function calcularBadgeDinamico(
 ): BadgeDinamico | null {
   const badges: BadgeDinamico[] = [];
   const isPJ = contextoAtivo.tipoPessoa === "PJ";
-  
+
   // Chave única para este produto + contexto
-  const chaveBase = `${produto.id}_${isPJ ? 'pj' : 'pf'}`;
+  const chaveBase = `${produto.id}_${isPJ ? "pj" : "pf"}`;
 
   // ==================== PRIORIDADE 10: LINHAS (COM VARIAÇÕES) ====================
   if (
@@ -161,11 +158,11 @@ export function calcularBadgeDinamico(
       TEXTOS_BADGES.multiplinhasVariacoes,
       `${chaveBase}_linhas`
     );
-    
+
     const texto = template
       .replace("{linhas}", String(contextoAtivo.linhas))
       .replace("{total}", formatPrice(valorTotal));
-    
+
     badges.push({
       texto,
       variante: "success",
@@ -178,7 +175,7 @@ export function calcularBadgeDinamico(
   if (score > 80) {
     const textos = isPJ ? TEXTOS_BADGES.topIdealPJ : TEXTOS_BADGES.topIdealPF;
     const texto = selecionarTextoFixo(textos, `${chaveBase}_top80`);
-    
+
     badges.push({
       texto,
       variante: "success",
@@ -189,9 +186,11 @@ export function calcularBadgeDinamico(
 
   // ==================== PRIORIDADE 8: SCORE > 60 (RECOMENDADO) ====================
   else if (score > 60) {
-    const textos = isPJ ? TEXTOS_BADGES.recomendadoPJ : TEXTOS_BADGES.recomendadoPF;
+    const textos = isPJ
+      ? TEXTOS_BADGES.recomendadoPJ
+      : TEXTOS_BADGES.recomendadoPF;
     const texto = selecionarTextoFixo(textos, `${chaveBase}_rec60`);
-    
+
     badges.push({
       texto,
       variante: "info",
@@ -204,7 +203,7 @@ export function calcularBadgeDinamico(
   else if (score > 40) {
     const textos = isPJ ? TEXTOS_BADGES.boaOpcaoPJ : TEXTOS_BADGES.boaOpcaoPF;
     const texto = selecionarTextoFixo(textos, `${chaveBase}_boa40`);
-    
+
     badges.push({
       texto,
       variante: "primary",
@@ -215,14 +214,17 @@ export function calcularBadgeDinamico(
 
   // ==================== PRIORIDADE 6: CONTEXTO/PERSONALIZAÇÃO ====================
   // Se há contexto ativo (usuário já interagiu)
-  const temContexto = contextoAtivo.categorias.length > 0 || 
-                      contextoAtivo.operadoras.length > 0 ||
-                      contextoAtivo.linhas !== null;
-                      
+  const temContexto =
+    contextoAtivo.categorias.length > 0 ||
+    contextoAtivo.operadoras.length > 0 ||
+    contextoAtivo.linhas !== null;
+
   if (temContexto && score > 30) {
-    const textos = isPJ ? TEXTOS_BADGES.contextualizadoPJ : TEXTOS_BADGES.contextualizadoPF;
+    const textos = isPJ
+      ? TEXTOS_BADGES.contextualizadoPJ
+      : TEXTOS_BADGES.contextualizadoPF;
     const texto = selecionarTextoFixo(textos, `${chaveBase}_ctx`);
-    
+
     badges.push({
       texto,
       variante: "info",
@@ -246,7 +248,10 @@ export function calcularBadgeDinamico(
       textoFinal = textoFinal.replace("[franquia]", produto.franquia);
     }
     if (textoFinal.includes("[linhas]") && contextoAtivo.linhas) {
-      textoFinal = textoFinal.replace("[linhas]", contextoAtivo.linhas.toString());
+      textoFinal = textoFinal.replace(
+        "[linhas]",
+        contextoAtivo.linhas.toString()
+      );
     }
 
     badges.push({
@@ -279,7 +284,12 @@ export function calcularBadgeDinamico(
 
   // ==================== PRIORIDADE 2: CUSTO-BENEFÍCIO ====================
   // Preço competitivo (abaixo de R$ 100)
-  if (produto.preco < 10000 && (produto.categoria === "movel" || produto.categoria === "fibra" || produto.categoria === "combo")) {
+  if (
+    produto.preco < 10000 &&
+    (produto.categoria === "movel" ||
+      produto.categoria === "fibra" ||
+      produto.categoria === "combo")
+  ) {
     badges.push({
       texto: "Ótimo custo-benefício",
       variante: "success",
@@ -306,7 +316,7 @@ export function useBadgeDinamico(
 ): Map<string, BadgeDinamico | null> {
   // Buscar contexto inicial e sinais do store
   const { contextoInicial, sinais } = useContextoInteligenteStore();
-  
+
   return useMemo(() => {
     const badgesMap = new Map<string, BadgeDinamico | null>();
 
@@ -318,7 +328,7 @@ export function useBadgeDinamico(
         contextoInicial,
         sinais
       );
-      
+
       const badge = calcularBadgeDinamico(produto, contextoAtivo, score);
       badgesMap.set(produto.id, badge);
     });
@@ -336,17 +346,17 @@ export function useBadgeProduto(
 ): BadgeDinamico | null {
   // Buscar contexto inicial e sinais do store
   const { contextoInicial, sinais } = useContextoInteligenteStore();
-  
+
   return useMemo(() => {
     if (!produto) return null;
-    
+
     const score = calcularScoreContextual(
       produto,
       contextoAtivo,
       contextoInicial,
       sinais
     );
-    
+
     return calcularBadgeDinamico(produto, contextoAtivo, score);
   }, [produto, contextoAtivo, contextoInicial, sinais]);
 }

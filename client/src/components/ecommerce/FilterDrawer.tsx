@@ -47,15 +47,15 @@ export function FilterDrawer({
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
-    
+
     // Se swipe para esquerda (fechando)
     if (isLeftSwipe) {
       onClose();
     }
-    
+
     setTouchStart(null);
     setTouchEnd(null);
   };
@@ -94,20 +94,18 @@ export function FilterDrawer({
           }}
         >
           <div className="flex items-center gap-3">
-            <SlidersHorizontal 
-              className="w-5 h-5" 
+            <SlidersHorizontal
+              className="w-5 h-5"
               style={{ color: "#1E90FF" }}
             />
             <div>
-              <h3 
-                className="font-bold text-lg" 
-                style={{ color: "#111111" }}
-              >
+              <h3 className="font-bold text-lg" style={{ color: "#111111" }}>
                 Filtros
               </h3>
               {filtrosAtivosCount > 0 && (
                 <p className="text-xs" style={{ color: "#555555" }}>
-                  {filtrosAtivosCount} {filtrosAtivosCount === 1 ? "filtro ativo" : "filtros ativos"}
+                  {filtrosAtivosCount}{" "}
+                  {filtrosAtivosCount === 1 ? "filtro ativo" : "filtros ativos"}
                 </p>
               )}
             </div>
@@ -126,7 +124,7 @@ export function FilterDrawer({
         </div>
 
         {/* Content - Scrollable */}
-        <div 
+        <div
           className="flex-1 overflow-y-auto p-4"
           style={{ backgroundColor: "#FAFAFA" }}
         >
