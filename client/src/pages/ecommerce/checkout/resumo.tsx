@@ -75,25 +75,45 @@ export default function CheckoutResumo() {
     setLocation("/ecommerce/planos");
   };
 
-  // Se carrinho vazio, redirecionar
+  // Se carrinho vazio, mostrar mensagem moderna
   if (!items || items.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <Card>
-            <CardContent className="p-12">
-              <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-slate-400" />
-              <h2 className="text-2xl font-bold mb-2">
-                Seu carrinho está vazio
+      <div className="min-h-screen py-8 px-4" style={{ backgroundColor: "#FAFAFA" }}>
+        <div className="max-w-2xl mx-auto">
+          <Card style={{ borderRadius: "16px", border: "1px solid #E0E0E0", boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
+            <CardContent className="p-12 text-center">
+              <div
+                className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                style={{
+                  backgroundColor: "rgba(30,144,255,0.1)",
+                  borderRadius: "50%",
+                }}
+              >
+                <ShoppingCart className="h-8 w-8" style={{ color: "#1E90FF" }} />
+              </div>
+              <h2 className="text-2xl font-black mb-2" style={{ color: "#111111" }}>
+                Escolha seu próximo plano
               </h2>
-              <p className="text-slate-600 mb-6">
-                Adicione produtos ao carrinho antes de finalizar a compra
+              <p className="text-lg mb-6" style={{ color: "#555555" }}>
+                Adicione planos à sua seleção para avançar na contratação
               </p>
               <Button
                 onClick={handleVoltar}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="font-bold text-base border-0"
+                style={{
+                  backgroundColor: "#1E90FF",
+                  color: "#FFFFFF",
+                  borderRadius: "12px",
+                  padding: "12px 32px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#00CFFF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1E90FF";
+                }}
               >
-                Ver Planos
+                Ver Planos Disponíveis
               </Button>
             </CardContent>
           </Card>

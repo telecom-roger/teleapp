@@ -1259,6 +1259,9 @@ export const ecommerceOrders = pgTable(
     id: varchar("id")
       .primaryKey()
       .default(sql`gen_random_uuid()`),
+    orderCode: varchar("order_code", { length: 16 })
+      .notNull()
+      .unique(),
     clientId: varchar("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
@@ -1302,6 +1305,7 @@ export const insertEcommerceOrderSchema = createInsertSchema(
   ecommerceOrders
 ).omit({
   id: true,
+  orderCode: true,
   createdAt: true,
   updatedAt: true,
 });

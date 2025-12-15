@@ -88,36 +88,39 @@ export function calcularScoreContextual(
 
   // ==================== SINAIS COMPORTAMENTAIS (até 30 pontos) ====================
   // Padrões de uso durante a jornada
+  
+  // Verificar se sinais existe antes de usar
+  if (sinais) {
+    // Plano já visualizado (8 pontos)
+    if (sinais.planosVisualizados?.includes(produto.id)) {
+      pontuacaoSinais += 8;
+    }
 
-  // Plano já visualizado (8 pontos)
-  if (sinais.planosVisualizados.includes(produto.id)) {
-    pontuacaoSinais += 8;
-  }
+    // Plano comparado anteriormente (6 pontos)
+    if (sinais.planosComparados?.includes(produto.id)) {
+      pontuacaoSinais += 6;
+    }
 
-  // Plano comparado anteriormente (6 pontos)
-  if (sinais.planosComparados.includes(produto.id)) {
-    pontuacaoSinais += 6;
-  }
+    // Plano já foi adicionado ao carrinho (4 pontos)
+    if (sinais.planosAdicionadosCarrinho?.includes(produto.id)) {
+      pontuacaoSinais += 4;
+    }
 
-  // Plano já foi adicionado ao carrinho (4 pontos)
-  if (sinais.planosAdicionadosCarrinho.includes(produto.id)) {
-    pontuacaoSinais += 4;
-  }
+    // Tempo gasto na categoria deste plano (até 8 pontos)
+    const tempoCategoriaMs = sinais.tempoPorCategoria?.[produto.categoria] || 0;
+    if (tempoCategoriaMs > 60000) {
+      pontuacaoSinais += 8; // +1 minuto
+    } else if (tempoCategoriaMs > 30000) {
+      pontuacaoSinais += 4; // +30 segundos
+    }
 
-  // Tempo gasto na categoria deste plano (até 8 pontos)
-  const tempoCategoriaMs = sinais.tempoPorCategoria[produto.categoria] || 0;
-  if (tempoCategoriaMs > 60000) {
-    pontuacaoSinais += 8; // +1 minuto
-  } else if (tempoCategoriaMs > 30000) {
-    pontuacaoSinais += 4; // +30 segundos
-  }
-
-  // Interesse em fibra + plano é fibra (4 pontos)
-  if (
-    sinais.interesseFibra > 0 &&
-    ["fibra", "combo"].includes(produto.categoria)
-  ) {
-    pontuacaoSinais += 4;
+    // Interesse em fibra + plano é fibra (4 pontos)
+    if (
+      sinais.interesseFibra > 0 &&
+      ["fibra", "combo"].includes(produto.categoria)
+    ) {
+      pontuacaoSinais += 4;
+    }
   }
 
   // ==================== CONTEXTO INICIAL (até 10 pontos) ====================
@@ -160,12 +163,6 @@ export function useScoreContextual(
   return useMemo(() => {
     if (!produtos || produtos.length === 0) return [];
 
-    console.log(
-      "📊 Calculando scores contextuais para",
-      produtos.length,
-      "produtos"
-    );
-
     const produtosComScore: ProdutoComScore[] = produtos.map((produto) => {
       const scoreContextual = calcularScoreContextual(
         produto,
@@ -193,7 +190,7 @@ export function useScoreContextual(
           pontuacaoContextoAtivo += 10;
         if (contextoAtivo.categorias.includes(produto.categoria))
           pontuacaoContextoAtivo += 10;
-        if (produto.usoRecomendado?.length > 0) pontuacaoContextoAtivo += 5;
+        if (Array.isArray(produto.usoRecomendado) && produto.usoRecomendado.length > 0) pontuacaoContextoAtivo += 5;
         if (produto.destaque) pontuacaoContextoAtivo += 5;
 
         // Sinais
@@ -220,16 +217,6 @@ export function useScoreContextual(
 
       return resultado;
     });
-
-    // Log dos top 5 scores
-    const top5 = [...produtosComScore]
-      .sort((a, b) => b.scoreContextual - a.scoreContextual)
-      .slice(0, 5);
-
-    console.log(
-      "🏆 Top 5 scores:",
-      top5.map((p) => `${p.nome}: ${p.scoreContextual}`)
-    );
 
     return produtosComScore;
   }, [produtos, contextoAtivo, contextoInicial, sinais, incluirDetalhes]);

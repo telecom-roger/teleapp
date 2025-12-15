@@ -30,6 +30,7 @@ export function CartSidebar() {
     getSubtotal,
     getItemCount,
     addItem,
+    limparSvasOrfaos,
   } = useCartStore();
 
   const getCategoryIcon = (categoria: string | null) => {
@@ -66,11 +67,20 @@ export function CartSidebar() {
 
   // Função para abrir modal de upsell
   const handleIrParaCheckout = () => {
+    // Limpar SVAs órfãos antes de verificar quais oferecer
+    limparSvasOrfaos();
+    
     // Coletar todos os SVAs únicos dos produtos no carrinho (baseado nos produtos principais)
     const svasIds = new Set<string>();
     let textosColetados: string[] = [];
+    const planosNaoSvaIds = new Set<string>();
 
     items.forEach((item) => {
+      // Coletar IDs dos planos principais (não SVA)
+      if (item.categoria !== "sva") {
+        planosNaoSvaIds.add(item.product.id);
+      }
+      
       if (item.svasUpsell && item.svasUpsell.length > 0) {
         item.svasUpsell.forEach((svaId: string) => svasIds.add(svaId));
         // Coletar todos os textos encontrados
@@ -80,12 +90,20 @@ export function CartSidebar() {
       }
     });
 
-    // Remover SVAs que já estão no carrinho
+    // Remover SVAs que já estão no carrinho E estão associados a planos que ainda existem
     const svasJaNoCarrinho = new Set(
       items
-        .filter((item) => item.categoria === "sva")
+        .filter((item) => {
+          // Só considerar SVA como "já no carrinho" se:
+          // 1. É um SVA
+          // 2. Está associado a um plano que ainda existe no carrinho
+          return item.categoria === "sva" && 
+                 item.planoPrincipalId && 
+                 planosNaoSvaIds.has(item.planoPrincipalId);
+        })
         .map((item) => item.product.id)
     );
+    
     svasIds.forEach((id) => {
       if (svasJaNoCarrinho.has(id)) {
         svasIds.delete(id);
@@ -107,14 +125,24 @@ export function CartSidebar() {
     }
   };
 
-  const handleAdicionarSvas = (svaIds: string[]) => {
-    // Adicionar SVAs selecionados ao carrinho
-    svaIds.forEach((svaId) => {
+  const handleAdicionarSvas = (svaQuantidades: Map<string, number>) => {
+    // Encontrar o primeiro plano principal (não SVA) no carrinho para associar os SVAs
+    const planoPrincipal = items.find((item) => item.categoria !== "sva");
+    
+    if (!planoPrincipal) {
+      // Não deveria acontecer, mas como fallback vai direto para checkout
+      window.location.href = "/ecommerce/checkout";
+      return;
+    }
+
+    // Adicionar SVAs selecionados ao carrinho com suas quantidades
+    svaQuantidades.forEach((quantidade, svaId) => {
       const sva = todosOsProdutos.find((p) => p.id === svaId);
-      if (sva) {
-        addItem(sva, 1);
+      if (sva && quantidade > 0) {
+        addItem(sva, quantidade, planoPrincipal.product.id);
       }
     });
+    
     // Ir para checkout
     window.location.href = "/ecommerce/checkout";
   };
@@ -472,30 +500,41 @@ export function CartSidebar() {
               </div>
             </div>
 
-            <a
-              onClick={(e) => {
-                e.preventDefault();
-                handleIrParaCheckout();
-              }}
-              href="#"
-              className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#00CFFF";
-                e.currentTarget.style.transform = "scale(1.02)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              Continuar Contratação
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </a>
+
+            <div className="flex flex-col gap-3">
+              <a
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleIrParaCheckout();
+                }}
+                href="#"
+                className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
+                style={{
+                  backgroundColor: "#1E90FF",
+                  color: "#FFFFFF",
+                  borderRadius: "12px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#00CFFF";
+                  e.currentTarget.style.transform = "scale(1.02)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1E90FF";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                Finalizar Contratação
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </a>
+              <button
+                type="button"
+                className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow cursor-pointer border-0 bg-white text-[#1E90FF] border border-[#1E90FF] rounded-[12px] hover:bg-[#F0F8FF]"
+                onClick={closeCart}
+                style={{ marginTop: 4 }}
+              >
+                <span>Continuar contratando</span>
+              </button>
+            </div>
 
             <p className="text-xs text-center" style={{ color: "#555555" }}>
               {getItemCount()}{" "}
@@ -517,6 +556,7 @@ export function CartSidebar() {
         svas={svasParaOferecer}
         textosPersonalizados={textosUpsellAtuais}
         onAddToCart={handleAdicionarSvas}
+        quantidadeMaxima={items.filter((item) => item.categoria !== "sva").reduce((sum, item) => sum + item.quantidade, 0)}
       />
     </>
   );

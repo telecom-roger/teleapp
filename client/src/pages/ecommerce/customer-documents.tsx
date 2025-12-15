@@ -188,17 +188,17 @@ export default function CustomerDocuments() {
                   <div className="grid gap-3">
                     {ordersNeedingDocs.map((order) => (
                       <button
-                        key={order.id}
-                        onClick={() => setSelectedOrder(order.id)}
+                        key={order.orderCode}
+                        onClick={() => setSelectedOrder(order.orderCode)}
                         className={`flex items-center justify-between p-4 border rounded-lg transition-colors text-left ${
-                          selectedOrder === order.id
+                          selectedOrder === order.orderCode
                             ? "border-primary bg-primary/5"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
                         <div>
                           <p className="font-medium">
-                            Pedido #{order.id.slice(0, 8)}
+                            Pedido #{order.orderCode}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {new Date(order.createdAt).toLocaleDateString(

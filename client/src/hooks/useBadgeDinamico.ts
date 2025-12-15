@@ -4,20 +4,126 @@
  *
  * REGRAS:
  * - Apenas UM badge por plano
- * - Badge alinhado com contexto ativo
- * - Nunca contradiz filtros ativos
- * - Pode usar variáveis dinâmicas
+ * - Badge alinhado com contexto ativo e score
+ * - Textos randomizados fixados por sessão
+ * - Diferenciação entre PF e PJ
  */
 
 import { useMemo } from "react";
 import type { EcommerceProduct } from "@shared/schema";
 import type { ContextoAtivo } from "@/types/contexto";
+import { calcularScoreContextual } from "./useScoreContextual";
+import { useContextoInteligenteStore } from "@/stores/contextoInteligenteStore";
 
 export interface BadgeDinamico {
   texto: string;
   variante: "default" | "success" | "info" | "warning" | "primary";
   prioridade: number;
   motivo?: string; // Para debug
+}
+
+// ==================== TEXTOS DINÂMICOS ====================
+
+const TEXTOS_BADGES = {
+  // Score > 80 - Pessoa Física
+  topIdealPF: [
+    "Sob medida",
+    "Match perfeito",
+    "Escolha estratégica",
+    "Top performance",
+    "Alinhado a você",
+  ],
+  
+  // Score > 80 - Pessoa Jurídica
+  topIdealPJ: [
+    "Ideal para sua empresa",
+    "Sob medida para sua equipe",
+    "Alinhado ao negócio",
+    "Escolha otimizada",
+  ],
+  
+  // Score > 60 - Pessoa Física
+  recomendadoPF: [
+    "Altamente relevante",
+    "Sugestão inteligente",
+    "Combinação ideal",
+    "Planejado para você",
+  ],
+  
+  // Score > 60 - Pessoa Jurídica
+  recomendadoPJ: [
+    "Indicado para empresas",
+    "Ótima escolha empresarial",
+    "Preço otimizado",
+    "Ideal para sua empresa",
+  ],
+  
+  // Score > 40 - Pessoa Física
+  boaOpcaoPF: [
+    "Boa alternativa",
+    "Compatível com você",
+    "Ajuste interessante",
+    "Plano relevante",
+    "Vale conferir",
+  ],
+  
+  // Score > 40 - Pessoa Jurídica
+  boaOpcaoPJ: [
+    "Uso corporativo",
+    "Compatível com equipe",
+    "Ajuste operacional",
+    "Boa aderência",
+  ],
+  
+  // Contexto/Personalização - Pessoa Física
+  contextualizadoPF: [
+    "Baseado no seu uso",
+    "Para o seu perfil",
+    "Planejado para você",
+    "Alinhado às escolhas",
+    "Sugestão personalizada",
+  ],
+  
+  // Contexto/Personalização - Pessoa Jurídica
+  contextualizadoPJ: [
+    "Baseado na operação",
+    "Para seu negócio",
+    "Planejado para equipe",
+    "Alinhado às prioridades",
+    "Sugestão personalizada",
+  ],
+  
+  // Múltiplas Linhas - Variações de texto
+  multiplinhasVariacoes: [
+    "{linhas} linhas {total} total",
+    "Pacote {linhas} linhas por {total}",
+    "{linhas} linhas • {total}",
+    "Combo {linhas} linhas {total}",
+  ],
+};
+
+/**
+ * Seleciona texto aleatório e salva em sessionStorage para consistência
+ */
+function selecionarTextoFixo(
+  textos: string[],
+  chave: string
+): string {
+  const STORAGE_KEY = `badge_texto_${chave}`;
+  
+  // Verificar se já existe texto salvo
+  const textoSalvo = sessionStorage.getItem(STORAGE_KEY);
+  if (textoSalvo && textos.includes(textoSalvo)) {
+    return textoSalvo;
+  }
+  
+  // Sortear novo texto
+  const textoEscolhido = textos[Math.floor(Math.random() * textos.length)];
+  
+  // Salvar para próximas renderizações
+  sessionStorage.setItem(STORAGE_KEY, textoEscolhido);
+  
+  return textoEscolhido;
 }
 
 /**
@@ -31,216 +137,194 @@ function formatPrice(cents: number): string {
 }
 
 /**
- * Calcula badge dinâmico para um produto
+ * Calcula badge dinâmico para um produto baseado em score contextual
  */
 export function calcularBadgeDinamico(
   produto: EcommerceProduct,
-  contextoAtivo: ContextoAtivo
+  contextoAtivo: ContextoAtivo,
+  score: number
 ): BadgeDinamico | null {
   const badges: BadgeDinamico[] = [];
+  const isPJ = contextoAtivo.tipoPessoa === "PJ";
+  
+  // Chave única para este produto + contexto
+  const chaveBase = `${produto.id}_${isPJ ? 'pj' : 'pf'}`;
 
-  // ==================== PRIORIDADE 10: LINHAS ====================
-  // Se usuário especificou múltiplas linhas
+  // ==================== PRIORIDADE 10: LINHAS (COM VARIAÇÕES) ====================
   if (
     contextoAtivo.linhas &&
     contextoAtivo.linhas > 1 &&
     produto.permiteCalculadoraLinhas
   ) {
-    // Multiplicação simples: quantidade de linhas × preço unitário
     const valorTotal = produto.preco * contextoAtivo.linhas;
-
+    const template = selecionarTextoFixo(
+      TEXTOS_BADGES.multiplinhasVariacoes,
+      `${chaveBase}_linhas`
+    );
+    
+    const texto = template
+      .replace("{linhas}", String(contextoAtivo.linhas))
+      .replace("{total}", formatPrice(valorTotal));
+    
     badges.push({
-      texto: `${contextoAtivo.linhas} linhas ${formatPrice(valorTotal)} total`,
+      texto,
       variante: "success",
       prioridade: 10,
       motivo: "calculadora-linhas",
     });
   }
 
-  // ==================== PRIORIDADE 9: TIPO PESSOA ====================
-  // Se PJ e plano é específico para PJ
-  if (contextoAtivo.tipoPessoa === "PJ" && produto.tipoPessoa === "PJ") {
+  // ==================== PRIORIDADE 9: SCORE > 80 (TOP/IDEAL) ====================
+  if (score > 80) {
+    const textos = isPJ ? TEXTOS_BADGES.topIdealPJ : TEXTOS_BADGES.topIdealPF;
+    const texto = selecionarTextoFixo(textos, `${chaveBase}_top80`);
+    
     badges.push({
-      texto: "Ideal para empresas",
-      variante: "info",
+      texto,
+      variante: "success",
       prioridade: 9,
-      motivo: "tipo-pessoa-pj",
+      motivo: "score-top-ideal",
     });
   }
 
-  // Se PF e plano tem benefícios para pessoa física
-  if (contextoAtivo.tipoPessoa === "PF" && produto.tipoPessoa === "PF") {
-    if (produto.categoria === "movel" || produto.categoria === "combo") {
-      badges.push({
-        texto: "Indicado para uso diário",
-        variante: "info",
-        prioridade: 8,
-        motivo: "tipo-pessoa-pf",
-      });
-    }
+  // ==================== PRIORIDADE 8: SCORE > 60 (RECOMENDADO) ====================
+  else if (score > 60) {
+    const textos = isPJ ? TEXTOS_BADGES.recomendadoPJ : TEXTOS_BADGES.recomendadoPF;
+    const texto = selecionarTextoFixo(textos, `${chaveBase}_rec60`);
+    
+    badges.push({
+      texto,
+      variante: "info",
+      prioridade: 8,
+      motivo: "score-recomendado",
+    });
   }
 
-  // ==================== PRIORIDADE 8: FIBRA ====================
-  // Se usuário está interessado em fibra
-  if (contextoAtivo.fibra && produto.categoria === "fibra") {
-    const velocidade = produto.velocidade || "";
-    if (velocidade) {
-      badges.push({
-        texto: `Fibra ${velocidade}`,
-        variante: "primary",
-        prioridade: 8,
-        motivo: "fibra-velocidade",
-      });
-    }
+  // ==================== PRIORIDADE 7: SCORE > 40 (BOA OPÇÃO) ====================
+  else if (score > 40) {
+    const textos = isPJ ? TEXTOS_BADGES.boaOpcaoPJ : TEXTOS_BADGES.boaOpcaoPF;
+    const texto = selecionarTextoFixo(textos, `${chaveBase}_boa40`);
+    
+    badges.push({
+      texto,
+      variante: "primary",
+      prioridade: 7,
+      motivo: "score-boa-opcao",
+    });
   }
 
-  // ==================== PRIORIDADE 7: BADGE CUSTOMIZADO ====================
-  // Badge definido no banco de dados
+  // ==================== PRIORIDADE 6: CONTEXTO/PERSONALIZAÇÃO ====================
+  // Se há contexto ativo (usuário já interagiu)
+  const temContexto = contextoAtivo.categorias.length > 0 || 
+                      contextoAtivo.operadoras.length > 0 ||
+                      contextoAtivo.linhas !== null;
+                      
+  if (temContexto && score > 30) {
+    const textos = isPJ ? TEXTOS_BADGES.contextualizadoPJ : TEXTOS_BADGES.contextualizadoPF;
+    const texto = selecionarTextoFixo(textos, `${chaveBase}_ctx`);
+    
+    badges.push({
+      texto,
+      variante: "info",
+      prioridade: 6,
+      motivo: "contexto-personalizado",
+    });
+  }
+
+  // ==================== PRIORIDADE 5: BADGE CUSTOMIZADO (DB) ====================
   if (produto.badgeTexto && produto.badgeTexto.trim()) {
-    // Substituir variáveis no texto
     let textoFinal = produto.badgeTexto;
 
-    // [preco] -> preço formatado
+    // Substituir variáveis no texto
     if (textoFinal.includes("[preco]")) {
       textoFinal = textoFinal.replace("[preco]", formatPrice(produto.preco));
     }
-
-    // [velocidade] -> velocidade do plano
     if (textoFinal.includes("[velocidade]") && produto.velocidade) {
       textoFinal = textoFinal.replace("[velocidade]", produto.velocidade);
     }
-
-    // [franquia] -> franquia do plano
     if (textoFinal.includes("[franquia]") && produto.franquia) {
       textoFinal = textoFinal.replace("[franquia]", produto.franquia);
     }
-
-    // [linhas] -> quantidade de linhas do contexto
     if (textoFinal.includes("[linhas]") && contextoAtivo.linhas) {
-      textoFinal = textoFinal.replace(
-        "[linhas]",
-        contextoAtivo.linhas.toString()
-      );
+      textoFinal = textoFinal.replace("[linhas]", contextoAtivo.linhas.toString());
     }
 
     badges.push({
       texto: textoFinal,
       variante: "info",
-      prioridade: 7,
-      motivo: "badge-customizado",
+      prioridade: 5,
+      motivo: "badge-customizado-db",
     });
   }
 
-  // ==================== PRIORIDADE 6: DESTAQUE ====================
-  // Plano em destaque administrativo
+  // ==================== PRIORIDADE 4: DESTAQUE ====================
   if (produto.destaque) {
     badges.push({
       texto: "Mais popular",
-      variante: "default",
-      prioridade: 6,
+      variante: "warning",
+      prioridade: 4,
       motivo: "destaque-admin",
     });
   }
 
-  // ==================== PRIORIDADE 5: ECONOMIA ====================
-  // Se plano tem preço competitivo (abaixo de R$ 100 para móvel/fibra)
-  if (produto.preco < 10000) {
-    if (produto.categoria === "movel" || produto.categoria === "fibra") {
-      badges.push({
-        texto: "Ótimo custo-benefício",
-        variante: "success",
-        prioridade: 5,
-        motivo: "preco-competitivo",
-      });
-    }
-  }
-
-  // ==================== PRIORIDADE 4: COMBO ====================
-  // Se plano é combo e usuário demonstrou interesse
-  if (produto.categoria === "combo" && contextoAtivo.combo) {
+  // ==================== PRIORIDADE 3: IDEAL PARA EMPRESAS ====================
+  if (isPJ && produto.tipoPessoa === "PJ") {
     badges.push({
-      texto: "Pacote completo",
-      variante: "info",
-      prioridade: 4,
-      motivo: "combo-completo",
-    });
-  }
-
-  // ==================== PRIORIDADE 3: SLA ====================
-  // Se plano tem SLA (empresarial)
-  if (produto.sla && contextoAtivo.tipoPessoa === "PJ") {
-    badges.push({
-      texto: "Com SLA garantido",
+      texto: "Ideal para empresas",
       variante: "info",
       prioridade: 3,
-      motivo: "sla-empresarial",
+      motivo: "tipo-pessoa-pj",
     });
   }
 
-  // ==================== PRIORIDADE 2: FRANQUIA ====================
-  // Se plano móvel tem franquia generosa
-  if (produto.categoria === "movel" && produto.franquia) {
-    const franquiaLower = produto.franquia.toLowerCase();
-    if (franquiaLower.includes("ilimitado")) {
-      badges.push({
-        texto: "Internet ilimitada",
-        variante: "success",
-        prioridade: 2,
-        motivo: "franquia-ilimitada",
-      });
-    } else {
-      // Extrair número de GB
-      const match = produto.franquia.match(/(\d+)\s*GB/i);
-      if (match && parseInt(match[1]) >= 50) {
-        badges.push({
-          texto: `${produto.franquia} de internet`,
-          variante: "info",
-          prioridade: 2,
-          motivo: "franquia-generosa",
-        });
-      }
-    }
+  // ==================== PRIORIDADE 2: CUSTO-BENEFÍCIO ====================
+  // Preço competitivo (abaixo de R$ 100)
+  if (produto.preco < 10000 && (produto.categoria === "movel" || produto.categoria === "fibra" || produto.categoria === "combo")) {
+    badges.push({
+      texto: "Ótimo custo-benefício",
+      variante: "success",
+      prioridade: 2,
+      motivo: "preco-competitivo",
+    });
   }
 
   // ==================== SELECIONAR BADGE DE MAIOR PRIORIDADE ====================
   if (badges.length === 0) return null;
 
-  // Ordenar por prioridade (maior primeiro)
   badges.sort((a, b) => b.prioridade - a.prioridade);
-
   const badgeSelecionado = badges[0];
-
-  console.log(
-    `🏷️ Badge para "${produto.nome}": "${badgeSelecionado.texto}" (${badgeSelecionado.motivo})`
-  );
 
   return badgeSelecionado;
 }
 
 /**
- * Hook para calcular badges de múltiplos produtos
+ * Hook para calcular badges de múltiplos produtos COM SCORE
  */
 export function useBadgeDinamico(
   produtos: EcommerceProduct[],
   contextoAtivo: ContextoAtivo
 ): Map<string, BadgeDinamico | null> {
+  // Buscar contexto inicial e sinais do store
+  const { contextoInicial, sinais } = useContextoInteligenteStore();
+  
   return useMemo(() => {
     const badgesMap = new Map<string, BadgeDinamico | null>();
 
     produtos.forEach((produto) => {
-      const badge = calcularBadgeDinamico(produto, contextoAtivo);
+      // Calcular score usando a função diretamente
+      const score = calcularScoreContextual(
+        produto,
+        contextoAtivo,
+        contextoInicial,
+        sinais
+      );
+      
+      const badge = calcularBadgeDinamico(produto, contextoAtivo, score);
       badgesMap.set(produto.id, badge);
     });
 
-    const totalComBadge = Array.from(badgesMap.values()).filter(
-      (b) => b !== null
-    ).length;
-    console.log(
-      `🏷️ ${totalComBadge} de ${produtos.length} produtos têm badges`
-    );
-
     return badgesMap;
-  }, [produtos, contextoAtivo]);
+  }, [produtos, contextoAtivo, contextoInicial, sinais]);
 }
 
 /**
@@ -250,8 +334,19 @@ export function useBadgeProduto(
   produto: EcommerceProduct | undefined,
   contextoAtivo: ContextoAtivo
 ): BadgeDinamico | null {
+  // Buscar contexto inicial e sinais do store
+  const { contextoInicial, sinais } = useContextoInteligenteStore();
+  
   return useMemo(() => {
     if (!produto) return null;
-    return calcularBadgeDinamico(produto, contextoAtivo);
-  }, [produto, contextoAtivo]);
+    
+    const score = calcularScoreContextual(
+      produto,
+      contextoAtivo,
+      contextoInicial,
+      sinais
+    );
+    
+    return calcularBadgeDinamico(produto, contextoAtivo, score);
+  }, [produto, contextoAtivo, contextoInicial, sinais]);
 }

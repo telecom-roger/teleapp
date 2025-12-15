@@ -633,7 +633,7 @@ export default function EcommercePainel() {
                     className="font-mono font-bold"
                     style={{ color: "#111111" }}
                   >
-                    #{lastOrder.id.slice(0, 8)}
+                    #{lastOrder.orderCode}
                   </span>
                 </div>
                 <div

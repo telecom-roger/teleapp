@@ -106,9 +106,6 @@ export const useContextoInteligenteStore = create<ContextoInteligenteState>(
 
       // Se já existe contexto inicial, não sobrescrever
       if (state.contextoInicial) {
-        console.log(
-          "⚠️ Contexto inicial já existe, ignorando tentativa de sobrescrever"
-        );
         return;
       }
 
@@ -116,8 +113,6 @@ export const useContextoInteligenteStore = create<ContextoInteligenteState>(
         ...contexto,
         capturadoEm: Date.now(),
       };
-
-      console.log("✅ Contexto inicial capturado:", contextoInicial);
 
       set({ contextoInicial });
       get().salvarNaSessao();
@@ -174,8 +169,6 @@ export const useContextoInteligenteStore = create<ContextoInteligenteState>(
       ) {
         get().registrarEvento("interesse_combo", updates.combo);
       }
-
-      console.log("🔄 Contexto ativo atualizado:", novoContexto);
 
       set({ contextoAtivo: novoContexto });
       get().salvarNaSessao();
@@ -323,19 +316,16 @@ export const useContextoInteligenteStore = create<ContextoInteligenteState>(
         if (contextoInicialStr) {
           const contextoInicial = JSON.parse(contextoInicialStr);
           set({ contextoInicial });
-          console.log("✅ Contexto inicial restaurado da sessão");
         }
 
         if (contextoAtivoStr) {
           const contextoAtivo = JSON.parse(contextoAtivoStr);
           set({ contextoAtivo });
-          console.log("✅ Contexto ativo restaurado da sessão");
         }
 
         if (sinaisStr) {
           const sinais = JSON.parse(sinaisStr);
           set({ sinais });
-          console.log("✅ Sinais comportamentais restaurados da sessão");
         }
       } catch (error) {
         console.error("❌ Erro ao carregar contexto da sessão:", error);
@@ -385,8 +375,6 @@ export const useContextoInteligenteStore = create<ContextoInteligenteState>(
         contextoAtivo: contextoAtivoInicial,
         sinais: sinaisInicial,
       });
-
-      console.log("🧹 Contexto limpo completamente");
     },
 
     // ==================== UTILITÁRIOS ====================

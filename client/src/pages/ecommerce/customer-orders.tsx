@@ -23,6 +23,7 @@ import { useEffect } from "react";
 
 interface Order {
   id: string;
+  orderCode: string;
   clientId: string;
   etapa: string;
   total: number;
@@ -47,7 +48,7 @@ interface OrderItem {
 
 export default function CustomerOrders() {
   const params = useParams();
-  const orderId = params.orderId as string | undefined;
+  const orderCode = params.orderCode as string | undefined;
   const [, setLocation] = useLocation();
 
   const {
@@ -75,8 +76,8 @@ export default function CustomerOrders() {
   });
 
   const { data: orderDetail, isLoading: loadingDetail } = useQuery<Order>({
-    queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
-    enabled: !!orderId,
+    queryKey: [`/api/ecommerce/customer/orders/${orderCode}`],
+    enabled: !!orderCode,
     // Atualização em tempo real via SSE
   });
 
@@ -150,7 +151,7 @@ export default function CustomerOrders() {
   };
 
   // Visualização detalhada do pedido
-  if (orderId) {
+  if (orderCode) {
     const statusInfo = orderDetail ? getStatusInfo(orderDetail.etapa) : null;
     const StatusIcon = statusInfo?.icon;
 
@@ -186,7 +187,7 @@ export default function CustomerOrders() {
                       <div className="flex items-start justify-between">
                         <div>
                           <CardTitle>
-                            Pedido #{orderDetail.id.slice(0, 8)}
+                            Pedido #{orderDetail.orderCode}
                           </CardTitle>
                           <p className="text-sm text-muted-foreground mt-1">
                             Realizado em{" "}
@@ -398,7 +399,7 @@ export default function CustomerOrders() {
                   return (
                     <Link
                       key={order.id}
-                      href={`/ecommerce/painel/pedidos/${order.id}`}
+                      href={`/ecommerce/painel/pedidos/${order.orderCode}`}
                     >
                       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardContent className="p-6">
@@ -414,7 +415,7 @@ export default function CustomerOrders() {
                               <div className="flex-1">
                                 <div className="flex items-center gap-3 flex-wrap">
                                   <h3 className="font-semibold">
-                                    Pedido #{order.id.slice(0, 8)}
+                                    Pedido #{order.orderCode}
                                   </h3>
                                   <Badge variant={statusInfo.badge as any}>
                                     {statusInfo.label}

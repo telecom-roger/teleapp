@@ -40,34 +40,57 @@ export default function CheckoutTipoCliente() {
             </p>
           </div>
 
-          {/* Alert se carrinho vazio */}
+          {/* Alert se carrinho vazio - Layout Moderno */}
           {(!items || items.length === 0) && (
             <div
-              className="mb-6 p-6 flex items-start gap-4"
+              className="mb-8 p-8 text-center"
               style={{
-                backgroundColor: "#FFF4ED",
-                border: "2px solid #FF6B35",
+                backgroundColor: "#FFFFFF",
+                border: "1px solid #E0E0E0",
                 borderRadius: "16px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
               }}
             >
-              <AlertCircle
-                className="h-6 w-6 flex-shrink-0 mt-0.5"
-                style={{ color: "#FF6B35" }}
-              />
-              <div>
-                <p className="font-semibold mb-1" style={{ color: "#111111" }}>
-                  Seu carrinho está vazio
-                </p>
-                <p style={{ color: "#555555" }}>
-                  <a
-                    href="/ecommerce/planos"
-                    className="underline font-semibold hover:opacity-80"
-                  >
-                    Escolha um plano primeiro
-                  </a>{" "}
-                  para continuar com a contratação.
-                </p>
+              <div
+                className="w-16 h-16 mx-auto mb-4 flex items-center justify-center"
+                style={{
+                  backgroundColor: "rgba(30,144,255,0.1)",
+                  borderRadius: "50%",
+                }}
+              >
+                <ShoppingCart
+                  className="h-8 w-8"
+                  style={{ color: "#1E90FF" }}
+                />
               </div>
+              <h3 className="text-2xl font-black mb-2" style={{ color: "#111111" }}>
+                Escolha seu próximo plano
+              </h3>
+              <p className="text-lg mb-6" style={{ color: "#555555" }}>
+                Adicione planos à sua seleção para avançar na contratação
+              </p>
+              <a href="/ecommerce/planos">
+                <button
+                  className="px-8 py-3 font-bold text-base transition-all duration-300"
+                  style={{
+                    backgroundColor: "#1E90FF",
+                    color: "#FFFFFF",
+                    borderRadius: "12px",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#00CFFF";
+                    e.currentTarget.style.transform = "scale(1.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#1E90FF";
+                    e.currentTarget.style.transform = "scale(1)";
+                  }}
+                >
+                  Ver Planos Disponíveis
+                </button>
+              </a>
             </div>
           )}
 

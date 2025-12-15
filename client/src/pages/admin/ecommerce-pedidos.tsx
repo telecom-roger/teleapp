@@ -689,7 +689,7 @@ export default function AdminEcommercePedidos() {
                                   {order.nomeCompleto || order.razaoSocial}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  #{order.id.slice(0, 8)}
+                                  #{order.orderCode}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -773,7 +773,7 @@ export default function AdminEcommercePedidos() {
                         <TableRow key={order.id}>
                           <TableCell>
                             <span className="font-mono text-xs">
-                              #{order.id.slice(0, 8)}
+                              #{order.orderCode}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -938,7 +938,7 @@ export default function AdminEcommercePedidos() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              Detalhes do Pedido #{selectedOrder?.id.slice(0, 8)}
+              Detalhes do Pedido #{selectedOrder?.orderCode}
             </DialogTitle>
             <DialogDescription>
               Pedido recebido em{" "}

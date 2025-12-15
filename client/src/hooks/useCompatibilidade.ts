@@ -21,20 +21,11 @@ export function useCompatibilidade(
   return useMemo(() => {
     if (!produtos || produtos.length === 0) return [];
 
-    console.log("🔍 Aplicando filtros hard de compatibilidade");
-    console.log("📋 Contexto ativo:", contextoAtivo);
-    console.log("📦 Total de produtos antes do filtro:", produtos.length);
-
     const produtosCompativeis = produtos.filter((produto) => {
       // ==================== 1. OPERADORA ====================
       // SE usuário selecionou operadora(s), plano DEVE ser de uma delas
       if (contextoAtivo.operadoras.length > 0) {
         if (!contextoAtivo.operadoras.includes(produto.operadora)) {
-          console.log(
-            `❌ Excluído "${produto.nome}": operadora ${
-              produto.operadora
-            } não está em ${contextoAtivo.operadoras.join(",")}`
-          );
           return false;
         }
       }
@@ -43,11 +34,6 @@ export function useCompatibilidade(
       // SE usuário selecionou categoria(s), plano DEVE ser de uma delas
       if (contextoAtivo.categorias.length > 0) {
         if (!contextoAtivo.categorias.includes(produto.categoria)) {
-          console.log(
-            `❌ Excluído "${produto.nome}": categoria ${
-              produto.categoria
-            } não está em ${contextoAtivo.categorias.join(",")}`
-          );
           return false;
         }
       }
@@ -58,9 +44,6 @@ export function useCompatibilidade(
         produto.tipoPessoa !== "ambos" &&
         produto.tipoPessoa !== contextoAtivo.tipoPessoa
       ) {
-        console.log(
-          `❌ Excluído "${produto.nome}": tipo pessoa ${produto.tipoPessoa} não é compatível com ${contextoAtivo.tipoPessoa}`
-        );
         return false;
       }
 
@@ -73,9 +56,6 @@ export function useCompatibilidade(
           : produto.linhasInclusas || 1;
 
         if (contextoAtivo.linhas > linhasMaximas) {
-          console.log(
-            `❌ Excluído "${produto.nome}": solicita ${contextoAtivo.linhas} linhas mas máximo é ${linhasMaximas}`
-          );
           return false;
         }
       }
@@ -85,9 +65,6 @@ export function useCompatibilidade(
       if (contextoAtivo.fibra === true) {
         const categoriasFibra = ["fibra", "combo", "internet-dedicada"];
         if (!categoriasFibra.includes(produto.categoria)) {
-          console.log(
-            `❌ Excluído "${produto.nome}": fibra exigida mas categoria é ${produto.categoria}`
-          );
           return false;
         }
       }
@@ -96,9 +73,6 @@ export function useCompatibilidade(
       // SE usuário exigiu combo, plano DEVE ser categoria combo
       if (contextoAtivo.combo === true) {
         if (produto.categoria !== "combo") {
-          console.log(
-            `❌ Excluído "${produto.nome}": combo exigido mas categoria é ${produto.categoria}`
-          );
           return false;
         }
       }
@@ -110,9 +84,6 @@ export function useCompatibilidade(
           produto.modalidade !== "ambos" &&
           produto.modalidade !== contextoAtivo.modalidade
         ) {
-          console.log(
-            `❌ Excluído "${produto.nome}": modalidade ${produto.modalidade} não é compatível com ${contextoAtivo.modalidade}`
-          );
           return false;
         }
       }
@@ -120,18 +91,12 @@ export function useCompatibilidade(
       // ==================== 8. PRODUTO ATIVO ====================
       // Sempre excluir produtos inativos
       if (!produto.ativo) {
-        console.log(`❌ Excluído "${produto.nome}": produto inativo`);
         return false;
       }
 
       // ✅ PLANO É COMPATÍVEL
-      console.log(`✅ Compatível: "${produto.nome}"`);
       return true;
     });
-
-    console.log(
-      `✅ Total compatível: ${produtosCompativeis.length} de ${produtos.length} produtos`
-    );
 
     return produtosCompativeis;
   }, [produtos, contextoAtivo]);

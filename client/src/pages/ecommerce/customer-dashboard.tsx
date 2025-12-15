@@ -78,11 +78,13 @@ export default function CustomerDashboard() {
     }
   }, [loadingCustomer, isError, customerData, setLocation]);
 
-  const { data: orders, isLoading: loadingOrders } = useQuery<Order[]>({
+
+  const { data, isLoading: loadingOrders } = useQuery<{ orders: Order[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData?.client?.id,
     // Removido polling - agora usa SSE em tempo real via CustomerOrderNotifications
   });
+  const orders = data?.orders ?? [];
 
   const getStatusInfo = (etapa: string) => {
     switch (etapa) {
@@ -334,8 +336,8 @@ export default function CustomerDashboard() {
 
                       return (
                         <Link
-                          key={order.id}
-                          href={`/ecommerce/painel/pedidos/${order.id}`}
+                          key={order.orderCode}
+                          href={`/ecommerce/painel/pedidos/${order.orderCode}`}
                         >
                           <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
                             <div className="flex items-center gap-4">
@@ -344,7 +346,7 @@ export default function CustomerDashboard() {
                               </div>
                               <div>
                                 <p className="font-medium">
-                                  Pedido #{order.id.slice(0, 8)}
+                                  Pedido #{order.orderCode}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {new Date(order.createdAt).toLocaleDateString(

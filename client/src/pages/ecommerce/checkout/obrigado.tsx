@@ -7,15 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function CheckoutObrigado() {
-  const [pedidoId, setPedidoId] = useState<string>("");
+  const [pedidoCode, setPedidoCode] = useState<string>("");
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get("pedido");
-    if (id) setPedidoId(id);
+    const code = params.get("pedido");
+    if (code) setPedidoCode(code);
   }, []);
 
   // Determine the correct URL for "Acessar Painel do Cliente" button
@@ -52,7 +52,7 @@ export default function CheckoutObrigado() {
               Seu pedido foi recebido com sucesso
             </p>
 
-            {pedidoId && (
+            {pedidoCode && (
               <div
                 className="p-4 mb-8"
                 style={{
@@ -65,7 +65,7 @@ export default function CheckoutObrigado() {
                   Número do pedido:
                 </span>
                 <p className="text-2xl font-bold" style={{ color: "#1E90FF" }}>
-                  #{pedidoId}
+                  #{pedidoCode}
                 </p>
               </div>
             )}

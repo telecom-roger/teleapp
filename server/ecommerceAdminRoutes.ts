@@ -63,6 +63,7 @@ router.get("/orders", blockCustomers, async (req: Request, res: Response) => {
 
         return {
           ...order,
+          orderCode: order.orderCode,
           client,
           items,
           itemsCount: items.length,
@@ -207,6 +208,7 @@ router.get(
 
           return {
             ...order,
+            orderCode: order.orderCode,
             agentId: order.responsavelId, // Mapear responsavelId para agentId para compatibilidade com frontend
             agentName,
             items: filteredItems,
@@ -267,6 +269,7 @@ router.get(
 
       res.json({
         ...order,
+        orderCode: order.orderCode,
         client,
         items,
         documents,

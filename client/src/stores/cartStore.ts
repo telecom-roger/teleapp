@@ -10,6 +10,8 @@ export interface CartItem {
   svasUpsell?: string[];
   textosUpsell?: string[]; // Array de textos (mudou de textoUpsell)
   permiteCalculadoraLinhas?: boolean;
+  // Campo para rastrear plano principal associado (para SVAs)
+  planoPrincipalId?: string;
 }
 
 interface CartStore {
@@ -17,12 +19,13 @@ interface CartStore {
   isOpen: boolean;
 
   // Actions
-  addItem: (product: any, quantidade?: number) => void;
+  addItem: (product: any, quantidade?: number, planoPrincipalId?: string) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantidade: number) => void;
   updateLinhas: (productId: string, linhas: number) => void;
   duplicateItem: (productId: string) => void;
   clearCart: () => void;
+  limparSvasOrfaos: () => void; // Nova função para limpar SVAs sem plano associado
 
   // UI
   openCart: () => void;
@@ -41,16 +44,20 @@ export const useCartStore = create<CartStore>()(
       items: [],
       isOpen: false,
 
-      addItem: (product, quantidade = 1) => {
+      addItem: (product, quantidade = 1, planoPrincipalId) => {
         const { items } = get();
+        
+        // Para SVAs, verificar se já existe um associado ao mesmo plano principal
         const existingItem = items.find(
-          (item) => item.product.id === product.id
+          (item) => item.product.id === product.id && 
+          (planoPrincipalId ? item.planoPrincipalId === planoPrincipalId : !item.planoPrincipalId)
         );
 
         if (existingItem) {
           set({
             items: items.map((item) =>
-              item.product.id === product.id
+              item.product.id === product.id && 
+              (planoPrincipalId ? item.planoPrincipalId === planoPrincipalId : !item.planoPrincipalId)
                 ? { ...item, quantidade: item.quantidade + quantidade }
                 : item
             ),
@@ -70,6 +77,7 @@ export const useCartStore = create<CartStore>()(
                 textosUpsell: product.textosUpsell || [], // Array agora
                 permiteCalculadoraLinhas:
                   product.permiteCalculadoraLinhas || false,
+                planoPrincipalId: planoPrincipalId || undefined,
               },
             ],
             isOpen: true,
@@ -78,9 +86,33 @@ export const useCartStore = create<CartStore>()(
       },
 
       removeItem: (productId) => {
-        set({
-          items: get().items.filter((item) => item.product.id !== productId),
-        });
+        const { items } = get();
+        const itemRemovido = items.find((item) => item.product.id === productId);
+        
+        if (!itemRemovido) return;
+        
+        // Se for um plano principal (não SVA) que tem SVAs associados
+        if (itemRemovido.categoria !== "sva" && itemRemovido.svasUpsell && itemRemovido.svasUpsell.length > 0) {
+          // Reduzir quantidade dos SVAs associados
+          const itemsAtualizados = items
+            .map((item) => {
+              // Se for um SVA e estiver na lista de SVAs deste plano
+              if (item.categoria === "sva" && item.planoPrincipalId === productId) {
+                const novaQuantidade = item.quantidade - 1;
+                if (novaQuantidade <= 0) return null; // Remover SVA
+                return { ...item, quantidade: novaQuantidade };
+              }
+              return item;
+            })
+            .filter((item): item is CartItem => item !== null && item.product.id !== productId);
+          
+          set({ items: itemsAtualizados });
+        } else {
+          // Remoção normal
+          set({
+            items: items.filter((item) => item.product.id !== productId),
+          });
+        }
       },
 
       updateQuantity: (productId, quantidade) => {
@@ -114,6 +146,36 @@ export const useCartStore = create<CartStore>()(
 
       clearCart: () => {
         set({ items: [], isOpen: false });
+      },
+
+      limparSvasOrfaos: () => {
+        const { items } = get();
+        
+        // Coletar IDs dos planos principais (não SVA) que existem no carrinho
+        const planosExistentes = new Set(
+          items
+            .filter((item) => item.categoria !== "sva")
+            .map((item) => item.product.id)
+        );
+        
+        // Filtrar itens, removendo SVAs órfãos (sem plano principal associado)
+        const itemsLimpos = items.filter((item) => {
+          // Manter todos os planos principais
+          if (item.categoria !== "sva") return true;
+          
+          // Para SVAs: só manter se o plano principal ainda existe
+          if (item.planoPrincipalId) {
+            return planosExistentes.has(item.planoPrincipalId);
+          }
+          
+          // SVAs sem planoPrincipalId (antigos) - remover
+          return false;
+        });
+        
+        // Atualizar apenas se houver diferença
+        if (itemsLimpos.length !== items.length) {
+          set({ items: itemsLimpos });
+        }
       },
 
       openCart: () => set({ isOpen: true }),

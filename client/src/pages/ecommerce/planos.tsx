@@ -102,6 +102,7 @@ export default function EcommercePlanos() {
 
   // Estados locais (UI)
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [ordenacao, setOrdenacao] = useState("relevancia");
   const [planosPorPagina, setPlanosPorPagina] = useState(12);
   const [mostrarCampoPersonalizado, setMostrarCampoPersonalizado] =
@@ -172,7 +173,6 @@ export default function EcommercePlanos() {
         });
 
         // NÃO capturar como contexto inicial (veio de CTA/link)
-        console.log("📍 Filtros carregados da URL (não é contexto inicial)");
       }
 
       setFiltrosCarregadosDaUrl(true);
@@ -184,6 +184,16 @@ export default function EcommercePlanos() {
     linhasUrl,
     filtrosCarregadosDaUrl,
   ]);
+
+  // Detectar scroll para sticky button
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // 🆕 Rastrear tempo na página (para sinais comportamentais)
   useEffect(() => {
@@ -226,8 +236,26 @@ export default function EcommercePlanos() {
     false // incluirDetalhes = false (pode ativar para debug)
   );
 
-  // 3. Ordenar por score contextual
-  const produtosOrdenados = ordenarPorScore(produtosComScore);
+  // 3. Ordenar por score contextual OU por preço/velocidade/popularidade
+  let produtosOrdenados = ordenarPorScore(produtosComScore);
+  if (ordenacao === "menor-preco") {
+    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (a.preco ?? 0) - (b.preco ?? 0));
+  } else if (ordenacao === "maior-preco") {
+    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (b.preco ?? 0) - (a.preco ?? 0));
+  } else if (ordenacao === "velocidade") {
+    produtosOrdenados = [...produtosOrdenados].sort((a, b) => {
+      // Suporta franquia tipo "10GB", "Ilimitado", etc
+      const parseGB = (franquia: string) => {
+        if (!franquia) return 0;
+        if (/ilimitado/i.test(franquia)) return 99999;
+        const match = franquia.match(/(\d+)/);
+        return match ? parseInt(match[1], 10) : 0;
+      };
+      return parseGB(b.franquia) - parseGB(a.franquia);
+    });
+  } else if (ordenacao === "popularidade") {
+    produtosOrdenados = [...produtosOrdenados].sort((a, b) => (b.popularidade ?? 0) - (a.popularidade ?? 0));
+  }
 
   // 4. Calcular badges dinâmicos
   const badgesMap = useBadgeDinamico(produtosOrdenados, contextoAtivo);
@@ -337,9 +365,6 @@ export default function EcommercePlanos() {
 
     // Capturar contexto inicial na PRIMEIRA interação consciente
     if (!contextoInicial && novasCategorias.length > 0) {
-      console.log(
-        "✅ Capturando contexto inicial (primeira interação com categoria)"
-      );
       setContextoInicial({
         ...contextoAtivo,
         categorias: novasCategorias,
@@ -359,9 +384,6 @@ export default function EcommercePlanos() {
 
     // Capturar contexto inicial na PRIMEIRA interação consciente
     if (!contextoInicial && novasOperadoras.length > 0) {
-      console.log(
-        "✅ Capturando contexto inicial (primeira interação com operadora)"
-      );
       setContextoInicial({
         ...contextoAtivo,
         operadoras: novasOperadoras,
@@ -376,9 +398,6 @@ export default function EcommercePlanos() {
   const handleChangeTipoPessoa = (tipo: TipoPessoa) => {
     // Capturar contexto inicial na PRIMEIRA interação
     if (!contextoInicial && tipo !== "ambos") {
-      console.log(
-        "✅ Capturando contexto inicial (primeira interação com tipo pessoa)"
-      );
       setContextoInicial({
         ...contextoAtivo,
         tipoPessoa: tipo,
@@ -487,49 +506,475 @@ export default function EcommercePlanos() {
 
         {/* Removido: Badge de múltiplas linhas */}
 
+        {/* Botão Filtrar Mobile - Sticky após scroll */}
+        <div 
+          className={cn(
+            "lg:hidden transition-all duration-300 z-40",
+            isScrolled && "shadow-md"
+          )}
+          style={{
+            position: isScrolled ? "sticky" : "relative",
+            top: isScrolled ? "0px" : "auto",
+            marginBottom: isScrolled ? "0" : "1.5rem",
+            backgroundColor: "#FFFFFF",
+          }}
+        >
+          <button
+            onClick={() => setMostrarFiltros(!mostrarFiltros)}
+            className="w-full flex items-center justify-between font-medium transition-all duration-300"
+            style={{
+              height: isScrolled ? "48px" : "48px",
+              backgroundColor: "#FFFFFF",
+              color: "#555555",
+              borderRadius: isScrolled ? "0" : "12px",
+              border: isScrolled ? "none" : "1px solid #E0E0E0",
+              borderBottom: isScrolled ? "1px solid #E0E0E0" : "1px solid #E0E0E0",
+              padding: "0 1rem",
+            }}
+          >
+            <div className="flex items-center gap-2.5">
+              <Filter className="w-4 h-4" style={{ color: "#1E90FF" }} />
+              <span style={{ color: "#111111" }}>
+                {filtrosAtivos > 0 ? `Filtros · ${filtrosAtivos} ativos` : "Filtrar"}
+              </span>
+            </div>
+            {filtrosAtivos > 0 && (
+              <span 
+                className="px-2.5 py-1 rounded-full text-xs font-bold"
+                style={{
+                  backgroundColor: "#1E90FF",
+                  color: "#FFFFFF",
+                }}
+              >
+                {filtrosAtivos}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filtros Mobile - Dropdown quando botão clicado */}
+        {mostrarFiltros && (
+          <Card
+            className="mb-6 shadow-lg border-0 lg:hidden"
+            style={{ backgroundColor: "#FFFFFF", borderRadius: "12px" }}
+          >
+            <CardContent className="p-6">
+              <div className="space-y-6">
+                {/* Filtros Mobile - Conteúdo igual ao desktop */}
+                {/* Tipo de Pessoa - SEM OPÇÃO TODOS */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label
+                      className="text-sm font-bold"
+                      style={{ color: "#111111" }}
+                    >
+                      Para quem é o plano?
+                    </label>
+                    <Badge
+                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: "#1E90FF",
+                        color: "#FFFFFF",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      OBRIGATÓRIO
+                    </Badge>
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    {[
+                      {
+                        value: "PF" as TipoPessoa,
+                        label: "Pessoa Física",
+                        icon: User,
+                      },
+                      {
+                        value: "PJ" as TipoPessoa,
+                        label: "Empresas",
+                        icon: Briefcase,
+                      },
+                    ].map((tipo) => (
+                      <button
+                        key={tipo.value}
+                        onClick={() => handleChangeTipoPessoa(tipo.value)}
+                        className={cn(
+                          "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2",
+                          tipoPessoaFiltro === tipo.value
+                            ? "shadow-lg"
+                            : "hover:shadow-md"
+                        )}
+                        style={{
+                          borderRadius: "12px",
+                          backgroundColor:
+                            tipoPessoaFiltro === tipo.value
+                              ? "#1E90FF"
+                              : "#FFFFFF",
+                          color:
+                            tipoPessoaFiltro === tipo.value
+                              ? "#FFFFFF"
+                              : "#555555",
+                          border:
+                            tipoPessoaFiltro === tipo.value
+                              ? "none"
+                              : "1px solid #E0E0E0",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (tipoPessoaFiltro !== tipo.value) {
+                            e.currentTarget.style.borderColor = "#1E90FF";
+                            e.currentTarget.style.color = "#1E90FF";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (tipoPessoaFiltro !== tipo.value) {
+                            e.currentTarget.style.borderColor = "#E0E0E0";
+                            e.currentTarget.style.color = "#555555";
+                          }
+                        }}
+                      >
+                        {tipo.icon && <tipo.icon className="w-4 h-4" />}
+                        {tipo.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quantidade de Linhas */}
+                <div>
+                  <label
+                    className="block text-sm font-bold mb-3"
+                    style={{ color: "#111111" }}
+                  >
+                    Quantas linhas você precisa?
+                  </label>
+                  {!mostrarCampoPersonalizado ? (
+                    <select
+                      value={contextoAtivo.linhas || 1}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val === 10) {
+                          setMostrarCampoPersonalizado(true);
+                          setLinhasPersonalizado("10");
+                          setLinhas(10);
+                        } else {
+                          setLinhas(val);
+                        }
+                      }}
+                      className="w-full h-10 px-4 font-semibold transition-all duration-300"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#555555",
+                        outline: "none",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#1E90FF";
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(30,144,255,0.05)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "#E0E0E0";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      }}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        <option key={num} value={num}>
+                          {num} {num === 1 ? "linha" : "linhas"}
+                        </option>
+                      ))}
+                      <option value={10}>10+ linhas (personalizado)</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min="10"
+                        max="999"
+                        value={linhasPersonalizado}
+                        onChange={(e) => {
+                          setLinhasPersonalizado(e.target.value);
+                          const val = Number(e.target.value);
+                          if (val >= 10) {
+                            setLinhas(val);
+                          }
+                        }}
+                        className="flex-1 h-10 px-4 font-semibold transition-all duration-300"
+                        placeholder="Digite a quantidade"
+                        style={{
+                          borderRadius: "12px",
+                          border: "2px solid #1E90FF",
+                          backgroundColor: "rgba(30,144,255,0.05)",
+                          color: "#111111",
+                          outline: "none",
+                        }}
+                      />
+                      <button
+                        onClick={() => {
+                          setMostrarCampoPersonalizado(false);
+                          setLinhas(1);
+                        }}
+                        className="h-10 px-4 font-semibold transition-all duration-300"
+                        style={{
+                          borderRadius: "12px",
+                          border: "1px solid #E0E0E0",
+                          backgroundColor: "#FAFAFA",
+                          color: "#555555",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#FF6B35";
+                          e.currentTarget.style.color = "#FFFFFF";
+                          e.currentTarget.style.borderColor = "#FF6B35";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "#FAFAFA";
+                          e.currentTarget.style.color = "#555555";
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Categoria - MULTI SELECT */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label
+                      className="text-sm font-bold"
+                      style={{ color: "#111111" }}
+                    >
+                      Tipo de serviço
+                    </label>
+                    <Badge
+                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: "#FF6B35",
+                        color: "#FFFFFF",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      MULTI
+                    </Badge>
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    <button
+                      onClick={() => setCategoria([])}
+                      className={cn(
+                        "h-10 px-6 font-semibold border-0 transition-all duration-300",
+                        categoriasFiltro.length === 0
+                          ? "shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor:
+                          categoriasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
+                        color:
+                          categoriasFiltro.length === 0 ? "#FFFFFF" : "#555555",
+                        border:
+                          categoriasFiltro.length === 0
+                            ? "none"
+                            : "1px solid #E0E0E0",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (categoriasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#1E90FF";
+                          e.currentTarget.style.color = "#1E90FF";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (categoriasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                          e.currentTarget.style.color = "#555555";
+                        }
+                      }}
+                    >
+                      Todos
+                    </button>
+                    {categorias.map((cat) => {
+                      const Icon = getIconeCategoria(cat.slug);
+                      const isSelected = categoriasFiltro.includes(cat.slug);
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => toggleCategoria(cat.slug)}
+                          className={cn(
+                            "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2 relative",
+                            isSelected ? "shadow-lg" : "hover:shadow-md"
+                          )}
+                          style={{
+                            borderRadius: "12px",
+                            backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
+                            color: isSelected ? "#FFFFFF" : "#555555",
+                            border: isSelected ? "none" : "1px solid #E0E0E0",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#1E90FF";
+                              e.currentTarget.style.color = "#1E90FF";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#E0E0E0";
+                              e.currentTarget.style.color = "#555555";
+                            }
+                          }}
+                        >
+                          {isSelected && (
+                            <div
+                              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: "#00CFFF" }}
+                            >
+                              <Check
+                                className="w-3 h-3"
+                                style={{ color: "#FFFFFF" }}
+                              />
+                            </div>
+                          )}
+                          <Icon className="w-4 h-4" />
+                          {cat.nome}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Operadora - MULTI SELECT */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label
+                      className="text-sm font-bold"
+                      style={{ color: "#111111" }}
+                    >
+                      Operadora
+                    </label>
+                    <Badge
+                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: "#FF6B35",
+                        color: "#FFFFFF",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      MULTI
+                    </Badge>
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    <button
+                      onClick={() => setOperadora([])}
+                      className={cn(
+                        "h-10 px-6 font-semibold border-0 transition-all duration-300",
+                        operadorasFiltro.length === 0
+                          ? "shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor:
+                          operadorasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
+                        color:
+                          operadorasFiltro.length === 0 ? "#FFFFFF" : "#555555",
+                        border:
+                          operadorasFiltro.length === 0
+                            ? "none"
+                            : "1px solid #E0E0E0",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (operadorasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#1E90FF";
+                          e.currentTarget.style.color = "#1E90FF";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (operadorasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                          e.currentTarget.style.color = "#555555";
+                        }
+                      }}
+                    >
+                      Todas
+                    </button>
+                    {Object.entries(OPERADORA_COLORS).map(([key, config]) => {
+                      const isSelected = operadorasFiltro.includes(key);
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleOperadora(key)}
+                          className={cn(
+                            "h-10 px-6 font-bold border-0 transition-all duration-300 relative",
+                            isSelected ? "shadow-lg" : "hover:shadow-md"
+                          )}
+                          style={{
+                            borderRadius: "12px",
+                            backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
+                            color: isSelected ? "#FFFFFF" : "#555555",
+                            border: isSelected ? "none" : "1px solid #E0E0E0",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#1E90FF";
+                              e.currentTarget.style.color = "#1E90FF";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.borderColor = "#E0E0E0";
+                              e.currentTarget.style.color = "#555555";
+                            }
+                          }}
+                        >
+                          {isSelected && (
+                            <div
+                              className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                              style={{ backgroundColor: "#00CFFF" }}
+                            >
+                              <Check
+                                className="w-3 h-3"
+                                style={{ color: "#FFFFFF" }}
+                              />
+                            </div>
+                          )}
+                          {config.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Limpar filtros */}
+                {filtrosAtivos > 0 && (
+                  <button
+                    onClick={limparFiltros}
+                    className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#6366F1] transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Limpar todos os filtros
+                  </button>
+                )}
+
+                {/* Botão Aplicar Filtro - Mobile */}
+                <button
+                  type="button"
+                  className="w-full mt-6 h-12 rounded-lg bg-[#1E90FF] text-white font-bold text-base shadow hover:bg-[#1877cc] transition-all"
+                  onClick={() => setMostrarFiltros(false)}
+                >
+                  Aplicar Filtro
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Filtros Card */}
         <Card
-          className="mb-8 shadow-lg border-0"
+          className="mb-8 shadow-lg border-0 hidden md:block"
           style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
         >
           <CardContent className="p-6">
-            {/* Mobile: Botão toggle filtros */}
-            <div className="md:hidden mb-4">
-              <Button
-                variant="outline"
-                className="w-full justify-between border-0 transition-all"
-                style={{ border: "2px solid #E0E0E0", borderRadius: "12px" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "#1E90FF")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "#E0E0E0")
-                }
-                onClick={() => setMostrarFiltros(!mostrarFiltros)}
-              >
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtros
-                  {filtrosAtivos > 0 && (
-                    <Badge
-                      className="ml-2 border-0"
-                      style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
-                    >
-                      {filtrosAtivos}
-                    </Badge>
-                  )}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    mostrarFiltros && "rotate-180"
-                  )}
-                />
-              </Button>
-            </div>
-
             <div
-              className={cn("space-y-6", !mostrarFiltros && "hidden md:block")}
+              className={cn("space-y-6")}
             >
               {/* Tipo de Pessoa - SEM OPÇÃO TODOS */}
               <div>

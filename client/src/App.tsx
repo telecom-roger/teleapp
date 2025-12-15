@@ -153,7 +153,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
           <EcommerceProtectedRoute component={CustomerDashboard} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/pedidos/:orderId">
+      <Route path="/ecommerce/painel/pedidos/:orderCode">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerOrders} {...params} />
         )}

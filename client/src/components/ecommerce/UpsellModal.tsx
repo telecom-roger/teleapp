@@ -1,6 +1,5 @@
-import { X, Plus } from "lucide-react";
+import { X, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useState, useEffect } from "react";
 
 interface SVAProduct {
@@ -15,7 +14,8 @@ interface UpsellModalProps {
   onClose: () => void;
   svas: SVAProduct[];
   textosPersonalizados: string[] | null; // Array de textos para randomizar
-  onAddToCart: (svaIds: string[]) => void;
+  onAddToCart: (svaQuantidades: Map<string, number>) => void;
+  quantidadeMaxima: number; // Quantidade de planos principais no carrinho
 }
 
 // Função para processar variáveis dinâmicas no texto
@@ -40,8 +40,10 @@ export function UpsellModal({
   svas,
   textosPersonalizados,
   onAddToCart,
+  quantidadeMaxima,
 }: UpsellModalProps) {
-  const [selectedSvas, setSelectedSvas] = useState<Set<string>>(new Set());
+  // Mapa de SVA ID -> quantidade selecionada
+  const [svaQuantidades, setSvaQuantidades] = useState<Map<string, number>>(new Map());
   const [textoSelecionado, setTextoSelecionado] = useState("");
 
   // Escolher texto APENAS quando o modal abrir (isOpen = true)
@@ -58,6 +60,8 @@ export function UpsellModal({
           "Aproveite para adicionar serviços extras ao seu pedido!"
         );
       }
+      // Resetar quantidades ao abrir
+      setSvaQuantidades(new Map());
     }
   }, [isOpen]); // Só executa quando isOpen mudar
 
@@ -70,30 +74,45 @@ export function UpsellModal({
     });
   };
 
-  const toggleSva = (svaId: string) => {
-    const newSelected = new Set(selectedSvas);
-    if (newSelected.has(svaId)) {
-      newSelected.delete(svaId);
-    } else {
-      newSelected.add(svaId);
+  const incrementarSva = (svaId: string) => {
+    const novoMapa = new Map(svaQuantidades);
+    const quantidadeAtual = novoMapa.get(svaId) || 0;
+    if (quantidadeAtual < quantidadeMaxima) {
+      novoMapa.set(svaId, quantidadeAtual + 1);
+      setSvaQuantidades(novoMapa);
     }
-    setSelectedSvas(newSelected);
+  };
+
+  const decrementarSva = (svaId: string) => {
+    const novoMapa = new Map(svaQuantidades);
+    const quantidadeAtual = novoMapa.get(svaId) || 0;
+    if (quantidadeAtual > 0) {
+      if (quantidadeAtual === 1) {
+        novoMapa.delete(svaId);
+      } else {
+        novoMapa.set(svaId, quantidadeAtual - 1);
+      }
+      setSvaQuantidades(novoMapa);
+    }
   };
 
   const handleConfirm = () => {
-    onAddToCart(Array.from(selectedSvas));
-    setSelectedSvas(new Set());
+    onAddToCart(svaQuantidades);
+    setSvaQuantidades(new Map());
     onClose();
   };
 
   const handleSkip = () => {
-    setSelectedSvas(new Set());
+    setSvaQuantidades(new Map());
     onClose();
   };
 
-  const totalSelecionado = svas
-    .filter((sva) => selectedSvas.has(sva.id))
-    .reduce((sum, sva) => sum + sva.preco, 0);
+  const totalSelecionado = Array.from(svaQuantidades.entries()).reduce((sum, [svaId, quantidade]) => {
+    const sva = svas.find(s => s.id === svaId);
+    return sum + (sva ? sva.preco * quantidade : 0);
+  }, 0);
+
+  const totalItensAdicionados = Array.from(svaQuantidades.values()).reduce((sum, qty) => sum + qty, 0);
 
   return (
     <>
@@ -163,12 +182,13 @@ export function UpsellModal({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {svas.map((sva) => {
-              const isSelected = selectedSvas.has(sva.id);
+              const quantidadeAtual = svaQuantidades.get(sva.id) || 0;
+              const isSelected = quantidadeAtual > 0;
+              
               return (
                 <div
                   key={sva.id}
-                  onClick={() => toggleSva(sva.id)}
-                  className="relative p-4 cursor-pointer transition-all duration-200"
+                  className="relative p-4 transition-all duration-200"
                   style={{
                     border: isSelected
                       ? "2px solid #1E90FF"
@@ -181,28 +201,10 @@ export function UpsellModal({
                       ? "0 4px 12px rgba(30,144,255,0.15)"
                       : "none",
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = "#1E90FF";
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(30,144,255,0.02)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = "#E0E0E0";
-                      e.currentTarget.style.backgroundColor = "#FFFFFF";
-                    }
-                  }}
                 >
                   <div className="flex items-start gap-4">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleSva(sva.id)}
-                      className="mt-1"
-                    />
                     <div className="flex-1">
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-4 mb-3">
                         <div>
                           <h3
                             className="font-bold text-lg mb-1"
@@ -234,6 +236,105 @@ export function UpsellModal({
                           </p>
                         </div>
                       </div>
+                      
+                      {/* Controles de Quantidade */}
+                      <div 
+                        className="flex items-center justify-between p-3"
+                        style={{
+                          backgroundColor: "#FAFAFA",
+                          borderRadius: "8px",
+                          border: "1px solid #E0E0E0",
+                        }}
+                      >
+                        <span className="text-sm font-medium" style={{ color: "#111111" }}>
+                          Quantidade
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 border-0 transition-all"
+                            style={{
+                              backgroundColor: quantidadeAtual === 0 ? "#E0E0E0" : "#FFFFFF",
+                              borderRadius: "8px",
+                              border: "1px solid #E0E0E0",
+                            }}
+                            disabled={quantidadeAtual === 0}
+                            onClick={() => decrementarSva(sva.id)}
+                            onMouseEnter={(e) => {
+                              if (quantidadeAtual > 0) {
+                                e.currentTarget.style.backgroundColor = "#FF6B35";
+                                e.currentTarget.style.borderColor = "#FF6B35";
+                                e.currentTarget.style.color = "#FFFFFF";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (quantidadeAtual > 0) {
+                                e.currentTarget.style.backgroundColor = "#FFFFFF";
+                                e.currentTarget.style.borderColor = "#E0E0E0";
+                                e.currentTarget.style.color = "";
+                              }
+                            }}
+                          >
+                            <Minus className="w-3 h-3" />
+                          </Button>
+                          
+                          <span
+                            className="w-12 text-center text-base font-bold"
+                            style={{ color: isSelected ? "#1E90FF" : "#111111" }}
+                          >
+                            {quantidadeAtual}
+                          </span>
+                          
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="h-8 w-8 border-0 transition-all"
+                            style={{
+                              backgroundColor: quantidadeAtual >= quantidadeMaxima ? "#E0E0E0" : "#FFFFFF",
+                              borderRadius: "8px",
+                              border: "1px solid #E0E0E0",
+                            }}
+                            disabled={quantidadeAtual >= quantidadeMaxima}
+                            onClick={() => incrementarSva(sva.id)}
+                            onMouseEnter={(e) => {
+                              if (quantidadeAtual < quantidadeMaxima) {
+                                e.currentTarget.style.backgroundColor = "#1E90FF";
+                                e.currentTarget.style.borderColor = "#1E90FF";
+                                e.currentTarget.style.color = "#FFFFFF";
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (quantidadeAtual < quantidadeMaxima) {
+                                e.currentTarget.style.backgroundColor = "#FFFFFF";
+                                e.currentTarget.style.borderColor = "#E0E0E0";
+                                e.currentTarget.style.color = "";
+                              }
+                            }}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {quantidadeAtual > 0 && (
+                        <div 
+                          className="mt-2 text-xs text-center p-2"
+                          style={{
+                            backgroundColor: "rgba(30,144,255,0.1)",
+                            borderRadius: "6px",
+                            color: "#1E90FF",
+                          }}
+                        >
+                          {quantidadeAtual} × {formatPrice(sva.preco)} = {formatPrice(sva.preco * quantidadeAtual)}/mês
+                        </div>
+                      )}
+                      
+                      {quantidadeMaxima > 1 && quantidadeAtual === 0 && (
+                        <p className="mt-2 text-xs text-center" style={{ color: "#555555" }}>
+                          Máximo {quantidadeMaxima} unidades (1 por plano)
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -249,7 +350,7 @@ export function UpsellModal({
               borderTop: "1px solid #E0E0E0",
             }}
           >
-            {selectedSvas.size > 0 && (
+            {totalItensAdicionados > 0 && (
               <div
                 className="p-4"
                 style={{
@@ -264,10 +365,10 @@ export function UpsellModal({
                       className="text-sm font-semibold"
                       style={{ color: "#111111" }}
                     >
-                      {selectedSvas.size}{" "}
-                      {selectedSvas.size === 1
-                        ? "serviço selecionado"
-                        : "serviços selecionados"}
+                      {totalItensAdicionados}{" "}
+                      {totalItensAdicionados === 1
+                        ? "serviço adicional"
+                        : "serviços adicionais"}
                     </p>
                     <p className="text-xs mt-1" style={{ color: "#555555" }}>
                       Valor adicional por mês
@@ -307,31 +408,31 @@ export function UpsellModal({
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={selectedSvas.size === 0}
+                disabled={totalItensAdicionados === 0}
                 className="flex-1 h-12 font-bold shadow-lg border-0 transition-all duration-200"
                 style={{
                   backgroundColor:
-                    selectedSvas.size === 0 ? "#CCCCCC" : "#1E90FF",
+                    totalItensAdicionados === 0 ? "#CCCCCC" : "#1E90FF",
                   color: "#FFFFFF",
                   borderRadius: "12px",
                 }}
                 onMouseEnter={(e) => {
-                  if (selectedSvas.size > 0) {
+                  if (totalItensAdicionados > 0) {
                     e.currentTarget.style.backgroundColor = "#00CFFF";
                     e.currentTarget.style.transform = "scale(1.02)";
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedSvas.size > 0) {
+                  if (totalItensAdicionados > 0) {
                     e.currentTarget.style.backgroundColor = "#1E90FF";
                     e.currentTarget.style.transform = "scale(1)";
                   }
                 }}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {selectedSvas.size === 0
+                {totalItensAdicionados === 0
                   ? "Selecione serviços"
-                  : `Adicionar (${selectedSvas.size})`}
+                  : `Adicionar (${totalItensAdicionados})`}
               </Button>
             </div>
 

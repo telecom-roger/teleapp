@@ -171,7 +171,7 @@ export default function CheckoutConfirmacao() {
       localStorage.removeItem("checkout-dados");
       localStorage.removeItem("checkout-endereco");
       localStorage.removeItem("checkout-documentos");
-      setLocation(`/ecommerce/checkout/obrigado?pedido=${data.orderId}`);
+      setLocation(`/ecommerce/checkout/obrigado?pedido=${data.orderCode}`);
     },
     onError: (error: Error) => {
       console.error("Erro ao criar pedido:", error);

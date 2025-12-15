@@ -1,3 +1,4 @@
+
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
 import {
@@ -14,6 +15,58 @@ import path from "path";
 import fs from "fs";
 
 const router = Router();
+
+/**
+ * GET /api/ecommerce/customer/orders
+ * Lista todos os pedidos do cliente logado
+ */
+router.get(
+  "/orders",
+  requireRole(["customer"]),
+  async (req: Request, res: Response) => {
+    try {
+      const user = req.user as any;
+      const orders = await db
+        .select()
+        .from(ecommerceOrders)
+        .where(eq(ecommerceOrders.clientId, user.clientId))
+        .orderBy(desc(ecommerceOrders.createdAt));
+
+      // Para cada pedido, buscar todos os campos esperados e os itens
+      const ordersWithDetails = await Promise.all(
+        orders.map(async (order) => {
+          const items = await db
+            .select()
+            .from(ecommerceOrderItems)
+            .where(eq(ecommerceOrderItems.orderId, order.id));
+
+          return {
+            id: order.id,
+            orderCode: order.orderCode,
+            clientId: order.clientId,
+            etapa: order.etapa,
+            total: order.total,
+            subtotal: order.subtotal,
+            taxaInstalacao: order.taxaInstalacao,
+            economia: order.economia,
+            observacoes: order.observacoes,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+            items,
+          };
+        })
+      );
+
+      res.json({
+        orders: ordersWithDetails,
+        count: ordersWithDetails.length,
+      });
+    } catch (error: any) {
+      console.error("Erro ao listar pedidos:", error);
+      res.status(500).json({ error: "Erro ao listar pedidos" });
+    }
+  }
+);
 
 // Configurar multer para upload de documentos
 const storage = multer.diskStorage({
@@ -46,68 +99,39 @@ const upload = multer({
   },
 });
 
-/**
- * GET /api/ecommerce/customer/orders
- * Lista todos os pedidos do cliente logado
- */
 router.get(
-  "/orders",
+  "/orders/:orderKey",
   requireRole(["customer"]),
   async (req: Request, res: Response) => {
     try {
       const user = req.user as any;
-
-      const orders = await db
-        .select()
-        .from(ecommerceOrders)
-        .where(eq(ecommerceOrders.clientId, user.clientId))
-        .orderBy(desc(ecommerceOrders.createdAt));
-
-      // Para cada pedido, buscar os itens
-      const ordersWithItems = await Promise.all(
-        orders.map(async (order) => {
-          const items = await db
-            .select()
-            .from(ecommerceOrderItems)
-            .where(eq(ecommerceOrderItems.orderId, order.id));
-
-          return {
-            ...order,
-            items,
-          };
-        })
-      );
-
-      res.json(ordersWithItems);
-    } catch (error: any) {
-      console.error("Erro ao buscar pedidos:", error);
-      res.status(500).json({ error: "Erro ao buscar pedidos" });
-    }
-  }
-);
-
-/**
- * GET /api/ecommerce/customer/orders/:orderId
- * Detalhes de um pedido específico
- */
-router.get(
-  "/orders/:orderId",
-  requireRole(["customer"]),
-  async (req: Request, res: Response) => {
-    try {
-      const user = req.user as any;
-      const { orderId } = req.params;
-
-      const [order] = await db
-        .select()
-        .from(ecommerceOrders)
-        .where(
-          and(
-            eq(ecommerceOrders.id, orderId),
-            eq(ecommerceOrders.clientId, user.clientId)
+      const { orderKey } = req.params;
+      let order;
+      if (/^\d+$/.test(orderKey)) {
+        // Buscar por orderCode
+        [order] = await db
+          .select()
+          .from(ecommerceOrders)
+          .where(
+            and(
+              eq(ecommerceOrders.orderCode, orderKey),
+              eq(ecommerceOrders.clientId, user.clientId)
+            )
           )
-        )
-        .limit(1);
+          .limit(1);
+      } else {
+        // Buscar por id (UUID)
+        [order] = await db
+          .select()
+          .from(ecommerceOrders)
+          .where(
+            and(
+              eq(ecommerceOrders.id, orderKey),
+              eq(ecommerceOrders.clientId, user.clientId)
+            )
+          )
+          .limit(1);
+      }
 
       if (!order) {
         return res.status(404).json({ error: "Pedido não encontrado" });
@@ -117,16 +141,17 @@ router.get(
       const items = await db
         .select()
         .from(ecommerceOrderItems)
-        .where(eq(ecommerceOrderItems.orderId, orderId));
+        .where(eq(ecommerceOrderItems.orderId, order.id));
 
       // Buscar documentos
       const documents = await db
         .select()
         .from(ecommerceOrderDocuments)
-        .where(eq(ecommerceOrderDocuments.orderId, orderId));
+        .where(eq(ecommerceOrderDocuments.orderId, order.id));
 
       res.json({
         ...order,
+        orderCode: order.orderCode,
         items,
         documents,
       });
