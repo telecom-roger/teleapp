@@ -30,6 +30,9 @@ export function CartSidebar() {
     getSubtotal,
     getItemCount,
     addItem,
+    getTotalLinhas,
+    canAddMoreSva,
+    getSvaCount,
   } = useCartStore();
 
   const getCategoryIcon = (categoria: string | null) => {
@@ -251,11 +254,54 @@ export function CartSidebar() {
                       e.currentTarget.style.color = "#555555";
                       e.currentTarget.style.backgroundColor = "transparent";
                     }}
-                    onClick={() => removeItem(item.product.id)}
+                    onClick={() => removeItem(item.product.id, item.cartItemId)}
                   >
                     <X className="w-4 h-4" />
                   </Button>
                 </div>
+
+                {/* SVA Info - mostrar quantos podem ser adicionados ainda */}
+                {item.categoria?.toLowerCase().includes('sva') && (
+                  <div
+                    className="p-3 mb-2"
+                    style={{
+                      backgroundColor: "#F0F9FF",
+                      border: "1px solid #1E90FF",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between items-center">
+                        <span style={{ color: "#555555" }}>
+                          SVAs deste tipo no carrinho:
+                        </span>
+                        <span className="font-semibold" style={{ color: "#1E90FF" }}>
+                          {getSvaCount(item.product.id)} de {getTotalLinhas()}
+                        </span>
+                      </div>
+                      {canAddMoreSva(item.product.id) && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="w-full mt-2"
+                          onClick={() => addItem(item.product, 1)}
+                          style={{
+                            borderColor: "#1E90FF",
+                            color: "#1E90FF",
+                          }}
+                        >
+                          <Plus className="w-3 h-3 mr-1" />
+                          Adicionar mais um
+                        </Button>
+                      )}
+                      {!canAddMoreSva(item.product.id) && (
+                        <p className="text-[10px] text-orange-600 mt-1">
+                          Limite atingido (1 SVA por linha contratada)
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* GB Info */}
                 {item.product.franquia && item.quantidade > 1 && (
@@ -342,7 +388,7 @@ export function CartSidebar() {
                         e.currentTarget.style.color = "";
                       }}
                       onClick={() =>
-                        updateQuantity(item.product.id, item.quantidade - 1)
+                        updateQuantity(item.product.id, item.quantidade - 1, item.cartItemId)
                       }
                     >
                       <Minus className="w-3 h-3" />
@@ -370,7 +416,7 @@ export function CartSidebar() {
                         e.currentTarget.style.color = "";
                       }}
                       onClick={() =>
-                        updateQuantity(item.product.id, item.quantidade + 1)
+                        updateQuantity(item.product.id, item.quantidade + 1, item.cartItemId)
                       }
                     >
                       <Plus className="w-3 h-3" />
