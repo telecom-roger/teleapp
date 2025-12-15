@@ -515,12 +515,16 @@ export function registerEcommerceRoutes(app: Express): void {
         }
       }
 
+      // Gerar código único do pedido
+      const orderCode = Math.floor(10000000 + Math.random() * 89999999).toString();
+
       // Criar pedido
       const [order] = await db
         .insert(ecommerceOrders)
         .values({
           ...orderData,
           clientId,
+          orderCode,
           etapa: "novo_pedido",
         })
         .returning();

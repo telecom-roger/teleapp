@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface Order {
   id: string;
+  orderCode?: string;
   clientId: string;
   etapa: string;
   execucaoTipo?:
@@ -40,6 +41,14 @@ interface Order {
   taxaInstalacao: number;
   economia: number;
   observacoes: string | null;
+  // Campos de endereço
+  cep?: string | null;
+  endereco?: string | null;
+  numero?: string | null;
+  complemento?: string | null;
+  bairro?: string | null;
+  cidade?: string | null;
+  uf?: string | null;
   createdAt: string;
   items: OrderItem[];
 }
@@ -102,8 +111,8 @@ export default function CustomerOrders() {
   const orders = data?.orders ?? [];
 
   const { data: orderDetail, isLoading: loadingDetail } = useQuery<Order>({
-    queryKey: [`/api/ecommerce/customer/orders/${orderCode}`],
-    enabled: !!orderCode,
+    queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
+    enabled: !!orderId,
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
   });
@@ -112,9 +121,9 @@ export default function CustomerOrders() {
     RequestedDocument[]
   >({
     queryKey: [
-      `/api/ecommerce/customer/orders/${orderCode}/requested-documents`,
+      `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
     ],
-    enabled: !!orderCode,
+    enabled: !!orderId,
     refetchInterval: 3000, // Atualizar a cada 3 segundos
     refetchOnWindowFocus: true,
   });
@@ -149,11 +158,11 @@ export default function CustomerOrders() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/ecommerce/customer/orders/${orderCode}/requested-documents`,
+          `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
         ],
       });
       queryClient.invalidateQueries({
-        queryKey: [`/api/ecommerce/customer/orders/${orderCode}`],
+        queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
       });
       setUploadingDoc(null);
       toast({
@@ -369,7 +378,7 @@ export default function CustomerOrders() {
   };
 
   // Visualização detalhada do pedido
-  if (orderCode) {
+  if (orderId) {
     const statusInfo = orderDetail
       ? getStatusInfo(orderDetail.etapa, orderDetail.execucaoTipo)
       : null;
