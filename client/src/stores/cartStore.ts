@@ -175,6 +175,19 @@ export const useCartStore = create<CartStore>()(
             (item.linhasAdicionais || 0) *
             (item.product.valorPorLinhaAdicional || 0);
           return total + basePrice + linhasPrice;
+        }, 0);
+      },
+
+      getSubtotal: () => {
+        return get().items.reduce(
+          (total, item) => total + item.product.preco * item.quantidade,
+          0
+        );
+      },
+
+      getItemCount: () => {
+        return get().items.reduce((count, item) => count + item.quantidade, 0);
+      },
 
       getTotalLinhas: () => {
         return get().items.reduce((total, item) => {
@@ -199,19 +212,6 @@ export const useCartStore = create<CartStore>()(
           }
           return count;
         }, 0);
-      },
-        }, 0);
-      },
-
-      getSubtotal: () => {
-        return get().items.reduce(
-          (total, item) => total + item.product.preco * item.quantidade,
-          0
-        );
-      },
-
-      getItemCount: () => {
-        return get().items.reduce((count, item) => count + item.quantidade, 0);
       },
     }),
     {
