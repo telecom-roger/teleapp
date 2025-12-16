@@ -1,8 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/stores/cartStore";
 import { CartSidebar, CartBottomBar } from "@/components/ecommerce/CartSidebar";
@@ -26,6 +32,7 @@ import {
   Shield,
   Package,
   Calculator,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -121,8 +128,18 @@ export default function EcommercePlanos() {
     null
   );
   const [tempoInicioPagina] = useState(Date.now());
+  const [tooltipOperadoraOpen, setTooltipOperadoraOpen] = useState(false);
+  const [tooltipCategoriaOpen, setTooltipCategoriaOpen] = useState(false);
 
-  const { addItem, removeItem, openCart } = useCartStore();
+  const { addItem, removeItem, openCart, items: cartItems } = useCartStore();
+
+  // Sincronizar planosSelecionados com items do carrinho
+  useEffect(() => {
+    const idsNoCarrinho = new Set(
+      cartItems.map(item => item.product.id)
+    );
+    setPlanosSelecionados(idsNoCarrinho);
+  }, [cartItems]);
 
   // 🆕 Aliases para compatibilidade com código existente
   const categoriasFiltro = contextoAtivo.categorias;
@@ -170,6 +187,13 @@ export default function EcommercePlanos() {
           fibra: categoriasUrl.includes("fibra"),
           combo: categoriasUrl.includes("combo"),
         });
+
+        // Se linhas >= 10, ativar campo personalizado
+        const linhasNumero = linhasUrl ? Number(linhasUrl) : 0;
+        if (linhasNumero >= 10) {
+          setMostrarCampoPersonalizado(true);
+          setLinhasPersonalizado(linhasNumero.toString());
+        }
 
         // NÃO capturar como contexto inicial (veio de CTA/link)
         console.log("📍 Filtros carregados da URL (não é contexto inicial)");
@@ -227,7 +251,30 @@ export default function EcommercePlanos() {
   );
 
   // 3. Ordenar por score contextual
-  const produtosOrdenados = ordenarPorScore(produtosComScore);
+  const produtosPorScore = ordenarPorScore(produtosComScore);
+
+  // 3.5 Aplicar ordenação manual do usuário
+  const produtosOrdenados = useMemo(() => {
+    const produtos = [...produtosPorScore];
+    
+    switch (ordenacao) {
+      case "menor-preco":
+        return produtos.sort((a, b) => (a.preco || 0) - (b.preco || 0));
+      case "maior-preco":
+        return produtos.sort((a, b) => (b.preco || 0) - (a.preco || 0));
+      case "velocidade":
+        return produtos.sort((a, b) => {
+          const velA = parseInt(a.velocidade || "0");
+          const velB = parseInt(b.velocidade || "0");
+          return velB - velA;
+        });
+      case "popularidade":
+        return produtos.sort((a, b) => (b.popularidade || 0) - (a.popularidade || 0));
+      case "relevancia":
+      default:
+        return produtos; // Mantém ordenação por score
+    }
+  }, [produtosPorScore, ordenacao]);
 
   // 4. Calcular badges dinâmicos
   const badgesMap = useBadgeDinamico(produtosOrdenados, contextoAtivo);
@@ -487,10 +534,10 @@ export default function EcommercePlanos() {
 
         {/* Removido: Badge de múltiplas linhas */}
 
-        {/* Filtros Card - Sticky apenas mobile */}
-        <div className="sticky top-0 z-30 md:static md:z-0 mb-8">
+        {/* Filtros Card - Sticky otimizado */}
+        <div className="mb-8">
           <Card
-            className="shadow-lg border-0"
+            className="shadow-lg border-0 sticky top-16 z-40"
             style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
           >
             <CardContent className="p-6">
@@ -510,15 +557,11 @@ export default function EcommercePlanos() {
                 >
                   <span className="flex items-center gap-2">
                     <Filter className="h-4 w-4" />
-                    Filtros
-                    {filtrosAtivos > 0 && (
-                      <Badge
-                        className="ml-2 border-0"
-                        style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
-                      >
-                        {filtrosAtivos}
-                      </Badge>
-                    )}
+                    {filtrosAtivos > 0 ? (
+                      <>
+                        Filtros <span className="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-500 text-white">{filtrosAtivos}</span> selecionados
+                      </>
+                    ) : "Filtros"}
                   </span>
                   <ChevronDown
                     className={cn(
@@ -609,272 +652,197 @@ export default function EcommercePlanos() {
                 </div>
               </div>
 
-              {/* Quantidade de Linhas */}
-              <div>
-                <label
-                  className="block text-sm font-bold mb-3"
-                  style={{ color: "#111111" }}
-                >
-                  Quantas linhas você precisa?
-                </label>
-                {!mostrarCampoPersonalizado ? (
-                  <select
-                    value={contextoAtivo.linhas || 1}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      if (val === 10) {
-                        setMostrarCampoPersonalizado(true);
-                        setLinhasPersonalizado("10");
-                        setLinhas(10);
-                      } else {
-                        setLinhas(val);
-                      }
-                    }}
-                    className="w-full h-10 px-4 font-semibold transition-all duration-300"
-                    style={{
-                      borderRadius: "12px",
-                      border: "2px solid #E0E0E0",
-                      backgroundColor: "#FFFFFF",
-                      color: "#555555",
-                      outline: "none",
-                    }}
-                    onFocus={(e) => {
-                      e.currentTarget.style.borderColor = "#1E90FF";
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(30,144,255,0.05)";
-                    }}
-                    onBlur={(e) => {
-                      e.currentTarget.style.borderColor = "#E0E0E0";
-                      e.currentTarget.style.backgroundColor = "#FFFFFF";
-                    }}
+              {/* Quantidade de Linhas + Operadora (lado a lado no desktop) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Quantidade de Linhas */}
+                <div>
+                  <label
+                    className="block text-sm font-bold mb-3"
+                    style={{ color: "#111111" }}
                   >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                      <option key={num} value={num}>
-                        {num} {num === 1 ? "linha" : "linhas"}
-                      </option>
-                    ))}
-                    <option value={10}>10+ linhas (personalizado)</option>
-                  </select>
-                ) : (
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      min="10"
-                      max="999"
-                      value={linhasPersonalizado}
+                    Quantas linhas você precisa?
+                  </label>
+                  {!mostrarCampoPersonalizado ? (
+                    <select
+                      value={contextoAtivo.linhas || 1}
                       onChange={(e) => {
-                        setLinhasPersonalizado(e.target.value);
                         const val = Number(e.target.value);
-                        if (val >= 10) {
+                        if (val === 10) {
+                          setMostrarCampoPersonalizado(true);
+                          setLinhasPersonalizado("10");
+                          setLinhas(10);
+                          // Focar no campo após um pequeno delay para renderizar
+                          setTimeout(() => {
+                            document.getElementById("linhas-personalizado")?.focus();
+                          }, 100);
+                        } else {
                           setLinhas(val);
                         }
                       }}
-                      className="flex-1 h-10 px-4 font-semibold transition-all duration-300"
-                      placeholder="Digite a quantidade"
+                      className="w-full h-10 px-4 font-semibold transition-all duration-300 text-sm"
                       style={{
                         borderRadius: "12px",
-                        border: "2px solid #1E90FF",
-                        backgroundColor: "rgba(30,144,255,0.05)",
-                        color: "#111111",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#555555",
                         outline: "none",
                       }}
-                    />
-                    <button
-                      onClick={() => {
-                        setMostrarCampoPersonalizado(false);
-                        setLinhas(1);
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#1E90FF";
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(30,144,255,0.05)";
                       }}
-                      className="h-10 px-4 font-semibold transition-all duration-300"
-                      style={{
-                        borderRadius: "12px",
-                        border: "1px solid #E0E0E0",
-                        backgroundColor: "#FAFAFA",
-                        color: "#555555",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#FF6B35";
-                        e.currentTarget.style.color = "#FFFFFF";
-                        e.currentTarget.style.borderColor = "#FF6B35";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#FAFAFA";
-                        e.currentTarget.style.color = "#555555";
+                      onBlur={(e) => {
                         e.currentTarget.style.borderColor = "#E0E0E0";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
                       }}
                     >
-                      ✕
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Categoria - MULTI SELECT */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label
-                    className="text-sm font-bold"
-                    style={{ color: "#111111" }}
-                  >
-                    Tipo de serviço
-                  </label>
-                  <Badge
-                    className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                    style={{
-                      backgroundColor: "#FF6B35",
-                      color: "#FFFFFF",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    MULTI
-                  </Badge>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => setCategoria([])}
-                    className={cn(
-                      "h-10 px-6 font-semibold border-0 transition-all duration-300",
-                      categoriasFiltro.length === 0
-                        ? "shadow-lg"
-                        : "hover:shadow-md"
-                    )}
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor:
-                        categoriasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
-                      color:
-                        categoriasFiltro.length === 0 ? "#FFFFFF" : "#555555",
-                      border:
-                        categoriasFiltro.length === 0
-                          ? "none"
-                          : "1px solid #E0E0E0",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (categoriasFiltro.length > 0) {
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                        e.currentTarget.style.color = "#1E90FF";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (categoriasFiltro.length > 0) {
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                        e.currentTarget.style.color = "#555555";
-                      }
-                    }}
-                  >
-                    Todos
-                  </button>
-                  {categorias.map((cat) => {
-                    const Icon = getIconeCategoria(cat.slug);
-                    const isSelected = categoriasFiltro.includes(cat.slug);
-                    return (
-                      <button
-                        key={cat.id}
-                        onClick={() => toggleCategoria(cat.slug)}
-                        className={cn(
-                          "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2 relative",
-                          isSelected ? "shadow-lg" : "hover:shadow-md"
-                        )}
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        <option key={num} value={num}>
+                          {num} {num === 1 ? "linha" : "linhas"}
+                        </option>
+                      ))}
+                      <option value={10}>10+ linhas (personalizado)</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        id="linhas-personalizado"
+                        type="number"
+                        min="10"
+                        max="999"
+                        value={linhasPersonalizado}
+                        onChange={(e) => {
+                          setLinhasPersonalizado(e.target.value);
+                          const val = Number(e.target.value);
+                          if (val >= 10) {
+                            setLinhas(val);
+                          }
+                        }}
+                        className="flex-1 h-10 px-4 font-semibold transition-all duration-300 text-sm"
+                        placeholder="Digite a quantidade de linhas..."
                         style={{
                           borderRadius: "12px",
-                          backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
-                          color: isSelected ? "#FFFFFF" : "#555555",
-                          border: isSelected ? "none" : "1px solid #E0E0E0",
+                          border: "2px solid #1E90FF",
+                          backgroundColor: "rgba(30,144,255,0.05)",
+                          color: "#111111",
+                          outline: "none",
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          setMostrarCampoPersonalizado(false);
+                          setLinhas(1);
+                        }}
+                        className="h-10 px-4 font-semibold transition-all duration-300"
+                        style={{
+                          borderRadius: "12px",
+                          border: "1px solid #E0E0E0",
+                          backgroundColor: "#FAFAFA",
+                          color: "#555555",
                         }}
                         onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#1E90FF";
-                            e.currentTarget.style.color = "#1E90FF";
-                          }
+                          e.currentTarget.style.backgroundColor = "#FF6B35";
+                          e.currentTarget.style.color = "#FFFFFF";
+                          e.currentTarget.style.borderColor = "#FF6B35";
                         }}
                         onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#E0E0E0";
-                            e.currentTarget.style.color = "#555555";
-                          }
+                          e.currentTarget.style.backgroundColor = "#FAFAFA";
+                          e.currentTarget.style.color = "#555555";
+                          e.currentTarget.style.borderColor = "#E0E0E0";
                         }}
                       >
-                        {isSelected && (
-                          <div
-                            className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: "#00CFFF" }}
-                          >
-                            <Check
-                              className="w-3 h-3"
-                              style={{ color: "#FFFFFF" }}
-                            />
-                          </div>
-                        )}
-                        <Icon className="w-4 h-4" />
-                        {cat.nome}
+                        ✕
                       </button>
-                    );
-                  })}
+                    </div>
+                  )}
                 </div>
-              </div>
 
-              {/* Operadora - MULTI SELECT */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label
-                    className="text-sm font-bold"
-                    style={{ color: "#111111" }}
-                  >
-                    Operadora
-                  </label>
-                  <Badge
-                    className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                    style={{
-                      backgroundColor: "#FF6B35",
-                      color: "#FFFFFF",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    MULTI
-                  </Badge>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  <button
-                    onClick={() => setOperadora([])}
-                    className={cn(
-                      "h-10 px-6 font-semibold border-0 transition-all duration-300",
-                      operadorasFiltro.length === 0
-                        ? "shadow-lg"
-                        : "hover:shadow-md"
-                    )}
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor:
-                        operadorasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
-                      color:
-                        operadorasFiltro.length === 0 ? "#FFFFFF" : "#555555",
-                      border:
+                {/* Operadora - MULTI SELECT */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <label
+                      className="text-sm font-bold"
+                      style={{ color: "#111111" }}
+                    >
+                      Operadora
+                    </label>
+                    <Badge
+                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: "#FF6B35",
+                        color: "#FFFFFF",
+                        borderRadius: "6px",
+                      }}
+                    >
+                      MULTI
+                    </Badge>
+                    <TooltipProvider>
+                      <Tooltip open={tooltipOperadoraOpen} onOpenChange={setTooltipOperadoraOpen}>
+                        <TooltipTrigger asChild>
+                          <button 
+                            className="focus:outline-none"
+                            onClick={() => {
+                              setTooltipOperadoraOpen(true);
+                              setTimeout(() => setTooltipOperadoraOpen(false), 3000);
+                            }}
+                          >
+                            <HelpCircle
+                              className="w-3.5 h-3.5"
+                              style={{ color: "#999999" }}
+                            />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Você pode escolher mais de uma opção</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex gap-3 flex-wrap">
+                    <button
+                      onClick={() => setOperadora([])}
+                      className={cn(
+                        "h-10 px-6 font-semibold border-0 transition-all duration-300",
                         operadorasFiltro.length === 0
-                          ? "none"
-                          : "1px solid #E0E0E0",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (operadorasFiltro.length > 0) {
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                        e.currentTarget.style.color = "#1E90FF";
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (operadorasFiltro.length > 0) {
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                        e.currentTarget.style.color = "#555555";
-                      }
-                    }}
-                  >
-                    Todas
-                  </button>
-                  {Object.entries(OPERADORA_COLORS).map(([key, config]) => {
-                    const isSelected = operadorasFiltro.includes(key);
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => toggleOperadora(key)}
-                        className={cn(
-                          "h-10 px-6 font-bold border-0 transition-all duration-300 relative",
+                          ? "shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor:
+                          operadorasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
+                        color:
+                          operadorasFiltro.length === 0 ? "#FFFFFF" : "#555555",
+                        border:
+                          operadorasFiltro.length === 0
+                            ? "none"
+                            : "1px solid #E0E0E0",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (operadorasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#1E90FF";
+                          e.currentTarget.style.color = "#1E90FF";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (operadorasFiltro.length > 0) {
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                          e.currentTarget.style.color = "#555555";
+                        }
+                      }}
+                    >
+                      Todas
+                    </button>
+                    {Object.entries(OPERADORA_COLORS).map(([key, config]) => {
+                      const isSelected = operadorasFiltro.includes(key);
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => toggleOperadora(key)}
+                          className={cn(
+                            "h-10 px-6 font-bold border-0 transition-all duration-300 relative",
                           isSelected ? "shadow-lg" : "hover:shadow-md"
                         )}
                         style={{
@@ -913,29 +881,159 @@ export default function EcommercePlanos() {
                   })}
                 </div>
               </div>
+            </div>
 
-              {/* Botões de ação dos filtros */}
-              <div className="flex gap-3 mt-6">
+            {/* Categoria - MULTI SELECT */}
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <label
+                  className="text-sm font-bold"
+                  style={{ color: "#111111" }}
+                >
+                  Tipo de serviço
+                </label>
+                <Badge
+                  className="border-0 px-2 py-0.5 text-[10px] font-bold"
+                  style={{
+                    backgroundColor: "#FF6B35",
+                    color: "#FFFFFF",
+                    borderRadius: "6px",
+                  }}
+                >
+                  MULTI
+                </Badge>
+                <TooltipProvider>
+                  <Tooltip open={tooltipCategoriaOpen} onOpenChange={setTooltipCategoriaOpen}>
+                    <TooltipTrigger asChild>
+                      <button 
+                        className="focus:outline-none"
+                        onClick={() => {
+                          setTooltipCategoriaOpen(true);
+                          setTimeout(() => setTooltipCategoriaOpen(false), 3000);
+                        }}
+                      >
+                        <HelpCircle
+                          className="w-3.5 h-3.5"
+                          style={{ color: "#999999" }}
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Você pode escolher mais de uma opção</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                <button
+                  onClick={() => setCategoria([])}
+                  className={cn(
+                    "h-10 px-6 font-semibold border-0 transition-all duration-300",
+                    categoriasFiltro.length === 0
+                      ? "shadow-lg"
+                      : "hover:shadow-md"
+                  )}
+                  style={{
+                    borderRadius: "12px",
+                    backgroundColor:
+                      categoriasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
+                    color:
+                      categoriasFiltro.length === 0 ? "#FFFFFF" : "#555555",
+                    border:
+                      categoriasFiltro.length === 0
+                        ? "none"
+                        : "1px solid #E0E0E0",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (categoriasFiltro.length > 0) {
+                      e.currentTarget.style.borderColor = "#1E90FF";
+                      e.currentTarget.style.color = "#1E90FF";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (categoriasFiltro.length > 0) {
+                      e.currentTarget.style.borderColor = "#E0E0E0";
+                      e.currentTarget.style.color = "#555555";
+                    }
+                  }}
+                >
+                  Todos
+                </button>
+                {categorias.map((cat) => {
+                  const Icon = getIconeCategoria(cat.slug);
+                  const isSelected = categoriasFiltro.includes(cat.slug);
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => toggleCategoria(cat.slug)}
+                      className={cn(
+                        "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2 relative",
+                        isSelected ? "shadow-lg" : "hover:shadow-md"
+                      )}
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
+                        color: isSelected ? "#FFFFFF" : "#555555",
+                        border: isSelected ? "none" : "1px solid #E0E0E0",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = "#1E90FF";
+                          e.currentTarget.style.color = "#1E90FF";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                          e.currentTarget.style.color = "#555555";
+                        }
+                      }}
+                    >
+                      {isSelected && (
+                        <div
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: "#00CFFF" }}
+                        >
+                          <Check
+                            className="w-3 h-3"
+                            style={{ color: "#FFFFFF" }}
+                          />
+                        </div>
+                      )}
+                      <Icon className="w-4 h-4" />
+                      {cat.nome}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Botões de ação dos filtros */}
+              <div className="flex gap-2 mt-6">
                 {filtrosAtivos > 0 && (
                   <Button
                     onClick={limparFiltros}
                     variant="outline"
-                    className="flex-1 md:flex-initial"
+                    className="flex-1 md:flex-none text-xs sm:text-sm px-3 md:px-4"
                     style={{ borderColor: "#E0E0E0", color: "#555555" }}
                   >
-                    <X className="w-4 h-4 mr-2" />
-                    Limpar filtros
+                    <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                    Limpar
                   </Button>
                 )}
                 
+                {/* Botão Aplicar Filtros - APENAS MOBILE */}
                 <Button
-                  onClick={() => setMostrarFiltros(false)}
-                  className="flex-1 md:flex-initial"
+                  onClick={() => {
+                    setMostrarFiltros(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="flex-1 md:hidden text-xs sm:text-sm px-2 sm:px-4"
                   style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
                   disabled={tipoPessoaFiltro === "ambos"}
                 >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Aplicar Filtros
+                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Aplicar
                   {filtrosAtivos > 0 && ` (${filtrosAtivos})`}
                 </Button>
               </div>

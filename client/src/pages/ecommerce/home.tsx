@@ -20,11 +20,18 @@ import {
   Search,
   Briefcase,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 import { CartSidebar } from "@/components/ecommerce/CartSidebar";
@@ -91,6 +98,8 @@ export default function EcommerceHome() {
   const [mostrarCampoPersonalizado, setMostrarCampoPersonalizado] =
     useState(false);
   const [linhasPersonalizado, setLinhasPersonalizado] = useState<string>("10");
+  const [tooltipCategoriaOpen, setTooltipCategoriaOpen] = useState(false);
+  const [tooltipOperadoraOpen, setTooltipOperadoraOpen] = useState(false);
 
   const { data: categorias = [] } = useQuery<EcommerceCategory[]>({
     queryKey: ["/api/ecommerce/public/categories"],
@@ -135,7 +144,7 @@ export default function EcommerceHome() {
     const linhasFinais = mostrarCampoPersonalizado
       ? parseInt(linhasPersonalizado)
       : quantidadeLinhas;
-    if (linhasFinais > 1) params.set("linhas", linhasFinais.toString());
+    params.set("linhas", linhasFinais.toString());
 
     window.location.href = `/ecommerce/planos?${params.toString()}`;
   };
@@ -432,7 +441,7 @@ export default function EcommerceHome() {
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <label
-                      className="text-sm font-bold"
+                      className="text-sm md:text-xs font-bold"
                       style={{ color: "#111111" }}
                     >
                       Você é Pessoa Física ou Jurídica?
@@ -460,7 +469,7 @@ export default function EcommerceHome() {
                       <button
                         key={tipo.value}
                         onClick={() => setTipoPessoa(tipo.value as "PF" | "PJ")}
-                        className="p-3 flex items-center justify-center gap-2 text-left font-bold transition-all duration-300"
+                        className="p-3 flex items-center justify-center gap-2 text-left font-bold transition-all duration-300 text-sm md:text-xs"
                         style={{
                           borderRadius: "12px",
                           border: `2px solid ${
@@ -499,7 +508,7 @@ export default function EcommerceHome() {
                 {/* Filtro 2: Novo Cliente ou Portabilidade */}
                 <div>
                   <label
-                    className="block text-sm font-bold mb-3"
+                    className="block text-sm md:text-xs font-bold mb-3"
                     style={{ color: "#111111" }}
                   >
                     É cliente novo ou quer fazer portabilidade?
@@ -514,7 +523,7 @@ export default function EcommerceHome() {
                         onClick={() =>
                           setModalidade(opt.value as "novo" | "portabilidade")
                         }
-                        className="p-3 text-center font-bold transition-all duration-300"
+                        className="p-3 text-center font-bold transition-all duration-300 text-sm md:text-xs"
                         style={{
                           borderRadius: "12px",
                           border: `2px solid ${
@@ -549,105 +558,11 @@ export default function EcommerceHome() {
                   </div>
                 </div>
 
-                {/* Filtro: Quantidade de Linhas */}
+                {/* Filtro 3: Categoria - MULTI SELECT */}
                 <div>
-                  <label
-                    className="block text-sm font-bold mb-3"
-                    style={{ color: "#111111" }}
-                  >
-                    Quantas linhas você precisa?
-                  </label>
-                  {!mostrarCampoPersonalizado ? (
-                    <select
-                      value={quantidadeLinhas}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val === 10) {
-                          setMostrarCampoPersonalizado(true);
-                          setLinhasPersonalizado("10");
-                        } else {
-                          setQuantidadeLinhas(val);
-                        }
-                      }}
-                      className="w-full p-3 font-bold transition-all duration-300"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#555555",
-                        outline: "none",
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                        e.currentTarget.style.backgroundColor =
-                          "rgba(30,144,255,0.05)";
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                        e.currentTarget.style.backgroundColor = "#FFFFFF";
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? "linha" : "linhas"}
-                        </option>
-                      ))}
-                      <option value={10}>10+ linhas (personalizado)</option>
-                    </select>
-                  ) : (
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        min="10"
-                        max="999"
-                        value={linhasPersonalizado}
-                        onChange={(e) => setLinhasPersonalizado(e.target.value)}
-                        className="flex-1 p-3 font-bold transition-all duration-300"
-                        placeholder="Digite a quantidade"
-                        style={{
-                          borderRadius: "12px",
-                          border: "2px solid #1E90FF",
-                          backgroundColor: "rgba(30,144,255,0.05)",
-                          color: "#111111",
-                          outline: "none",
-                        }}
-                      />
-                      <button
-                        onClick={() => {
-                          setMostrarCampoPersonalizado(false);
-                          setQuantidadeLinhas(1);
-                        }}
-                        className="px-4 py-3 font-bold transition-all duration-300"
-                        style={{
-                          borderRadius: "12px",
-                          border: "1px solid #E0E0E0",
-                          backgroundColor: "#FAFAFA",
-                          color: "#555555",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FF6B35";
-                          e.currentTarget.style.color = "#FFFFFF";
-                          e.currentTarget.style.borderColor = "#FF6B35";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FAFAFA";
-                          e.currentTarget.style.color = "#555555";
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                        }}
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Grid com 2 colunas para Categoria e Operadora */}
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Filtro 3: Categoria - MULTI SELECT */}
-                  <div>
                     <div className="flex items-center gap-2 mb-3">
                       <label
-                        className="text-sm font-bold"
+                        className="text-sm md:text-xs font-bold"
                         style={{ color: "#111111" }}
                       >
                         Que tipo de plano você busca?
@@ -662,6 +577,27 @@ export default function EcommerceHome() {
                       >
                         MULTI
                       </Badge>
+                      <TooltipProvider>
+                        <Tooltip open={tooltipCategoriaOpen} onOpenChange={setTooltipCategoriaOpen}>
+                          <TooltipTrigger asChild>
+                            <button 
+                              className="focus:outline-none"
+                              onClick={() => {
+                                setTooltipCategoriaOpen(true);
+                                setTimeout(() => setTooltipCategoriaOpen(false), 3000);
+                              }}
+                            >
+                              <HelpCircle
+                                className="w-3.5 h-3.5"
+                                style={{ color: "#999999" }}
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Você pode escolher mais de uma opção</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {categorias.slice(0, 4).map((cat) => {
@@ -724,7 +660,7 @@ export default function EcommerceHome() {
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <label
-                        className="text-sm font-bold"
+                        className="text-sm md:text-xs font-bold"
                         style={{ color: "#111111" }}
                       >
                         Tem preferência de operadora?
@@ -739,6 +675,27 @@ export default function EcommerceHome() {
                       >
                         MULTI
                       </Badge>
+                      <TooltipProvider>
+                        <Tooltip open={tooltipOperadoraOpen} onOpenChange={setTooltipOperadoraOpen}>
+                          <TooltipTrigger asChild>
+                            <button 
+                              className="focus:outline-none"
+                              onClick={() => {
+                                setTooltipOperadoraOpen(true);
+                                setTimeout(() => setTooltipOperadoraOpen(false), 3000);
+                              }}
+                            >
+                              <HelpCircle
+                                className="w-3.5 h-3.5"
+                                style={{ color: "#999999" }}
+                              />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Você pode escolher mais de uma opção</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {[
@@ -809,6 +766,104 @@ export default function EcommerceHome() {
                   </div>
                 </div>
 
+                {/* Filtro: Quantidade de Linhas - Último, lado esquerdo reduzido */}
+                <div className="max-w-md">
+                  <label
+                    className="block text-sm md:text-xs font-bold mb-3"
+                    style={{ color: "#111111" }}
+                  >
+                    Quantas linhas você precisa?
+                  </label>
+                  {!mostrarCampoPersonalizado ? (
+                    <select
+                      value={quantidadeLinhas}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (val === 10) {
+                          setMostrarCampoPersonalizado(true);
+                          setLinhasPersonalizado("10");
+                          // Focar no campo após um pequeno delay para renderizar
+                          setTimeout(() => {
+                            document.getElementById("linhas-personalizado-home")?.focus();
+                          }, 100);
+                        } else {
+                          setQuantidadeLinhas(val);
+                        }
+                      }}
+                      className="w-full p-3 font-bold transition-all duration-300 text-sm md:text-xs"
+                      style={{
+                        borderRadius: "12px",
+                        border: "2px solid #E0E0E0",
+                        backgroundColor: "#FFFFFF",
+                        color: "#555555",
+                        outline: "none",
+                      }}
+                      onFocus={(e) => {
+                        e.currentTarget.style.borderColor = "#1E90FF";
+                        e.currentTarget.style.backgroundColor =
+                          "rgba(30,144,255,0.05)";
+                      }}
+                      onBlur={(e) => {
+                        e.currentTarget.style.borderColor = "#E0E0E0";
+                        e.currentTarget.style.backgroundColor = "#FFFFFF";
+                      }}
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+                        <option key={num} value={num}>
+                          {num} {num === 1 ? "linha" : "linhas"}
+                        </option>
+                      ))}
+                      <option value={10}>10+ linhas (personalizado)</option>
+                    </select>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        id="linhas-personalizado-home"
+                        type="number"
+                        min="10"
+                        max="999"
+                        value={linhasPersonalizado}
+                        onChange={(e) => setLinhasPersonalizado(e.target.value)}
+                        className="flex-1 p-3 font-bold transition-all duration-300 text-sm md:text-xs"
+                        placeholder="Digite a quantidade de linhas..."
+                        style={{
+                          borderRadius: "12px",
+                          border: "2px solid #1E90FF",
+                          backgroundColor: "rgba(30,144,255,0.05)",
+                          color: "#111111",
+                          outline: "none",
+                        }}
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          setMostrarCampoPersonalizado(false);
+                          setQuantidadeLinhas(1);
+                        }}
+                        className="px-4 py-3 font-bold transition-all duration-300"
+                        style={{
+                          borderRadius: "12px",
+                          border: "1px solid #E0E0E0",
+                          backgroundColor: "#FAFAFA",
+                          color: "#555555",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = "#FF6B35";
+                          e.currentTarget.style.color = "#FFFFFF";
+                          e.currentTarget.style.borderColor = "#FF6B35";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = "#FAFAFA";
+                          e.currentTarget.style.color = "#555555";
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                        }}
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 {/* CTA Button */}
                 <div className="pt-4">
                   <Button
@@ -851,7 +906,6 @@ export default function EcommerceHome() {
                     <Check className="w-4 h-4" style={{ color: "#1E90FF" }} />
                     <span style={{ color: "#555555" }}>Sem Compromisso</span>
                   </div>
-                </div>
               </div>
             </div>
           </div>
