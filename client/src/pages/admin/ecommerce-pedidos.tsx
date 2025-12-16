@@ -53,12 +53,14 @@ import {
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import AdminOrderLines from "@/components/ecommerce/AdminOrderLines";
 
 interface EcommerceOrder {
   id: string;
   orderCode: string;
   clientId: string;
   tipoPessoa: string;
+  tipoContratacao?: string;
   nomeCompleto?: string;
   razaoSocial?: string;
   email: string;
@@ -117,6 +119,11 @@ const etapas = [
     color: "bg-yellow-100 text-yellow-800 border-yellow-300",
   },
   {
+    value: "aguardando_dados_linhas",
+    label: "Aguardando Dados Linhas",
+    color: "bg-blue-100 text-blue-800 border-blue-300",
+  },
+  {
     value: "em_analise",
     label: "Em Análise",
     color: "bg-indigo-100 text-indigo-800 border-indigo-300",
@@ -172,6 +179,8 @@ const getEtapaIcon = (etapa: string) => {
   switch (etapa) {
     case "novo_pedido":
       return Clock;
+    case "aguardando_dados_linhas":
+      return Phone;
     case "em_analise":
       return AlertCircle;
     case "aguardando_documentos":
@@ -1327,6 +1336,13 @@ export default function AdminEcommercePedidos() {
                   </span>
                 </div>
               </div>
+
+              {/* Linhas de Portabilidade */}
+              {orderDetails.tipoContratacao === "portabilidade" && (
+                <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <AdminOrderLines orderId={orderDetails.id} />
+                </div>
+              )}
 
               {/* Alterar Etapa */}
               <div className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
