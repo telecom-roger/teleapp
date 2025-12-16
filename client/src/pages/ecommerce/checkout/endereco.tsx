@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLocation } from "wouter";
 import { ArrowRight, ArrowLeft, Search, Plus, X, MapPin } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/stores/cartStore";
 import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
@@ -25,6 +26,13 @@ export default function CheckoutEndereco() {
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
   const { items } = useCartStore();
 
+  // Buscar dados do cliente logado
+  const { data: customerData } = useQuery<any>({
+    queryKey: ["/api/ecommerce/auth/customer"],
+    retry: false,
+    enabled: true,
+  });
+
   const [formData, setFormData] = useState<EnderecoData>({
     cep: "",
     logradouro: "",
@@ -40,17 +48,9 @@ export default function CheckoutEndereco() {
     EnderecoData[]
   >([]);
 
-  // Verificar se algum produto é de categoria que precisa endereço de instalação
+  // Verificar se algum produto precisa endereço de instalação (configurado no produto)
   const precisaEnderecoInstalacao = items.some((item) => {
-    const categoria =
-      item.categoria?.toLowerCase() ||
-      item.product.categoria?.toLowerCase() ||
-      "";
-    return (
-      categoria.includes("banda larga") ||
-      categoria.includes("fibra") ||
-      categoria.includes("link dedicado")
-    );
+    return item.product?.precisaEnderecoInstalacao === true;
   });
 
   useEffect(() => {
@@ -58,14 +58,20 @@ export default function CheckoutEndereco() {
     const tipo = params.get("tipo") as "PF" | "PJ";
     if (tipo) setTipoPessoa(tipo);
 
-    // Carregar dados do cadastro se existir
-    const dadosStr = localStorage.getItem("checkout-dados");
-    if (dadosStr && usarMesmoEndereco) {
-      const dados = JSON.parse(dadosStr);
-      // Se tiver dados cadastrais e "usar mesmo endereço" estiver marcado,
-      // os campos serão preenchidos automaticamente
+    // Popular endereço com dados do cliente se estiver logado
+    if (customerData?.client) {
+      const client = customerData.client;
+      setFormData({
+        cep: client.cep || "",
+        logradouro: client.endereco || "",
+        numero: client.numero || "",
+        complemento: "",
+        bairro: client.bairro || "",
+        cidade: client.cidade || "",
+        estado: client.uf || "",
+      });
     }
-  }, []);
+  }, [customerData]);
 
   const adicionarEnderecoInstalacao = () => {
     setEnderecosInstalacao([

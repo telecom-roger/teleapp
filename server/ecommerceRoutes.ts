@@ -7,6 +7,7 @@ import {
   ecommerceOrderItems,
   ecommerceStages,
   ecommerceOrderDocuments,
+  ecommerceOrderRequestedDocuments,
   clients,
   users,
   interactions,
@@ -547,6 +548,56 @@ export function registerEcommerceRoutes(app: Express): void {
             subtotal: item.subtotal,
           }))
         );
+
+        // Popular documentos solicitados baseado no tipo de pessoa
+        const documentosSolicitados = [];
+        
+        if (orderData.tipoPessoa === "PF") {
+          documentosSolicitados.push(
+            {
+              orderId: order.id,
+              tipo: "CNH ou CPF/RG",
+              nome: "CNH ou CPF/RG",
+              obrigatorio: true,
+              status: "pendente"
+            },
+            {
+              orderId: order.id,
+              tipo: "Comprovante de Endereço",
+              nome: "Comprovante de Endereço",
+              obrigatorio: true,
+              status: "pendente"
+            }
+          );
+        } else if (orderData.tipoPessoa === "PJ") {
+          documentosSolicitados.push(
+            {
+              orderId: order.id,
+              tipo: "CNH ou CPF/RG do Responsável",
+              nome: "CNH ou CPF/RG do Responsável",
+              obrigatorio: true,
+              status: "pendente"
+            },
+            {
+              orderId: order.id,
+              tipo: "Contrato Social",
+              nome: "Contrato Social",
+              obrigatorio: true,
+              status: "pendente"
+            },
+            {
+              orderId: order.id,
+              tipo: "Comprovante de Endereço",
+              nome: "Comprovante de Endereço",
+              obrigatorio: true,
+              status: "pendente"
+            }
+          );
+        }
+
+        if (documentosSolicitados.length > 0) {
+          await db.insert(ecommerceOrderRequestedDocuments).values(documentosSolicitados);
+        }
 
         // Notificar admins sobre novo pedido
         const { notifyNewOrder } = await import("./notificationService");

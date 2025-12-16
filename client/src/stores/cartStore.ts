@@ -35,6 +35,7 @@ interface CartStore {
   getSubtotal: () => number;
   getItemCount: () => number;
   getTotalLinhas: () => number;
+  getLinhasComSva: () => number;
   canAddMoreSva: (productId: string) => boolean;
   getSvaCount: (productId: string) => number;
 }
@@ -51,12 +52,17 @@ export const useCartStore = create<CartStore>()(
         
         // Para SVAs, sempre criar um novo item (permitir duplicados)
         if (isSva) {
-          const totalLinhas = get().getTotalLinhas();
+          const linhasComSva = get().getLinhasComSva();
           const currentSvaCount = get().getSvaCount(product.id);
           
-          // Verificar se ainda pode adicionar mais deste SVA
-          if (currentSvaCount + quantidade > totalLinhas) {
-            console.warn(`Não é possível adicionar mais deste SVA. Limite: ${totalLinhas} linhas`);
+          // Verificar se ainda pode adicionar mais deste SVA (apenas se houver linhas que suportam SVA)
+          if (linhasComSva === 0) {
+            console.warn(`Não há produtos no carrinho que suportem SVA.`);
+            return;
+          }
+          
+          if (currentSvaCount + quantidade > linhasComSva) {
+            console.warn(`Não é possível adicionar mais deste SVA. Limite: ${linhasComSva} linhas que aceitam SVA`);
             return;
           }
           
@@ -192,6 +198,7 @@ export const useCartStore = create<CartStore>()(
       getTotalLinhas: () => {
         return get().items.reduce((total, item) => {
           const isSva = item.categoria?.toLowerCase().includes('sva');
+          // Apenas conta linhas de produtos que NÃO são SVA
           if (!isSva) {
             return total + item.quantidade + (item.linhasAdicionais || 0);
           }
@@ -199,10 +206,25 @@ export const useCartStore = create<CartStore>()(
         }, 0);
       },
 
+      // Retorna quantas linhas que ACEITAM SVA existem no carrinho
+      getLinhasComSva: () => {
+        return get().items.reduce((total, item) => {
+          const isSva = item.categoria?.toLowerCase().includes('sva');
+          // Apenas conta se NÃO é SVA E o produto tem svasUpsell definido e não vazio
+          if (!isSva && 
+              item.product?.svasUpsell && 
+              Array.isArray(item.product.svasUpsell) && 
+              item.product.svasUpsell.length > 0) {
+            return total + item.quantidade + (item.linhasAdicionais || 0);
+          }
+          return total;
+        }, 0);
+      },
+
       canAddMoreSva: (productId) => {
-        const totalLinhas = get().getTotalLinhas();
+        const linhasComSva = get().getLinhasComSva();
         const currentSvaCount = get().getSvaCount(productId);
-        return currentSvaCount < totalLinhas;
+        return currentSvaCount < linhasComSva && linhasComSva > 0;
       },
 
       getSvaCount: (productId) => {

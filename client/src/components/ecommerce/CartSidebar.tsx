@@ -2,6 +2,7 @@ import { useCartStore } from "@/stores/cartStore";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import {
   X,
   Plus,
@@ -31,9 +32,12 @@ export function CartSidebar() {
     getItemCount,
     addItem,
     getTotalLinhas,
+    getLinhasComSva,
     canAddMoreSva,
     getSvaCount,
   } = useCartStore();
+
+  const { toast } = useToast();
 
   const getCategoryIcon = (categoria: string | null) => {
     if (!categoria) return Smartphone;
@@ -74,7 +78,8 @@ export function CartSidebar() {
     let textosColetados: string[] = [];
 
     items.forEach((item) => {
-      if (item.svasUpsell && item.svasUpsell.length > 0) {
+      // SÓ oferece SVA se o produto tem svasUpsell definido
+      if (item.svasUpsell && Array.isArray(item.svasUpsell) && item.svasUpsell.length > 0) {
         item.svasUpsell.forEach((svaId: string) => svasIds.add(svaId));
         // Coletar todos os textos encontrados
         if (item.textosUpsell && item.textosUpsell.length > 0) {
@@ -415,9 +420,36 @@ export function CartSidebar() {
                         e.currentTarget.style.backgroundColor = "#FAFAFA";
                         e.currentTarget.style.color = "";
                       }}
-                      onClick={() =>
-                        updateQuantity(item.product.id, item.quantidade + 1, item.cartItemId)
-                      }
+                      onClick={() => {
+                        // Se for SVA, validar máximo baseado em linhas (1 por linha para cada tipo)
+                        if (item.categoria === "sva") {
+                          const linhasComSva = getLinhasComSva();
+                          const svasDesteItem = getSvaCount(item.product.id);
+                          
+                          // Verificar se há linhas que suportam SVA
+                          if (linhasComSva === 0) {
+                            toast({
+                              title: "Nenhum produto suporta SVA",
+                              description: "Adicione um produto que aceite SVAs para poder incluir este serviço.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          
+                          // Só permite adicionar se não ultrapassar o limite para ESTE tipo de SVA
+                          if (svasDesteItem < linhasComSva) {
+                            updateQuantity(item.product.id, item.quantidade + 1, item.cartItemId);
+                          } else {
+                            toast({
+                              title: "Limite atingido",
+                              description: `Você já possui ${linhasComSva} unidade(s) deste SVA baseado nas ${linhasComSva} linha(s) que aceitam SVA.`,
+                              variant: "destructive",
+                            });
+                          }
+                        } else {
+                          updateQuantity(item.product.id, item.quantidade + 1, item.cartItemId);
+                        }
+                      }}
                     >
                       <Plus className="w-3 h-3" />
                     </Button>

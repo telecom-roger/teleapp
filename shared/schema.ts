@@ -782,6 +782,9 @@ export const ecommerceProducts = pgTable("ecommerce_products", {
   textoDecisao: text("texto_decisao"), // Texto explicativo do card inteligente
   scoreBase: integer("score_base").default(50), // Score base para ordenação (0-100)
   
+  // 🆕 Campo para controlar necessidade de endereço de instalação
+  precisaEnderecoInstalacao: boolean("precisa_endereco_instalacao").default(false), // Se true, solicita endereço de instalação no checkout
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [

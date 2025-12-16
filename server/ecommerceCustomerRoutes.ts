@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
-import { clients, ecommerceOrders, ecommerceOrderItems, ecommerceProducts, ecommerceOrderDocuments, ecommerceOrderRequestedDocuments } from "@shared/schema";
+import { clients, ecommerceOrders, ecommerceOrderItems, ecommerceProducts, ecommerceOrderDocuments, ecommerceOrderRequestedDocuments, interactions } from "@shared/schema";
 import { eq, and, desc, sql, isNull, or } from "drizzle-orm";
 import { requireRole } from "./middleware/auth";
 import multer from "multer";
@@ -286,6 +286,33 @@ router.post(
       const obrigatorios = allRequestedDocs.filter(d => d.obrigatorio);
       const todosEnviados = obrigatorios.every(d => d.status === "enviado" || d.status === "aprovado");
 
+      // Registrar na timeline do cliente
+      if (order.clientId) {
+        try {
+          await db.insert(interactions).values({
+            clientId: order.clientId,
+            tipo: "documento_enviado",
+            origem: "system",
+            titulo: `Documento enviado: ${tipo}`,
+            texto: `Cliente enviou o documento "${tipo}"`,
+            meta: {
+              orderId: order.id,
+              orderCode: order.orderCode,
+              tipo,
+              anexo: {
+                fileName: file.originalname,
+                fileSize: file.size,
+                downloadUrl: `/api/ecommerce/customer/documents/download/${encodeURIComponent(path.basename(file.path))}`,
+              },
+            },
+            createdBy: user?.id || null,
+          });
+          console.log(`✅ [TIMELINE] Documento ${tipo} registrado para cliente ${order.clientId}`);
+        } catch (timelineError) {
+          console.error("❌ Erro ao registrar documento na timeline:", timelineError);
+        }
+      }
+
       // Se todos os obrigatórios foram enviados, muda automaticamente para validando_documentos
       if (todosEnviados && obrigatorios.length > 0 && order.etapa === "aguardando_documentos") {
         await db
@@ -554,6 +581,28 @@ router.get("/order-updates", requireRole(["customer"]), async (req: Request, res
   } catch (error: any) {
     console.error("Erro ao buscar atualizações de pedidos:", error);
     res.status(500).json({ error: "Erro ao buscar atualizações" });
+  }
+});
+
+/**
+ * GET /api/ecommerce/customer/documents/download/:filename
+ * Download de documento (permite acesso sem autenticação estrita para timeline)
+ */
+router.get("/documents/download/:filename", async (req: Request, res: Response) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(process.cwd(), "uploads", "documents", filename);
+
+    // Verificar se arquivo existe
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: "Arquivo não encontrado" });
+    }
+
+    // Abrir arquivo no navegador (ao invés de forçar download)
+    res.sendFile(filePath);
+  } catch (error: any) {
+    console.error("Erro ao fazer download:", error);
+    res.status(500).json({ error: "Erro ao baixar documento" });
   }
 });
 

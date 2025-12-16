@@ -72,8 +72,8 @@ export default function CheckoutObrigado() {
                 <span className="text-sm" style={{ color: "#555555" }}>
                   Número do pedido:
                 </span>
-                <p className="text-2xl font-bold" style={{ color: "#1E90FF" }}>
-                  #{orderCode}
+                <p className="text-xl font-bold font-mono" style={{ color: "#1E90FF" }}>
+                  #{pedidoId}
                 </p>
               </div>
             )}

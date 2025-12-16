@@ -44,7 +44,7 @@ export function UpsellModal({
 }: UpsellModalProps) {
   const [svaQuantities, setSvaQuantities] = useState<Record<string, number>>({});
   const [textoSelecionado, setTextoSelecionado] = useState("");
-  const totalLinhas = useCartStore((state) => state.getTotalLinhas());
+  const totalLinhas = useCartStore((state) => state.getLinhasComSva());
 
   // Escolher texto APENAS quando o modal abrir (isOpen = true)
   useEffect(() => {

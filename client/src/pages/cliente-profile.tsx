@@ -523,6 +523,7 @@ function TimelineItem({ item }: { item: any }) {
     etapa_mudou: <Target className="h-5 w-5" />,
     oportunidade_criada: <Target className="h-5 w-5" />,
     campanha: <Mail className="h-5 w-5" />,
+    documento_enviado: <FileText className="h-5 w-5" />,
   };
 
   const formatDate = (date: string | Date | null) => {

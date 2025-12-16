@@ -768,10 +768,10 @@ export default function CustomerOrders() {
                                               <Eye className="h-3 w-3 mr-1" />
                                               Ver
                                             </Button>
-                                            {/* Permitir remover apenas se não estiver aprovado ou em etapa avançada */}
+                                            {/* Permitir remover até validando_documentos, bloquear apenas se aprovado */}
                                             {doc.status !== "aprovado" &&
-                                              orderDetail.etapa ===
-                                                "aguardando_documentos" && (
+                                              (orderDetail.etapa === "aguardando_documentos" ||
+                                                orderDetail.etapa === "validando_documentos") && (
                                                 <Button
                                                   size="sm"
                                                   variant="ghost"

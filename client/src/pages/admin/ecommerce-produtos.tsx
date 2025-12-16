@@ -180,6 +180,8 @@ export default function AdminProdutos() {
       // NOVOS CAMPOS - Calculadora e Upsell
       permiteCalculadoraLinhas:
         formData.get("permiteCalculadoraLinhas") === "on",
+      precisaEnderecoInstalacao:
+        formData.get("precisaEnderecoInstalacao") === "on",
       textosUpsell: textosUpsell.filter((t) => t.trim() !== ""), // Filtrar textos vazios
       svasUpsell: svasSelecionados, // Usar os SVAs selecionados via checkboxes
       // NOVOS CAMPOS - Sistema de Recomendação Inteligente
@@ -1168,6 +1170,14 @@ export default function AdminProdutos() {
                   defaultChecked={editando?.permiteCalculadoraLinhas || false}
                 />
                 <Label>Calculadora de Linhas</Label>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  name="precisaEnderecoInstalacao"
+                  defaultChecked={editando?.precisaEnderecoInstalacao || false}
+                />
+                <Label>Precisa Endereço Instalação</Label>
               </div>
             </div>
 

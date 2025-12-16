@@ -193,7 +193,54 @@ export default function CheckoutConfirmacao() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // Fazer upload dos documentos se houver
+      const documentosStr = localStorage.getItem("checkout-documentos");
+      if (documentosStr) {
+        try {
+          const documentos = JSON.parse(documentosStr);
+          const orderId = data.orderId;
+          
+          // Mapear tipos de documentos
+          const tiposDocumento: { [key: string]: string } = {
+            documento: tipoPessoa === "PF" ? "CNH ou CPF/RG" : "CNH ou CPF/RG do Responsável",
+            comprovante: "Comprovante de Endereço",
+            contrato: "Contrato Social"
+          };
+          
+          // Enviar cada documento
+          for (const [key, doc] of Object.entries(documentos)) {
+            if (doc && typeof doc === 'object' && 'data' in doc) {
+              const docData = doc as { name: string; type: string; size: number; data: string };
+              
+              // Converter base64 de volta para File
+              const base64Data = docData.data.split(',')[1];
+              const byteCharacters = atob(base64Data);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              const blob = new Blob([byteArray], { type: docData.type });
+              const file = new File([blob], docData.name, { type: docData.type });
+              
+              // Fazer upload
+              const formData = new FormData();
+              formData.append('file', file);
+              formData.append('orderId', orderId);
+              formData.append('tipo', tiposDocumento[key] || key);
+              
+              await fetch('/api/ecommerce/customer/documents/upload', {
+                method: 'POST',
+                body: formData,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao fazer upload dos documentos:', error);
+        }
+      }
+      
       clearCart();
       localStorage.removeItem("checkout-dados");
       localStorage.removeItem("checkout-endereco");
@@ -287,12 +334,12 @@ export default function CheckoutConfirmacao() {
                             setEditandoEndereco(false);
                             setUsarOutroEndereco(false);
                             setEndereco({
-                              logradouro: customerData.client.endereco || "",
-                              numero: customerData.client.numero || "",
-                              bairro: customerData.client.bairro || "",
-                              cidade: customerData.client.cidade || "",
-                              estado: customerData.client.uf || "",
-                              cep: customerData.client.cep || "",
+                              logradouro: customerData?.client?.endereco || "",
+                              numero: customerData?.client?.numero || "",
+                              bairro: customerData?.client?.bairro || "",
+                              cidade: customerData?.client?.cidade || "",
+                              estado: customerData?.client?.uf || "",
+                              cep: customerData?.client?.cep || "",
                               complemento: "",
                             });
                           } else {

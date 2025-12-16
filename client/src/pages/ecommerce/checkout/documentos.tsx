@@ -25,14 +25,49 @@ export default function CheckoutDocumentos() {
     setFiles({ ...files, [key]: file });
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Documentos serão enviados na confirmação final
-    localStorage.setItem("checkout-documentos", JSON.stringify({
-      documento: files.documento?.name || null,
-      comprovante: files.comprovante?.name || null,
-      contrato: files.contrato?.name || null,
-    }));
+    
+    // Converter arquivos para base64 para salvar no localStorage
+    const documentosData: any = {};
+    
+    if (files.documento) {
+      documentosData.documento = {
+        name: files.documento.name,
+        type: files.documento.type,
+        size: files.documento.size,
+        data: await convertFileToBase64(files.documento)
+      };
+    }
+    
+    if (files.comprovante) {
+      documentosData.comprovante = {
+        name: files.comprovante.name,
+        type: files.comprovante.type,
+        size: files.comprovante.size,
+        data: await convertFileToBase64(files.comprovante)
+      };
+    }
+    
+    if (files.contrato) {
+      documentosData.contrato = {
+        name: files.contrato.name,
+        type: files.contrato.type,
+        size: files.contrato.size,
+        data: await convertFileToBase64(files.contrato)
+      };
+    }
+    
+    localStorage.setItem("checkout-documentos", JSON.stringify(documentosData));
     setLocation(`/ecommerce/checkout/confirmacao?tipo=${tipoPessoa}`);
   };
   
