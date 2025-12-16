@@ -1,7 +1,8 @@
-import { X, Plus } from "lucide-react";
+import { X, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
+import { useCartStore } from "@/stores/cartStore";
 
 interface SVAProduct {
   id: string;
@@ -41,8 +42,9 @@ export function UpsellModal({
   textosPersonalizados,
   onAddToCart,
 }: UpsellModalProps) {
-  const [selectedSvas, setSelectedSvas] = useState<Set<string>>(new Set());
+  const [svaQuantities, setSvaQuantities] = useState<Record<string, number>>({});
   const [textoSelecionado, setTextoSelecionado] = useState("");
+  const totalLinhas = useCartStore((state) => state.getTotalLinhas());
 
   // Escolher texto APENAS quando o modal abrir (isOpen = true)
   useEffect(() => {
@@ -58,6 +60,8 @@ export function UpsellModal({
           "Aproveite para adicionar serviços extras ao seu pedido!"
         );
       }
+      // Reset quantities when opening
+      setSvaQuantities({});
     }
   }, [isOpen]); // Só executa quando isOpen mudar
 
@@ -70,30 +74,51 @@ export function UpsellModal({
     });
   };
 
-  const toggleSva = (svaId: string) => {
-    const newSelected = new Set(selectedSvas);
-    if (newSelected.has(svaId)) {
-      newSelected.delete(svaId);
-    } else {
-      newSelected.add(svaId);
-    }
-    setSelectedSvas(newSelected);
+  const updateQuantity = (svaId: string, delta: number) => {
+    const currentQty = svaQuantities[svaId] || 0;
+    const newQty = Math.max(0, Math.min(totalLinhas, currentQty + delta));
+    
+    setSvaQuantities(prev => ({
+      ...prev,
+      [svaId]: newQty
+    }));
+  };
+
+  const setQuantity = (svaId: string, value: string) => {
+    const num = parseInt(value) || 0;
+    const newQty = Math.max(0, Math.min(totalLinhas, num));
+    
+    setSvaQuantities(prev => ({
+      ...prev,
+      [svaId]: newQty
+    }));
   };
 
   const handleConfirm = () => {
-    onAddToCart(Array.from(selectedSvas));
-    setSelectedSvas(new Set());
+    // Create array with SVA IDs repeated by quantity
+    const svasToAdd: string[] = [];
+    Object.entries(svaQuantities).forEach(([svaId, qty]) => {
+      for (let i = 0; i < qty; i++) {
+        svasToAdd.push(svaId);
+      }
+    });
+    
+    onAddToCart(svasToAdd);
+    setSvaQuantities({});
     onClose();
   };
 
   const handleSkip = () => {
-    setSelectedSvas(new Set());
+    setSvaQuantities({});
     onClose();
   };
 
-  const totalSelecionado = svas
-    .filter((sva) => selectedSvas.has(sva.id))
-    .reduce((sum, sva) => sum + sva.preco, 0);
+  const totalSelecionado = svas.reduce((sum, sva) => {
+    const qty = svaQuantities[sva.id] || 0;
+    return sum + (sva.preco * qty);
+  }, 0);
+  
+  const totalQuantity = Object.values(svaQuantities).reduce((sum, qty) => sum + qty, 0);
 
   return (
     <>
@@ -162,13 +187,27 @@ export function UpsellModal({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {/* Info sobre limite */}
+            <div 
+              className="p-3 rounded-lg mb-2"
+              style={{
+                backgroundColor: "rgba(30,144,255,0.1)",
+                border: "1px solid rgba(30,144,255,0.3)"
+              }}
+            >
+              <p className="text-sm" style={{ color: "#111111" }}>
+                ℹ️ Você pode adicionar até <strong>{totalLinhas} SVA{totalLinhas !== 1 ? 's' : ''}</strong> (1 por linha contratada)
+              </p>
+            </div>
+
             {svas.map((sva) => {
-              const isSelected = selectedSvas.has(sva.id);
+              const quantity = svaQuantities[sva.id] || 0;
+              const isSelected = quantity > 0;
+              
               return (
                 <div
                   key={sva.id}
-                  onClick={() => toggleSva(sva.id)}
-                  className="relative p-4 cursor-pointer transition-all duration-200"
+                  className="relative p-4 transition-all duration-200"
                   style={{
                     border: isSelected
                       ? "2px solid #1E90FF"
@@ -181,28 +220,10 @@ export function UpsellModal({
                       ? "0 4px 12px rgba(30,144,255,0.15)"
                       : "none",
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = "#1E90FF";
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(30,144,255,0.02)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isSelected) {
-                      e.currentTarget.style.borderColor = "#E0E0E0";
-                      e.currentTarget.style.backgroundColor = "#FFFFFF";
-                    }
-                  }}
                 >
                   <div className="flex items-start gap-4">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleSva(sva.id)}
-                      className="mt-1"
-                    />
                     <div className="flex-1">
-                      <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start justify-between gap-4 mb-3">
                         <div>
                           <h3
                             className="font-bold text-lg mb-1"
@@ -234,6 +255,49 @@ export function UpsellModal({
                           </p>
                         </div>
                       </div>
+
+                      {/* Quantidade selector */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium" style={{ color: "#555555" }}>
+                          Quantidade:
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(sva.id, -1)}
+                            disabled={quantity === 0}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </Button>
+                          
+                          <Input
+                            type="number"
+                            min="0"
+                            max={totalLinhas}
+                            value={quantity}
+                            onChange={(e) => setQuantity(sva.id, e.target.value)}
+                            className="h-8 w-16 text-center"
+                          />
+                          
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => updateQuantity(sva.id, 1)}
+                            disabled={quantity >= totalLinhas}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                          
+                          <span className="text-xs ml-2" style={{ color: "#777777" }}>
+                            (máx: {totalLinhas})
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -249,7 +313,7 @@ export function UpsellModal({
               borderTop: "1px solid #E0E0E0",
             }}
           >
-            {selectedSvas.size > 0 && (
+            {totalQuantity > 0 && (
               <div
                 className="p-4"
                 style={{
@@ -264,8 +328,8 @@ export function UpsellModal({
                       className="text-sm font-semibold"
                       style={{ color: "#111111" }}
                     >
-                      {selectedSvas.size}{" "}
-                      {selectedSvas.size === 1
+                      {totalQuantity}{" "}
+                      {totalQuantity === 1
                         ? "serviço selecionado"
                         : "serviços selecionados"}
                     </p>
@@ -307,31 +371,31 @@ export function UpsellModal({
               </Button>
               <Button
                 onClick={handleConfirm}
-                disabled={selectedSvas.size === 0}
+                disabled={totalQuantity === 0}
                 className="flex-1 h-12 font-bold shadow-lg border-0 transition-all duration-200"
                 style={{
                   backgroundColor:
-                    selectedSvas.size === 0 ? "#CCCCCC" : "#1E90FF",
+                    totalQuantity === 0 ? "#CCCCCC" : "#1E90FF",
                   color: "#FFFFFF",
                   borderRadius: "12px",
                 }}
                 onMouseEnter={(e) => {
-                  if (selectedSvas.size > 0) {
+                  if (totalQuantity > 0) {
                     e.currentTarget.style.backgroundColor = "#00CFFF";
                     e.currentTarget.style.transform = "scale(1.02)";
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (selectedSvas.size > 0) {
+                  if (totalQuantity > 0) {
                     e.currentTarget.style.backgroundColor = "#1E90FF";
                     e.currentTarget.style.transform = "scale(1)";
                   }
                 }}
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {selectedSvas.size === 0
+                {totalQuantity === 0
                   ? "Selecione serviços"
-                  : `Adicionar (${selectedSvas.size})`}
+                  : `Adicionar (${totalQuantity})`}
               </Button>
             </div>
 

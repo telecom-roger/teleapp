@@ -35,6 +35,8 @@ export default function CheckoutConfirmacao() {
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
   const [dados, setDados] = useState<any>({});
   const [endereco, setEndereco] = useState<any>({});
+  const [usarOutroEndereco, setUsarOutroEndereco] = useState(false);
+  const [editandoEndereco, setEditandoEndereco] = useState(false);
   
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
@@ -55,15 +57,19 @@ export default function CheckoutConfirmacao() {
         cnpj: customerData.client.cnpj || "",
         documento: customerData.client.cnpj || "",
       });
-      setEndereco({
-        logradouro: customerData.client.endereco || "",
-        numero: customerData.client.numero || "",
-        bairro: customerData.client.bairro || "",
-        cidade: customerData.client.cidade || "",
-        estado: customerData.client.uf || "",
-        cep: customerData.client.cep || "",
-        complemento: "",
-      });
+      
+      // Se não estiver editando outro endereço, usar o cadastrado
+      if (!usarOutroEndereco) {
+        setEndereco({
+          logradouro: customerData.client.endereco || "",
+          numero: customerData.client.numero || "",
+          bairro: customerData.client.bairro || "",
+          cidade: customerData.client.cidade || "",
+          estado: customerData.client.uf || "",
+          cep: customerData.client.cep || "",
+          complemento: "",
+        });
+      }
       return;
     }
     
@@ -234,16 +240,109 @@ export default function CheckoutConfirmacao() {
             
             <Card>
               <CardHeader>
-                <CardTitle>Endereço de Instalação</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Endereço de Instalação</CardTitle>
+                  {customerData?.client && !editandoEndereco && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setUsarOutroEndereco(true);
+                        setEditandoEndereco(true);
+                        setEndereco({
+                          logradouro: "",
+                          numero: "",
+                          bairro: "",
+                          cidade: "",
+                          estado: "",
+                          cep: "",
+                          complemento: "",
+                        });
+                      }}
+                    >
+                      Usar outro endereço
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="font-semibold">
-                  {endereco.logradouro}, {endereco.numero}
-                  {endereco.complemento && ` - ${endereco.complemento}`}
-                </p>
-                <p>{endereco.bairro}</p>
-                <p>{endereco.cidade} - {endereco.estado}</p>
-                <p>CEP: {endereco.cep}</p>
+                {editandoEndereco ? (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="CEP"
+                        value={endereco.cep || ""}
+                        onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Número"
+                        value={endereco.numero || ""}
+                        onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Logradouro"
+                      value={endereco.logradouro || ""}
+                      onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
+                      className="border rounded px-3 py-2 text-sm w-full"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Bairro"
+                      value={endereco.bairro || ""}
+                      onChange={(e) => setEndereco({ ...endereco, bairro: e.target.value })}
+                      className="border rounded px-3 py-2 text-sm w-full"
+                    />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Cidade"
+                        value={endereco.cidade || ""}
+                        onChange={(e) => setEndereco({ ...endereco, cidade: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="UF"
+                        value={endereco.estado || ""}
+                        onChange={(e) => setEndereco({ ...endereco, estado: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Complemento (opcional)"
+                      value={endereco.complemento || ""}
+                      onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
+                      className="border rounded px-3 py-2 text-sm w-full"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setEditandoEndereco(false);
+                      }}
+                      className="w-full"
+                    >
+                      Confirmar Endereço
+                    </Button>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-semibold">
+                      {endereco.logradouro}, {endereco.numero}
+                      {endereco.complemento && ` - ${endereco.complemento}`}
+                    </p>
+                    <p>{endereco.bairro}</p>
+                    <p>{endereco.cidade} - {endereco.estado}</p>
+                    <p>CEP: {endereco.cep}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

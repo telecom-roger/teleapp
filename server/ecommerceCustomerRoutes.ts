@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
-import { clients, ecommerceOrders, ecommerceOrderItems, ecommerceProducts, ecommerceOrderDocuments } from "@shared/schema";
+import { clients, ecommerceOrders, ecommerceOrderItems, ecommerceProducts, ecommerceOrderDocuments, ecommerceOrderRequestedDocuments } from "@shared/schema";
 import { eq, and, desc, sql, isNull, or } from "drizzle-orm";
 import { requireRole } from "./middleware/auth";
 import multer from "multer";
@@ -76,17 +76,26 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
 
 /**
  * GET /api/ecommerce/customer/orders/:orderId
- * Detalhes de um pedido específico
+ * Detalhes de um pedido específico (busca por ID ou orderCode)
  */
 router.get("/orders/:orderId", requireRole(["customer"]), async (req: Request, res: Response) => {
   try {
     const user = req.user as any;
     const { orderId } = req.params;
 
+    // Tentar buscar por ID ou orderCode
     const [order] = await db
       .select()
       .from(ecommerceOrders)
-      .where(and(eq(ecommerceOrders.id, orderId), eq(ecommerceOrders.clientId, user.clientId)))
+      .where(
+        and(
+          or(
+            eq(ecommerceOrders.id, orderId),
+            eq(ecommerceOrders.orderCode, orderId)
+          ),
+          eq(ecommerceOrders.clientId, user.clientId)
+        )
+      )
       .limit(1);
 
     if (!order) {
@@ -97,13 +106,13 @@ router.get("/orders/:orderId", requireRole(["customer"]), async (req: Request, r
     const items = await db
       .select()
       .from(ecommerceOrderItems)
-      .where(eq(ecommerceOrderItems.orderId, orderId));
+      .where(eq(ecommerceOrderItems.orderId, order.id));
 
     // Buscar documentos
     const documents = await db
       .select()
       .from(ecommerceOrderDocuments)
-      .where(eq(ecommerceOrderDocuments.orderId, orderId));
+      .where(eq(ecommerceOrderDocuments.orderId, order.id));
 
     res.json({
       ...order,
@@ -254,6 +263,42 @@ router.post(
         uploadedBy: user?.id || null,
       });
 
+      // Atualizar status do documento solicitado para "enviado"
+      await db
+        .update(ecommerceOrderRequestedDocuments)
+        .set({ 
+          status: "enviado",
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(ecommerceOrderRequestedDocuments.orderId, orderId),
+            eq(ecommerceOrderRequestedDocuments.tipo, tipo)
+          )
+        );
+
+      // Verificar se todos os documentos obrigatórios foram enviados
+      const allRequestedDocs = await db
+        .select()
+        .from(ecommerceOrderRequestedDocuments)
+        .where(eq(ecommerceOrderRequestedDocuments.orderId, orderId));
+
+      const obrigatorios = allRequestedDocs.filter(d => d.obrigatorio);
+      const todosEnviados = obrigatorios.every(d => d.status === "enviado" || d.status === "aprovado");
+
+      // Se todos os obrigatórios foram enviados, muda automaticamente para validando_documentos
+      if (todosEnviados && obrigatorios.length > 0 && order.etapa === "aguardando_documentos") {
+        await db
+          .update(ecommerceOrders)
+          .set({
+            etapa: "validando_documentos",
+            updatedAt: new Date()
+          })
+          .where(eq(ecommerceOrders.id, orderId));
+
+        console.log(`✅ Pedido ${order.orderCode} movido automaticamente para validando_documentos`);
+      }
+
       res.json({
         success: true,
         message: "Documento enviado com sucesso",
@@ -299,6 +344,160 @@ router.get("/documents/:orderId", requireRole(["customer"]), async (req: Request
   } catch (error: any) {
     console.error("Erro ao buscar documentos:", error);
     res.status(500).json({ error: "Erro ao buscar documentos" });
+  }
+});
+
+/**
+ * GET /api/ecommerce/customer/orders/:orderId/requested-documents
+ * Lista documentos solicitados para o pedido (busca por ID ou orderCode)
+ */
+router.get("/orders/:orderId/requested-documents", requireRole(["customer"]), async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    const { orderId } = req.params;
+
+    // Buscar pedido (por ID ou orderCode)
+    const [order] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(
+        and(
+          or(
+            eq(ecommerceOrders.id, orderId),
+            eq(ecommerceOrders.orderCode, orderId)
+          ),
+          eq(ecommerceOrders.clientId, user.clientId)
+        )
+      )
+      .limit(1);
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Buscar documentos solicitados
+    const requestedDocs = await db
+      .select()
+      .from(ecommerceOrderRequestedDocuments)
+      .where(eq(ecommerceOrderRequestedDocuments.orderId, order.id))
+      .orderBy(desc(ecommerceOrderRequestedDocuments.createdAt));
+
+    // Para cada documento solicitado, buscar os uploads correspondentes
+    const docsWithUploads = await Promise.all(
+      requestedDocs.map(async (doc) => {
+        const uploads = await db
+          .select()
+          .from(ecommerceOrderDocuments)
+          .where(
+            and(
+              eq(ecommerceOrderDocuments.orderId, order.id),
+              eq(ecommerceOrderDocuments.tipo, doc.tipo)
+            )
+          );
+
+        return {
+          ...doc,
+          hasUpload: uploads.length > 0,
+          uploads: uploads,
+        };
+      })
+    );
+
+    res.json(docsWithUploads);
+  } catch (error: any) {
+    console.error("Erro ao buscar documentos solicitados:", error);
+    res.status(500).json({ error: "Erro ao buscar documentos solicitados" });
+  }
+});
+
+/**
+ * DELETE /api/ecommerce/customer/documents/:documentId
+ * Remover documento enviado (apenas se ainda não foi aprovado)
+ */
+router.delete("/documents/:documentId", requireRole(["customer"]), async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    const { documentId } = req.params;
+
+    // Buscar o documento
+    const [document] = await db
+      .select()
+      .from(ecommerceOrderDocuments)
+      .where(eq(ecommerceOrderDocuments.id, documentId))
+      .limit(1);
+
+    if (!document) {
+      return res.status(404).json({ error: "Documento não encontrado" });
+    }
+
+    // Verificar se o pedido pertence ao cliente
+    const [order] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(
+        and(
+          eq(ecommerceOrders.id, document.orderId),
+          eq(ecommerceOrders.clientId, user.clientId)
+        )
+      )
+      .limit(1);
+
+    if (!order) {
+      return res.status(403).json({ error: "Você não tem permissão para remover este documento" });
+    }
+
+    // Verificar se o documento solicitado não está aprovado
+    const [requestedDoc] = await db
+      .select()
+      .from(ecommerceOrderRequestedDocuments)
+      .where(
+        and(
+          eq(ecommerceOrderRequestedDocuments.orderId, document.orderId),
+          eq(ecommerceOrderRequestedDocuments.tipo, document.tipo)
+        )
+      )
+      .limit(1);
+
+    if (requestedDoc && requestedDoc.status === "aprovado") {
+      return res.status(400).json({ error: "Documento aprovado não pode ser removido" });
+    }
+
+    // Remover arquivo físico
+    if (fs.existsSync(document.filePath)) {
+      fs.unlinkSync(document.filePath);
+    }
+
+    // Remover do banco
+    await db
+      .delete(ecommerceOrderDocuments)
+      .where(eq(ecommerceOrderDocuments.id, documentId));
+
+    // Verificar se ainda há outros uploads deste tipo
+    const remainingUploads = await db
+      .select()
+      .from(ecommerceOrderDocuments)
+      .where(
+        and(
+          eq(ecommerceOrderDocuments.orderId, document.orderId),
+          eq(ecommerceOrderDocuments.tipo, document.tipo)
+        )
+      );
+
+    // Se não há mais uploads, voltar status para "pendente"
+    if (remainingUploads.length === 0 && requestedDoc) {
+      await db
+        .update(ecommerceOrderRequestedDocuments)
+        .set({ 
+          status: "pendente",
+          updatedAt: new Date()
+        })
+        .where(eq(ecommerceOrderRequestedDocuments.id, requestedDoc.id));
+    }
+
+    res.json({ success: true, message: "Documento removido com sucesso" });
+  } catch (error: any) {
+    console.error("Erro ao remover documento:", error);
+    res.status(500).json({ error: "Erro ao remover documento" });
   }
 });
 

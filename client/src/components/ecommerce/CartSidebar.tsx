@@ -518,30 +518,54 @@ export function CartSidebar() {
               </div>
             </div>
 
-            <a
-              onClick={(e) => {
-                e.preventDefault();
-                handleIrParaCheckout();
-              }}
-              href="#"
-              className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#00CFFF";
-                e.currentTarget.style.transform = "scale(1.02)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              Continuar Contratação
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </a>
+            <div className="space-y-3">
+              <Button
+                onClick={closeCart}
+                variant="outline"
+                className="w-full h-12 font-medium border-2 transition-all"
+                style={{
+                  borderColor: "#E0E0E0",
+                  color: "#555555",
+                  borderRadius: "12px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#1E90FF";
+                  e.currentTarget.style.color = "#1E90FF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "#E0E0E0";
+                  e.currentTarget.style.color = "#555555";
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Continuar Contratando
+              </Button>
+              
+              <a
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleIrParaCheckout();
+                }}
+                href="#"
+                className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
+                style={{
+                  backgroundColor: "#1E90FF",
+                  color: "#FFFFFF",
+                  borderRadius: "12px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "#00CFFF";
+                  e.currentTarget.style.transform = "scale(1.02)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "#1E90FF";
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                Finalizar Contratação
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </a>
+            </div>
 
             <p className="text-xs text-center" style={{ color: "#555555" }}>
               {getItemCount()}{" "}

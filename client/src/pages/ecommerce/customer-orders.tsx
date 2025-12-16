@@ -36,6 +36,7 @@ interface Order {
     | "instalacao"
     | "entrega"
     | "personalizado";
+  execucaoObservacoes?: string | null;
   total: number;
   subtotal: number;
   taxaInstalacao: number;
@@ -113,7 +114,7 @@ export default function CustomerOrders() {
   const { data: orderDetail, isLoading: loadingDetail } = useQuery<Order>({
     queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
     enabled: !!orderId,
-    refetchInterval: 3000,
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
 
@@ -124,7 +125,7 @@ export default function CustomerOrders() {
       `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
     ],
     enabled: !!orderId,
-    refetchInterval: 3000, // Atualizar a cada 3 segundos
+    refetchInterval: 1000, // Atualizar a cada 1 segundo para tempo real
     refetchOnWindowFocus: true,
   });
 
@@ -468,6 +469,21 @@ export default function CustomerOrders() {
                           </div>
                         </div>
                       )}
+                      {orderDetail.etapa === "em_andamento" && orderDetail.execucaoObservacoes && (
+                        <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
+                          <div className="flex items-start gap-3">
+                            <Package className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-semibold text-purple-900 mb-1">
+                                Informações da Execução
+                              </p>
+                              <p className="text-sm text-purple-700 leading-relaxed whitespace-pre-line">
+                                {orderDetail.execucaoObservacoes}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                       <div className="grid gap-4 sm:grid-cols-3">
                         <div className="flex items-center gap-3">
                           <Calendar className="h-5 w-5 text-muted-foreground" />
@@ -670,8 +686,8 @@ export default function CustomerOrders() {
                                       icon: AlertCircle,
                                       color: "text-red-600",
                                       bg: "bg-red-50",
-                                      borderColor: "border-red-200",
-                                      label: "Ajuste necessário",
+                                      borderColor: "border-red-300",
+                                      label: "Reprovado",
                                       badgeVariant: "destructive" as const,
                                     };
                                 }
@@ -683,7 +699,7 @@ export default function CustomerOrders() {
                               return (
                                 <div
                                   key={doc.id}
-                                  className={`p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bg}`}
+                                  className={`p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bg} transition-all duration-300`}
                                 >
                                   <div className="flex items-start justify-between">
                                     <div className="flex items-start gap-3 flex-1">
@@ -705,7 +721,12 @@ export default function CustomerOrders() {
                                           )}
                                         </div>
                                         {doc.observacoes && (
-                                          <p className="text-sm text-muted-foreground mt-1">
+                                          <p className={`text-sm mt-1 ${
+                                            doc.status === "reprovado" 
+                                              ? "text-red-700 font-semibold" 
+                                              : "text-muted-foreground"
+                                          }`}>
+                                            {doc.status === "reprovado" && "⚠️ "}
                                             {doc.observacoes}
                                           </p>
                                         )}
@@ -747,20 +768,10 @@ export default function CustomerOrders() {
                                               <Eye className="h-3 w-3 mr-1" />
                                               Ver
                                             </Button>
-                                            {orderDetail.etapa !==
-                                              "validando_documentos" &&
-                                              orderDetail.etapa !==
-                                                "contrato_enviado" &&
-                                              orderDetail.etapa !==
-                                                "contrato_assinado" &&
-                                              orderDetail.etapa !==
-                                                "analise_credito" &&
-                                              orderDetail.etapa !==
-                                                "aprovado" &&
-                                              orderDetail.etapa !==
-                                                "em_andamento" &&
-                                              orderDetail.etapa !==
-                                                "concluido" && (
+                                            {/* Permitir remover apenas se não estiver aprovado ou em etapa avançada */}
+                                            {doc.status !== "aprovado" &&
+                                              orderDetail.etapa ===
+                                                "aguardando_documentos" && (
                                                 <Button
                                                   size="sm"
                                                   variant="ghost"
@@ -779,19 +790,34 @@ export default function CustomerOrders() {
                                                           }
                                                         );
                                                         if (res.ok) {
-                                                          alert(
-                                                            "Documento excluído com sucesso!"
-                                                          );
-                                                          window.location.reload();
+                                                          // Invalidar queries para atualizar em tempo real
+                                                          queryClient.invalidateQueries({
+                                                            queryKey: [
+                                                              `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
+                                                            ],
+                                                          });
+                                                          queryClient.invalidateQueries({
+                                                            queryKey: [
+                                                              `/api/ecommerce/customer/orders/${orderId}`,
+                                                            ],
+                                                          });
+                                                          toast({
+                                                            title: "Documento excluído",
+                                                            description:
+                                                              "O documento foi removido com sucesso.",
+                                                          });
                                                         } else {
-                                                          alert(
-                                                            "Erro ao excluir documento"
+                                                          throw new Error(
+                                                            "Erro ao excluir"
                                                           );
                                                         }
                                                       } catch (error) {
-                                                        alert(
-                                                          "Erro ao excluir documento"
-                                                        );
+                                                        toast({
+                                                          title: "Erro",
+                                                          description:
+                                                            "Não foi possível excluir o documento",
+                                                          variant: "destructive",
+                                                        });
                                                       }
                                                     }
                                                   }}
@@ -822,12 +848,12 @@ export default function CustomerOrders() {
                                       />
                                       <Button
                                         size="sm"
-                                        variant="outline"
+                                        variant={doc.status === "reprovado" ? "default" : "outline"}
+                                        className={doc.status === "reprovado" ? "bg-red-600 hover:bg-red-700 w-full" : "w-full"}
                                         onClick={() =>
                                           fileInputRefs.current[doc.id]?.click()
                                         }
                                         disabled={uploadingDoc === doc.id}
-                                        className="w-full"
                                       >
                                         {uploadingDoc === doc.id ? (
                                           <>
@@ -838,7 +864,7 @@ export default function CustomerOrders() {
                                           <>
                                             <Upload className="h-4 w-4 mr-2" />
                                             {doc.status === "reprovado"
-                                              ? "Enviar novamente"
+                                              ? "Enviar Novo Documento"
                                               : "Enviar documento"}
                                           </>
                                         )}
@@ -853,12 +879,12 @@ export default function CustomerOrders() {
                             })}
 
                             {/* Barra de progresso */}
-                            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">
-                                  Progresso
+                                <span className="text-sm font-semibold text-gray-700">
+                                  📊 Progresso dos Documentos
                                 </span>
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-sm font-bold text-blue-600">
                                   {
                                     requestedDocuments.filter(
                                       (d) =>
@@ -866,12 +892,12 @@ export default function CustomerOrders() {
                                         d.status === "aprovado"
                                     ).length
                                   }{" "}
-                                  de {requestedDocuments.length}
+                                  / {requestedDocuments.length}
                                 </span>
                               </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                 <div
-                                  className="bg-blue-600 h-2 rounded-full transition-all"
+                                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
                                   style={{
                                     width: `${
                                       (requestedDocuments.filter(

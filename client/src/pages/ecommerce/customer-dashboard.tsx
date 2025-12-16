@@ -392,7 +392,7 @@ export default function CustomerDashboard() {
                               </div>
                               <div>
                                 <p className="font-medium">
-                                  Pedido #{order.id.slice(0, 8)}
+                                  Pedido #{order.orderCode || order.id.slice(0, 8)}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {new Date(order.createdAt).toLocaleDateString(

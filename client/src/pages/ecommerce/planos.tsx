@@ -487,46 +487,47 @@ export default function EcommercePlanos() {
 
         {/* Removido: Badge de múltiplas linhas */}
 
-        {/* Filtros Card */}
-        <Card
-          className="mb-8 shadow-lg border-0"
-          style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
-        >
-          <CardContent className="p-6">
-            {/* Mobile: Botão toggle filtros */}
-            <div className="md:hidden mb-4">
-              <Button
-                variant="outline"
-                className="w-full justify-between border-0 transition-all"
-                style={{ border: "2px solid #E0E0E0", borderRadius: "12px" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.borderColor = "#1E90FF")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.borderColor = "#E0E0E0")
-                }
-                onClick={() => setMostrarFiltros(!mostrarFiltros)}
-              >
-                <span className="flex items-center gap-2">
-                  <Filter className="h-4 w-4" />
-                  Filtros
-                  {filtrosAtivos > 0 && (
-                    <Badge
-                      className="ml-2 border-0"
-                      style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
-                    >
-                      {filtrosAtivos}
-                    </Badge>
-                  )}
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 transition-transform",
-                    mostrarFiltros && "rotate-180"
-                  )}
-                />
-              </Button>
-            </div>
+        {/* Filtros Card - Sticky apenas mobile */}
+        <div className="sticky top-0 z-30 md:static md:z-0 mb-8">
+          <Card
+            className="shadow-lg border-0"
+            style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
+          >
+            <CardContent className="p-6">
+              {/* Mobile: Botão toggle filtros */}
+              <div className="md:hidden mb-4">
+                <Button
+                  variant="outline"
+                  className="w-full justify-between border-0 transition-all"
+                  style={{ border: "2px solid #E0E0E0", borderRadius: "12px" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.borderColor = "#1E90FF")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.borderColor = "#E0E0E0")
+                  }
+                  onClick={() => setMostrarFiltros(!mostrarFiltros)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Filtros
+                    {filtrosAtivos > 0 && (
+                      <Badge
+                        className="ml-2 border-0"
+                        style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
+                      >
+                        {filtrosAtivos}
+                      </Badge>
+                    )}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform",
+                      mostrarFiltros && "rotate-180"
+                    )}
+                  />
+                </Button>
+              </div>
 
             <div
               className={cn("space-y-6", !mostrarFiltros && "hidden md:block")}
@@ -913,19 +914,35 @@ export default function EcommercePlanos() {
                 </div>
               </div>
 
-              {/* Limpar filtros */}
-              {filtrosAtivos > 0 && (
-                <button
-                  onClick={limparFiltros}
-                  className="flex items-center gap-2 text-sm text-slate-600 hover:text-[#6366F1] transition-colors"
+              {/* Botões de ação dos filtros */}
+              <div className="flex gap-3 mt-6">
+                {filtrosAtivos > 0 && (
+                  <Button
+                    onClick={limparFiltros}
+                    variant="outline"
+                    className="flex-1 md:flex-initial"
+                    style={{ borderColor: "#E0E0E0", color: "#555555" }}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Limpar filtros
+                  </Button>
+                )}
+                
+                <Button
+                  onClick={() => setMostrarFiltros(false)}
+                  className="flex-1 md:flex-initial"
+                  style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
+                  disabled={tipoPessoaFiltro === "ambos"}
                 >
-                  <X className="w-4 h-4" />
-                  Limpar todos os filtros
-                </button>
-              )}
+                  <Filter className="w-4 h-4 mr-2" />
+                  Aplicar Filtros
+                  {filtrosAtivos > 0 && ` (${filtrosAtivos})`}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Contador de Resultados e Ordenação */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">

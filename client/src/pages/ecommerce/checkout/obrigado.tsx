@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Link, useLocation } from "wouter";
 import { CheckCircle, Package, Mail, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function CheckoutObrigado() {
   const [pedidoId, setPedidoId] = useState<string>("");
@@ -17,6 +17,14 @@ export default function CheckoutObrigado() {
     const id = params.get("pedido");
     if (id) setPedidoId(id);
   }, []);
+
+  // Buscar dados do pedido para obter o orderCode
+  const { data: orderData } = useQuery({
+    queryKey: ["/api/ecommerce/customer/orders", pedidoId],
+    enabled: !!pedidoId && !!user,
+  });
+
+  const orderCode = orderData?.orderCode || pedidoId.slice(0, 8);
 
   // Determine the correct URL for "Acessar Painel do Cliente" button
   const painelUrl =
@@ -65,7 +73,7 @@ export default function CheckoutObrigado() {
                   Número do pedido:
                 </span>
                 <p className="text-2xl font-bold" style={{ color: "#1E90FF" }}>
-                  #{pedidoId}
+                  #{orderCode}
                 </p>
               </div>
             )}

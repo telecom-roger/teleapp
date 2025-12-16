@@ -1372,11 +1372,47 @@ router.put(
         return res.status(404).json({ error: "Pedido não encontrado" });
       }
 
-      // Remover registro de envio do documento da timeline (manter apenas docs ativos)
+      // Remover APENAS os uploads NOVOS (não aprovados) e arquivos físicos
       try {
         const user = req.user as any;
 
-        // Buscar e deletar o registro de documento_enviado deste tipo
+        // Buscar uploads deste tipo que estão como "enviado" (não aprovados)
+        const uploadsToDelete = await db
+          .select()
+          .from(ecommerceOrderDocuments)
+          .where(
+            and(
+              eq(ecommerceOrderDocuments.orderId, orderId),
+              eq(ecommerceOrderDocuments.tipo, document.tipo)
+            )
+          );
+
+        // Deletar arquivos físicos
+        const fs = await import("fs");
+        const path = await import("path");
+        let filesDeleted = 0;
+        for (const upload of uploadsToDelete) {
+          const filePath = path.join(process.cwd(), upload.filePath);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            filesDeleted++;
+            console.log(`🗑️ Arquivo deletado: ${filePath}`);
+          }
+        }
+
+        // Remover registros de upload do banco
+        if (uploadsToDelete.length > 0) {
+          await db
+            .delete(ecommerceOrderDocuments)
+            .where(
+              and(
+                eq(ecommerceOrderDocuments.orderId, orderId),
+                eq(ecommerceOrderDocuments.tipo, document.tipo)
+              )
+            );
+        }
+
+        // Remover APENAS as interações de documento_enviado mais recentes (não aprovadas)
         const deletedInteractions = await db
           .delete(interactions)
           .where(
@@ -1389,31 +1425,30 @@ router.put(
           )
           .returning();
 
-        if (deletedInteractions.length > 0) {
-          console.log(
-            `🗑️ Removidos ${deletedInteractions.length} registro(s) de documento enviado da timeline`
-          );
+        console.log(
+          `🗑️ Reprovação: ${filesDeleted} arquivo(s) físico(s), ${uploadsToDelete.length} upload(s) do banco, ${deletedInteractions.length} evento(s) da timeline removidos`
+        );
 
-          // Registrar log da remoção
-          await registrarEventoTimeline({
-            clientId: order.clientId,
-            tipo: "ecommerce_documento_reprovado",
-            titulo: `❌ Documento Reprovado - Pedido #${order.orderCode}`,
-            texto: `Admin reprovou o documento: ${document.nome}${
-              motivo ? `\n\nMotivo: ${motivo}` : ""
-            }\n\n📝 Registro anterior removido da timeline.`,
-            meta: {
-              orderId: order.id,
-              orderCode: order.orderCode,
-              documentoId: document.id,
-              documentoNome: document.nome,
-              documentoTipo: document.tipo,
-              motivo: motivo || null,
-              registrosRemovidos: deletedInteractions.length,
-            },
-            createdBy: user?.id || null,
-          });
-        }
+        // Registrar log da reprovação
+        await registrarEventoTimeline({
+          clientId: order.clientId,
+          tipo: "ecommerce_documento_reprovado",
+          titulo: `❌ Documento Reprovado - Pedido #${order.orderCode}`,
+          texto: `Admin reprovou o documento: ${document.nome}${
+            motivo ? `\n\nMotivo: ${motivo}` : ""
+          }\n\n📝 É necessário enviar um novo documento.`,
+          meta: {
+            orderId: order.id,
+            orderCode: order.orderCode,
+            documentoId: document.id,
+            documentoNome: document.nome,
+            documentoTipo: document.tipo,
+            motivo: motivo || null,
+            arquivosRemovidos: filesDeleted,
+            uploadsRemovidos: uploadsToDelete.length,
+          },
+          createdBy: user?.id || null,
+        });
       } catch (timelineError) {
         console.error(
           "❌ Erro ao processar reprovação na timeline:",

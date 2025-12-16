@@ -261,7 +261,7 @@ export default function AdminEcommercePedidos() {
   const { data: orderDetails } = useQuery<EcommerceOrder>({
     queryKey: [`/api/admin/ecommerce/orders/${selectedOrder?.id}`],
     enabled: !!selectedOrder,
-    refetchInterval: 3000,
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
 
@@ -270,7 +270,7 @@ export default function AdminEcommercePedidos() {
       `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
     ],
     enabled: !!selectedOrder,
-    refetchInterval: 3000,
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
 
@@ -279,7 +279,7 @@ export default function AdminEcommercePedidos() {
       `/api/admin/ecommerce/orders/${selectedOrder?.id}/uploaded-documents`,
     ],
     enabled: !!selectedOrder,
-    refetchInterval: 3000,
+    refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
 
@@ -527,6 +527,7 @@ export default function AdminEcommercePedidos() {
     if (busca) {
       resultado = resultado.filter(
         (p) =>
+          p.orderCode?.toLowerCase().includes(busca.toLowerCase()) ||
           p.nomeCompleto?.toLowerCase().includes(busca.toLowerCase()) ||
           p.razaoSocial?.toLowerCase().includes(busca.toLowerCase()) ||
           p.email.toLowerCase().includes(busca.toLowerCase()) ||
@@ -780,7 +781,7 @@ export default function AdminEcommercePedidos() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
-                  placeholder="Buscar por nome, email, telefone..."
+                  placeholder="Buscar por código, nome, email, telefone..."
                   value={busca}
                   onChange={(e) => {
                     setBusca(e.target.value);
@@ -1426,10 +1427,17 @@ export default function AdminEcommercePedidos() {
               {/* Documentos */}
               <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-semibold flex items-center gap-2 text-lg">
-                    <FileText className="h-5 w-5 text-primary" />
-                    Documentos Solicitados
-                  </h3>
+                  <div>
+                    <h3 className="font-semibold flex items-center gap-2 text-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Documentos Solicitados
+                    </h3>
+                    {requestedDocuments && requestedDocuments.length > 0 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {requestedDocuments.filter(d => d.status === "enviado" || d.status === "aprovado").length}/{requestedDocuments.length} documentos enviados
+                      </p>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -1481,22 +1489,28 @@ export default function AdminEcommercePedidos() {
                         [];
                       const hasUpload = uploads.length > 0;
 
-                      // Debug log
-                      if (!hasUpload) {
-                        console.log(
-                          `[DOC] ${doc.nome} (tipo: ${doc.tipo}) - sem uploads`
-                        );
-                      } else {
-                        console.log(
-                          `[DOC] ${doc.nome} (tipo: ${doc.tipo}) - ${uploads.length} upload(s)`,
-                          uploads
-                        );
-                      }
+                      // Debug: Log status do documento
+                      console.log(`[DOC ADM] ${doc.nome} - Status: ${doc.status}, HasUpload: ${hasUpload}, Uploads:`, uploads.length);
+
+                      // Cor de fundo baseada no status
+                      const getBgColor = () => {
+                        if (doc.status === "aprovado") return "bg-green-50";
+                        if (doc.status === "reprovado") return "bg-red-50";
+                        if (doc.status === "enviado") return "bg-blue-50";
+                        return "bg-white";
+                      };
+                      
+                      const getBorderColor = () => {
+                        if (doc.status === "aprovado") return "border-green-200";
+                        if (doc.status === "reprovado") return "border-red-200";
+                        if (doc.status === "enviado") return "border-blue-200";
+                        return "border-slate-200";
+                      };
 
                       return (
                         <div
                           key={doc.id}
-                          className="p-4 bg-white border border-slate-200 rounded-lg space-y-2 hover:border-primary/50 transition-colors"
+                          className={`p-4 ${getBgColor()} border ${getBorderColor()} rounded-lg space-y-2 hover:border-primary/50 transition-all duration-300`}
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3 flex-1">
@@ -1577,7 +1591,7 @@ export default function AdminEcommercePedidos() {
                                       <Eye className="h-3 w-3 mr-1" />
                                       Ver
                                     </Button>
-                                    {/* Botões de aprovar/reprovar só quando status é "enviado" */}
+                                    {/* Botões de aprovar/reprovar aparecem quando documento foi enviado */}
                                     {doc.status === "enviado" && (
                                       <>
                                         <Button
@@ -1616,10 +1630,16 @@ export default function AdminEcommercePedidos() {
                                         </Button>
                                       </>
                                     )}
-                                    {/* Mensagem quando já aprovado */}
+                                    {/* Feedback quando já aprovado */}
                                     {doc.status === "aprovado" && (
-                                      <span className="text-xs text-green-600">
+                                      <span className="text-xs text-green-600 font-semibold">
                                         ✓ Aprovado
+                                      </span>
+                                    )}
+                                    {/* Feedback quando reprovado */}
+                                    {doc.status === "reprovado" && (
+                                      <span className="text-xs text-red-600 font-semibold">
+                                        ✗ Reprovado
                                       </span>
                                     )}
                                   </div>

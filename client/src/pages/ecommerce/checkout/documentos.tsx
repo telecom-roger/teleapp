@@ -51,6 +51,9 @@ export default function CheckoutDocumentos() {
         <Card>
           <CardHeader>
             <CardTitle>Envie seus documentos</CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              ℹ️ O envio de documentos não é obrigatório agora, mas poderá ser solicitado posteriormente pela nossa equipe.
+            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -133,34 +136,6 @@ export default function CheckoutDocumentos() {
                   />
                 </div>
               </div>
-              
-              {tipoPessoa === "PJ" && (
-                <div>
-                  <Label htmlFor="contrato">Cartão CNPJ</Label>
-                  <div className="mt-2">
-                    <label htmlFor="contrato" className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
-                      {files.contrato ? (
-                        <div className="flex items-center">
-                          <FileText className="h-5 w-5 mr-2 text-green-600" />
-                          <span className="text-sm">{files.contrato.name}</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center">
-                          <Upload className="h-5 w-5 mr-2 text-slate-400" />
-                          <span className="text-sm text-slate-600">Clique para selecionar</span>
-                        </div>
-                      )}
-                    </label>
-                    <Input
-                      id="contrato"
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={(e) => handleFileChange("contrato", e.target.files?.[0] || null)}
-                    />
-                  </div>
-                </div>
-              )}
               
               <div className="flex gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={voltar} className="flex-1">
