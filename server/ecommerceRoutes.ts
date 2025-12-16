@@ -519,6 +519,21 @@ export function registerEcommerceRoutes(app: Express): void {
       // Gerar código único do pedido
       const orderCode = Math.floor(10000000 + Math.random() * 89999999).toString();
 
+      // Determinar etapa inicial baseado no tipo de contratação
+      let etapaInicial = "novo_pedido";
+      
+      // Se for portabilidade e tiver produtos (excluindo SVAs), vai para aguardando_dados_linhas
+      if (orderData.tipoContratacao === "portabilidade" && orderData.items && orderData.items.length > 0) {
+        const temProdutosSemSVA = orderData.items.some((item: any) => {
+          const categoria = item.productCategoria?.toLowerCase() || "";
+          return !categoria.includes("sva");
+        });
+        
+        if (temProdutosSemSVA) {
+          etapaInicial = "aguardando_dados_linhas";
+        }
+      }
+
       // Criar pedido
       const [order] = await db
         .insert(ecommerceOrders)
@@ -526,7 +541,7 @@ export function registerEcommerceRoutes(app: Express): void {
           ...orderData,
           clientId,
           orderCode,
-          etapa: "novo_pedido",
+          etapa: etapaInicial,
         })
         .returning();
 

@@ -6,6 +6,7 @@ import ecommerceCustomerRoutes from "./ecommerceCustomerRoutes";
 import ecommerceAdminRoutes from "./ecommerceAdminRoutes";
 import ecommerceManagementRoutes from "./ecommerceManagementRoutes";
 import ecommercePublicRoutes from "./ecommercePublicRoutes";
+import orderLinesRoutes from "./orderLinesRoutes";
 import {
   eq,
   and,
@@ -167,6 +168,9 @@ export async function registerRoutes(
 
   // ==================== E-COMMERCE CUSTOMER PANEL ROUTES ====================
   app.use("/api/ecommerce/customer", ecommerceCustomerRoutes);
+
+  // ==================== E-COMMERCE ORDER LINES (PORTABILIDADE) ====================
+  app.use("/api/ecommerce/order-lines", orderLinesRoutes);
 
   // ==================== E-COMMERCE ADMIN ROUTES ====================
   app.use("/api/admin/ecommerce", ecommerceAdminRoutes);

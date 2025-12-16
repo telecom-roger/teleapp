@@ -1062,3 +1062,31 @@ export const insertEcommerceBannerSchema = createInsertSchema(ecommerceBanners).
 
 export type EcommerceBanner = typeof ecommerceBanners.$inferSelect;
 export type InsertEcommerceBanner = z.infer<typeof insertEcommerceBannerSchema>;
+
+// ==================== E-COMMERCE ORDER LINES (Portabilidade) ====================
+export const ecommerceOrderLines = pgTable("ecommerce_order_lines", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: varchar("order_id").notNull().references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+  productId: varchar("product_id").notNull().references(() => ecommerceProducts.id), // Plano contratado para esta linha
+  numero: varchar("numero", { length: 20 }).notNull(), // Número da linha para portabilidade
+  operadoraAtual: varchar("operadora_atual", { length: 50 }), // Operadora de origem (Vivo, Claro, TIM, Oi, etc)
+  operadoraDestino: varchar("operadora_destino", { length: 50 }), // Operadora de destino (do plano contratado)
+  svas: text("svas").array().default(sql`ARRAY[]::text[]`), // IDs dos SVAs selecionados para esta linha
+  status: varchar("status", { length: 50 }).notNull().default("inicial"), // inicial, em_validacao, aprovado, em_portabilidade, ativo, cancelado
+  observacoes: text("observacoes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("idx_ecommerce_order_lines_order").on(table.orderId),
+  index("idx_ecommerce_order_lines_numero").on(table.numero),
+  index("idx_ecommerce_order_lines_status").on(table.status),
+]);
+
+export const insertEcommerceOrderLineSchema = createInsertSchema(ecommerceOrderLines).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceOrderLine = typeof ecommerceOrderLines.$inferSelect;
+export type InsertEcommerceOrderLine = z.infer<typeof insertEcommerceOrderLineSchema>;

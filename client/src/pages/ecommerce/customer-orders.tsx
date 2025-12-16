@@ -20,10 +20,13 @@ import {
   Upload,
   Eye,
   Download,
+  Phone,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { OrderLinesFill } from "@/components/ecommerce/OrderLinesFill";
 
 interface Order {
   id: string;
@@ -85,6 +88,7 @@ export default function CustomerOrders() {
   const queryClient = useQueryClient();
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [showLinesModal, setShowLinesModal] = useState(false);
 
   const {
     data: customerData,
@@ -127,6 +131,13 @@ export default function CustomerOrders() {
     enabled: !!orderId,
     refetchInterval: 1000, // Atualizar a cada 1 segundo para tempo real
     refetchOnWindowFocus: true,
+  });
+
+  // Buscar resumo das linhas de portabilidade
+  const { data: linesSummary } = useQuery<any>({
+    queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`],
+    enabled: !!orderId && orderDetail?.etapa === "aguardando_dados_linhas",
+    refetchInterval: 5000,
   });
 
   const uploadDocumentMutation = useMutation({
@@ -231,6 +242,16 @@ export default function CustomerOrders() {
           label: "Pedido recebido",
           description:
             "Recebemos seu pedido e ele já está em nossa fila de processamento.",
+        };
+      case "aguardando_dados_linhas":
+        return {
+          icon: FileText,
+          color: "text-blue-600",
+          bg: "bg-blue-50",
+          badge: "default",
+          label: "Aguardando dados das linhas",
+          description:
+            "Para continuar com a portabilidade, precisamos que você preencha as informações de cada linha contratada.",
         };
       case "em_analise":
         return {
@@ -626,6 +647,70 @@ export default function CustomerOrders() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Linhas de Portabilidade - Mostrar se estiver aguardando dados */}
+                  {orderDetail.etapa === "aguardando_dados_linhas" && linesSummary && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Phone className="h-5 w-5 text-blue-500" />
+                          Linhas de Portabilidade
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground">
+                          Preencha as informações de cada linha que será portada para dar continuidade ao pedido.
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Progresso */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <p className="text-sm font-medium text-blue-900">
+                                Progresso do preenchimento
+                              </p>
+                              <p className="text-xs text-blue-700 mt-1">
+                                {linesSummary.totalLinhasPreenchidas} de {linesSummary.totalLinhasContratadas} linhas preenchidas
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-3xl font-bold text-blue-600">
+                                {linesSummary.progresso}%
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Barra de progresso */}
+                          <div className="w-full bg-blue-200 rounded-full h-3">
+                            <div
+                              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                              style={{ width: `${linesSummary.progresso}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Botão para preencher */}
+                        <Button
+                          onClick={() => setShowLinesModal(true)}
+                          className="w-full"
+                          size="lg"
+                        >
+                          <Phone className="h-4 w-4 mr-2" />
+                          {linesSummary.totalLinhasPreenchidas === 0
+                            ? "Começar Preenchimento"
+                            : linesSummary.progresso === 100
+                            ? "Revisar Linhas"
+                            : "Continuar Preenchimento"}
+                        </Button>
+
+                        {linesSummary.progresso === 100 && (
+                          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>Todas as linhas foram preenchidas! Seu pedido seguirá para a próxima etapa.</span>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Documentos - Mostrar sempre que houver documentos solicitados */}
                   {requestedDocuments && requestedDocuments.length > 0 && (
@@ -1042,6 +1127,21 @@ export default function CustomerOrders() {
       </div>
 
       <CustomerMobileNav />
+
+      {/* Modal de Preenchimento de Linhas */}
+      <Dialog open={showLinesModal} onOpenChange={setShowLinesModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Preencher Linhas de Portabilidade</DialogTitle>
+          </DialogHeader>
+          {orderId && (
+            <OrderLinesFill 
+              orderId={orderId} 
+              onClose={() => setShowLinesModal(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
