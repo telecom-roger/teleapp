@@ -60,6 +60,7 @@ import CustomerDashboard from "@/pages/ecommerce/customer-dashboard";
 import CustomerOrders from "@/pages/ecommerce/customer-orders";
 import CustomerProfile from "@/pages/ecommerce/customer-profile";
 import CustomerDocuments from "@/pages/ecommerce/customer-documents";
+import CustomerLinhasPortabilidade from "@/pages/ecommerce/customer-linhas-portabilidade";
 import CheckoutResumo from "@/pages/ecommerce/checkout/resumo";
 import CheckoutTipoCliente from "@/pages/ecommerce/checkout/tipo-cliente";
 import CheckoutDados from "@/pages/ecommerce/checkout/dados";
@@ -156,6 +157,11 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
       <Route path="/ecommerce/painel/pedidos/:orderId">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerOrders} {...params} />
+        )}
+      </Route>
+      <Route path="/ecommerce/painel/linhas-portabilidade">
+        {(params) => (
+          <EcommerceProtectedRoute component={CustomerLinhasPortabilidade} {...params} />
         )}
       </Route>
       <Route path="/ecommerce/painel/pedidos">

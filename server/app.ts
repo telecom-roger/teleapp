@@ -10,6 +10,7 @@ import {
   registerRoutes,
   bootstrapWhatsAppSessions,
   startCampaignScheduler,
+  startContractsChecker,
 } from "./routes";
 import { startAutomationCron } from "./automationService";
 import { setupAuth } from "./localAuth";
@@ -76,6 +77,13 @@ function startExpensiveOpsOnce() {
       log("🤖 Automation Cron Jobs iniciados!");
     } catch (err) {
       console.error("❌ Erro ao iniciar cron jobs:", err);
+    }
+
+    try {
+      void startContractsChecker();
+      log("🗂️ Contracts checker iniciado!");
+    } catch (err) {
+      console.error("❌ Erro ao iniciar contracts checker:", err);
     }
 
     try {

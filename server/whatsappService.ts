@@ -1359,20 +1359,34 @@ export async function sendDocument(sessionId: string, telefone: string, docBase6
   }
 }
 
-// ✅ Lock para evitar múltiplas execuções de campanha
-const campaignExecutionLock = new Set<string>();
+// ✅ Lock para evitar múltiplas execuções de campanha (com timeout e userId)
+const campaignExecutionLock = new Map<string, { userId: string; startTime: number }>();
+
+// Limpar locks antigos (> 2 horas)
+setInterval(() => {
+  const now = Date.now();
+  for (const [campaignId, lock] of campaignExecutionLock.entries()) {
+    if (now - lock.startTime > 2 * 60 * 60 * 1000) {
+      campaignExecutionLock.delete(campaignId);
+      console.log(`🔓 [LOCK CLEANUP] Lock da campanha ${campaignId} removido (> 2h de inatividade)`);
+    }
+  }
+}, 10 * 60 * 1000);
 
 export async function executeCampaign(campaign: any, db: any, clients: any[]): Promise<void> {
   try {
     const { campaigns, campaignSendings } = await import('@shared/schema');
-    const { eq } = await import('drizzle-orm');
+    const { eq, and } = await import('drizzle-orm');
     
     // ✅ PROTEÇÃO: Evitar múltiplas execuções da mesma campanha
-    if (campaignExecutionLock.has(campaign.id)) {
-      console.warn(`⚠️ [PROTEÇÃO] Campanha ${campaign.id} já está em execução. Pulando...`);
+    const lockKey = campaign.id;
+    const existingLock = campaignExecutionLock.get(lockKey);
+    if (existingLock) {
+      console.warn(`⚠️ [PROTEÇÃO] Campanha ${campaign.id} (usuário ${existingLock.userId}) já em execução. Pulando...`);
       return;
     }
-    campaignExecutionLock.add(campaign.id);
+    
+    campaignExecutionLock.set(lockKey, { userId: campaign.createdBy, startTime: Date.now() });
     
     console.log(`🚀 INICIANDO EXECUÇÃO DE CAMPANHA: ${campaign.nome} (${campaign.id})`);
     
@@ -1629,12 +1643,13 @@ export async function executeCampaign(campaign: any, db: any, clients: any[]): P
       })
       .where(eq(campaigns.id, campaign.id));
 
-    console.log(`✅ CAMPANHA CONCLUÍDA: ${campaign.nome} | Total enviados: ${totalEnviadosFinal} (${jaEnviados} anteriores + ${enviados} agora) | Erros nesta rodada: ${erros}`);
+    console.log(`✅ CAMPANHA CONCLUÍDA: ${campaign.nome} (ID: ${campaign.id}, Usuário: ${campaign.createdBy}) | Total enviados: ${totalEnviadosFinal} (${jaEnviados} anteriores + ${enviados} agora) | Erros nesta rodada: ${erros}`);
   } catch (error) {
-    console.error(`❌ Erro ao executar campanha:`, error);
+    console.error(`❌ Erro ao executar campanha ${campaign.id} do usuário ${campaign.createdBy}:`, error);
   } finally {
     // ✅ Remover lock ao finalizar (sucesso ou erro)
-    campaignExecutionLock.delete(campaign.id);
-    console.log(`🔓 Lock removido para campanha ${campaign.id}`);
+    const removedLock = campaignExecutionLock.delete(campaign.id);
+    const lockStatus = removedLock ? '✅ removido' : '⚠️ não encontrado';
+    console.log(`🔓 [LOCK] Campanha ${campaign.id} (usuário: ${campaign.createdBy}): lock ${lockStatus}`);
   }
 }

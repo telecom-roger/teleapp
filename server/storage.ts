@@ -1,15 +1,5 @@
 import { db } from "./db";
-import {
-  eq,
-  and,
-  desc,
-  asc,
-  sql,
-  ilike,
-  or,
-  inArray,
-  count,
-} from "drizzle-orm";
+import { eq, and, desc, asc, sql, ilike, or, inArray, count } from "drizzle-orm";
 import type {
   Client,
   InsertClient,
@@ -84,6 +74,7 @@ import {
   followUps,
   clientScores,
 } from "@shared/schema";
+import { contracts, contractDocuments, contractRenewals, contractNotificationSettings } from "@shared/schema";
 
 // ==================== USER STORAGE ====================
 export async function upsertUser(user: UpsertUser): Promise<User> {
@@ -110,11 +101,7 @@ export async function getUserById(id: string): Promise<User | undefined> {
 }
 
 export async function getUserByEmail(email: string): Promise<User | undefined> {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email))
-    .limit(1);
+  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   return user;
 }
 
@@ -146,11 +133,7 @@ export async function updateClient(
 }
 
 export async function getClientById(id: string): Promise<Client | undefined> {
-  const [result] = await db
-    .select()
-    .from(clients)
-    .where(eq(clients.id, id))
-    .limit(1);
+  const [result] = await db.select().from(clients).where(eq(clients.id, id)).limit(1);
   return result;
 }
 
@@ -165,23 +148,13 @@ export async function getClients(params: {
   userId?: string;
   isAdmin?: boolean;
 }): Promise<{ clientes: Client[]; total: number }> {
-  const {
-    search,
-    status,
-    tagName,
-    tipo,
-    carteira,
-    page = 1,
-    limit = 20,
-    userId,
-    isAdmin = false,
-  } = params;
+  const { search, status, tagName, tipo, carteira, page = 1, limit = 20, userId, isAdmin = false } = params;
   const offset = (page - 1) * limit;
 
   let conditions = [];
-
-  // Filtro de permissão: Admin vê TODOS, outros veem apenas seus clientes ou compartilhados
-  if (userId && !isAdmin) {
+  
+  // TODOS (admin ou não) veem apenas seus clientes OU compartilhados
+  if (userId) {
     conditions.push(
       or(
         eq(clients.createdBy, userId),
@@ -189,7 +162,7 @@ export async function getClients(params: {
       )
     );
   }
-
+  
   if (search) {
     conditions.push(
       or(
@@ -222,7 +195,10 @@ export async function getClients(params: {
       .orderBy(desc(clients.createdAt))
       .limit(limit)
       .offset(offset),
-    db.selectDistinct({ id: clients.id }).from(clients).where(whereClause),
+    db
+      .selectDistinct({ id: clients.id })
+      .from(clients)
+      .where(whereClause),
   ]);
 
   return {
@@ -231,38 +207,84 @@ export async function getClients(params: {
   };
 }
 
+// ==================== CONTRACT STORAGE HELPERS ====================
+export async function createContract(data: any) {
+  const [result] = await db.insert(contracts).values(data).returning();
+  return result;
+}
+
+export async function updateContract(id: string, data: Partial<any>) {
+  const [result] = await db.update(contracts).set({ ...data, updatedAt: new Date() }).where(eq(contracts.id, id)).returning();
+  return result;
+}
+
+export async function getContractsByClient(clientId: string) {
+  const results = await db.select().from(contracts).where(eq(contracts.clientId, clientId)).orderBy(desc(contracts.createdAt));
+  return results;
+}
+
+export async function getContractById(id: string) {
+  const [result] = await db.select().from(contracts).where(eq(contracts.id, id)).limit(1);
+  return result;
+}
+
+export async function addContractDocument(contractId: string, doc: { filename: string; path: string; mime?: string; size?: number; uploadedBy?: string }) {
+  const [result] = await db.insert(contractDocuments).values({ contractId, filename: doc.filename, path: doc.path, mime: doc.mime, size: doc.size, uploadedBy: doc.uploadedBy }).returning();
+  return result;
+}
+
+export async function getContractDocumentById(id: string) {
+  const [result] = await db.select().from(contractDocuments).where(eq(contractDocuments.id, id)).limit(1);
+  return result;
+}
+
+export async function removeContractDocument(docId: string) {
+  await db.delete(contractDocuments).where(eq(contractDocuments.id, docId));
+}
+
+export async function createContractRenewal(renewal: any) {
+  const [result] = await db.insert(contractRenewals).values(renewal).returning();
+  return result;
+}
+
+export async function getContractsEligibleForOffer(beforeDate: Date) {
+  // returns contracts where elegivelOfertaAt <= beforeDate
+  const res = await db.select().from(contracts).where(sql`${contracts.elegivelOfertaAt} <= ${beforeDate}`).orderBy(contracts.elegivelOfertaAt);
+  return res;
+}
+
+export async function getContractsWithUpcomingRenewals(beforeDate: Date) {
+  const res = await db.select().from(contracts).where(sql`${contracts.dataProximaRenovacao} <= ${beforeDate}`).orderBy(contracts.dataProximaRenovacao);
+  return res;
+}
+
 export async function deleteClient(id: string): Promise<void> {
   await db.delete(clients).where(eq(clients.id, id));
 }
 
 // Verificar se usuário pode acessar o cliente (criou ou compartilhado)
-export async function canUserAccessClient(
-  clientId: string,
-  userId: string
-): Promise<boolean> {
+export async function canUserAccessClient(clientId: string, userId: string): Promise<boolean> {
   const [client] = await db
     .select()
     .from(clients)
     .where(eq(clients.id, clientId))
     .limit(1);
-
+  
   if (!client) return false;
-
+  
   // Usuário é o proprietário
   if (client.createdBy === userId) return true;
-
+  
   // Cliente foi compartilhado com o usuário
   const [sharing] = await db
     .select()
     .from(clientSharing)
-    .where(
-      and(
-        eq(clientSharing.clientId, clientId),
-        eq(clientSharing.sharedWithUserId, userId)
-      )
-    )
+    .where(and(
+      eq(clientSharing.clientId, clientId),
+      eq(clientSharing.sharedWithUserId, userId)
+    ))
     .limit(1);
-
+  
   return !!sharing;
 }
 
@@ -272,9 +294,7 @@ export async function createContact(data: InsertContact): Promise<Contact> {
   return result;
 }
 
-export async function getContactsByClientId(
-  clientId: string
-): Promise<Contact[]> {
+export async function getContactsByClientId(clientId: string): Promise<Contact[]> {
   return await db
     .select()
     .from(contacts)
@@ -283,16 +303,14 @@ export async function getContactsByClientId(
 }
 
 // ==================== OPPORTUNITY STORAGE ====================
-export async function createOpportunity(
-  data: InsertOpportunity
-): Promise<Opportunity> {
+export async function createOpportunity(data: InsertOpportunity): Promise<Opportunity> {
   const [result] = await db.insert(opportunities).values(data).returning();
-
+  
   // Recalculate client's status
   if (result?.clientId) {
     await recalculateClientStatus(result.clientId);
   }
-
+  
   return result;
 }
 
@@ -305,12 +323,12 @@ export async function updateOpportunity(
     .set({ ...data, updatedAt: new Date() })
     .where(eq(opportunities.id, id))
     .returning();
-
+  
   // Recalculate client's status
   if (result?.clientId) {
     await recalculateClientStatus(result.clientId);
   }
-
+  
   return result;
 }
 
@@ -320,7 +338,7 @@ export async function getOpportunities(params: {
   userId?: string; // Filtro por usuário
 }): Promise<Opportunity[]> {
   let conditions = [];
-
+  
   // Se userId está definido, filtra APENAS oportunidades do usuário (responsavelId)
   // Cada vendedor vê APENAS suas próprias oportunidades, mesmo que cliente seja compartilhado
   if (params.userId) {
@@ -328,7 +346,7 @@ export async function getOpportunities(params: {
   } else if (params.responsavel && params.responsavel !== "todos") {
     conditions.push(eq(opportunities.responsavelId, params.responsavel));
   }
-
+  
   if (params.etapa) {
     conditions.push(eq(opportunities.etapa, params.etapa));
   }
@@ -342,9 +360,7 @@ export async function getOpportunities(params: {
     .orderBy(opportunities.ordem, opportunities.createdAt);
 }
 
-export async function getOpportunityById(
-  id: string
-): Promise<Opportunity | undefined> {
+export async function getOpportunityById(id: string): Promise<Opportunity | undefined> {
   const [result] = await db
     .select()
     .from(opportunities)
@@ -357,7 +373,7 @@ export async function deleteOpportunity(id: string): Promise<void> {
   // Get opportunity before deleting to know which client to update
   const opp = await getOpportunityById(id);
   await db.delete(opportunities).where(eq(opportunities.id, id));
-
+  
   // Recalculate client's status
   if (opp?.clientId) {
     await recalculateClientStatus(opp.clientId);
@@ -386,14 +402,8 @@ export async function getCampaigns(): Promise<Campaign[]> {
   return await db.select().from(campaigns).orderBy(desc(campaigns.createdAt));
 }
 
-export async function getCampaignById(
-  id: string
-): Promise<Campaign | undefined> {
-  const [result] = await db
-    .select()
-    .from(campaigns)
-    .where(eq(campaigns.id, id))
-    .limit(1);
+export async function getCampaignById(id: string): Promise<Campaign | undefined> {
+  const [result] = await db.select().from(campaigns).where(eq(campaigns.id, id)).limit(1);
   return result;
 }
 
@@ -415,14 +425,8 @@ export async function getTemplates(): Promise<Template[]> {
     .orderBy(desc(templates.createdAt));
 }
 
-export async function getTemplateById(
-  id: string
-): Promise<Template | undefined> {
-  const [result] = await db
-    .select()
-    .from(templates)
-    .where(eq(templates.id, id))
-    .limit(1);
+export async function getTemplateById(id: string): Promise<Template | undefined> {
+  const [result] = await db.select().from(templates).where(eq(templates.id, id)).limit(1);
   return result;
 }
 
@@ -443,9 +447,7 @@ export async function deleteTemplate(id: string): Promise<void> {
 }
 
 // ==================== INTERACTION/TIMELINE STORAGE ====================
-export async function createInteraction(
-  data: InsertInteraction
-): Promise<Interaction> {
+export async function createInteraction(data: InsertInteraction): Promise<Interaction> {
   const [result] = await db.insert(interactions).values(data).returning();
   return result;
 }
@@ -471,9 +473,7 @@ export async function getTimelineByClientId(clientId: string): Promise<any[]> {
 }
 
 // ==================== CUSTOM FIELD STORAGE ====================
-export async function createCustomField(
-  data: InsertCustomField
-): Promise<CustomField> {
+export async function createCustomField(data: InsertCustomField): Promise<CustomField> {
   const [result] = await db.insert(customFields).values(data).returning();
   return result;
 }
@@ -513,9 +513,7 @@ export async function getAuditLogs(params: {
 }
 
 // ==================== IMPORT JOB STORAGE ====================
-export async function createImportJob(
-  data: InsertImportJob
-): Promise<ImportJob> {
+export async function createImportJob(data: InsertImportJob): Promise<ImportJob> {
   const [result] = await db.insert(importJobs).values(data).returning();
   return result;
 }
@@ -544,12 +542,8 @@ export async function getImportJobs(userId?: string): Promise<ImportJob[]> {
 // ==================== STATISTICS ====================
 export async function getDashboardStats(userId?: string) {
   let clientWhereClause = userId ? eq(clients.createdBy, userId) : undefined;
-  let opportunityWhereClause = userId
-    ? eq(opportunities.responsavelId, userId)
-    : undefined;
-  let campaignWhereClause = userId
-    ? eq(campaigns.createdBy, userId)
-    : undefined;
+  let opportunityWhereClause = userId ? eq(opportunities.responsavelId, userId) : undefined;
+  let campaignWhereClause = userId ? eq(campaigns.createdBy, userId) : undefined;
 
   const [clientStats] = await db
     .select({
@@ -588,10 +582,8 @@ export async function getDashboardStats(userId?: string) {
 }
 
 export async function getFunnelData(userId?: string) {
-  let whereClause = userId
-    ? eq(opportunities.responsavelId, userId)
-    : undefined;
-
+  let whereClause = userId ? eq(opportunities.responsavelId, userId) : undefined;
+  
   const results = await db
     .select({
       etapa: opportunities.etapa,
@@ -619,7 +611,7 @@ export async function getFunnelData(userId?: string) {
 
 export async function getStatusDistribution(userId?: string) {
   let whereClause = userId ? eq(clients.createdBy, userId) : undefined;
-
+  
   const results = await db
     .select({
       status: clients.status,
@@ -673,13 +665,11 @@ export async function getWhatsappSessionBySessionId(sessionId: string) {
 
 export async function getAllWhatsappSessions(userId?: string) {
   const query = db.select().from(whatsappSessions);
-
+  
   if (userId) {
-    return await query
-      .where(eq(whatsappSessions.userId, userId))
-      .orderBy(desc(whatsappSessions.createdAt));
+    return await query.where(eq(whatsappSessions.userId, userId)).orderBy(desc(whatsappSessions.createdAt));
   }
-
+  
   return await query.orderBy(desc(whatsappSessions.createdAt));
 }
 
@@ -691,7 +681,7 @@ export async function getConnectedSessionByUserId(userId: string) {
     .where(
       and(
         eq(whatsappSessions.userId, userId),
-        eq(whatsappSessions.status, "conectada"),
+        eq(whatsappSessions.status, 'conectada'),
         eq(whatsappSessions.ativo, true)
       )
     )
@@ -700,12 +690,9 @@ export async function getConnectedSessionByUserId(userId: string) {
 }
 
 // ==================== WHATSAPP BROADCAST STORAGE ====================
-export async function getBroadcastStats(filtros?: {
-  status?: string;
-  carteira?: string;
-}) {
+export async function getBroadcastStats(filtros?: { status?: string; carteira?: string }) {
   let conditions = [];
-
+  
   if (filtros?.status && filtros.status !== "") {
     conditions.push(eq(clients.status, filtros.status));
   }
@@ -716,7 +703,7 @@ export async function getBroadcastStats(filtros?: {
   const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
   const allClientes = await db.select().from(clients);
-  const filteredClientes = whereClause
+  const filteredClientes = whereClause 
     ? await db.select().from(clients).where(whereClause)
     : allClientes;
 
@@ -732,18 +719,18 @@ export async function getBroadcastStats(filtros?: {
   };
 }
 
-export async function getClientsForBroadcast(filtros?: {
-  status?: string;
-  carteira?: string;
-  userId?: string;
-  isAdmin?: boolean;
+export async function getClientsForBroadcast(filtros?: { 
+  status?: string; 
+  carteira?: string; 
+  userId?: string; 
+  isAdmin?: boolean; 
   clientIds?: string[];
   tipos?: string[];
   carteiras?: string[];
   cidades?: string[];
 }) {
   let conditions = [];
-
+  
   // Se há clientIds específicos, usa apenas eles
   if (filtros?.clientIds && filtros.clientIds.length > 0) {
     conditions.push(inArray(clients.id, filtros.clientIds));
@@ -758,14 +745,14 @@ export async function getClientsForBroadcast(filtros?: {
     );
   }
   // Se é admin, não filtra - vê todos os clientes
-
+  
   if (filtros?.status && filtros.status !== "") {
     conditions.push(eq(clients.status, filtros.status));
   }
   if (filtros?.carteira && filtros.carteira !== "") {
     conditions.push(ilike(clients.carteira, `%${filtros.carteira}%`));
   }
-
+  
   // ✅ Filtros adicionais do frontend
   if (filtros?.tipos && filtros.tipos.length > 0) {
     conditions.push(inArray(clients.tipoCliente, filtros.tipos));
@@ -783,26 +770,18 @@ export async function getClientsForBroadcast(filtros?: {
 }
 
 // ==================== CHAT STORAGE ====================
-export async function createOrGetConversation(
-  clientId: string,
-  userId: string
-): Promise<Conversation> {
+export async function createOrGetConversation(clientId: string, userId: string): Promise<Conversation> {
   const [existing] = await db
     .select()
     .from(conversations)
-    .where(
-      and(
-        eq(conversations.clientId, clientId),
-        eq(conversations.userId, userId)
-      )
-    )
+    .where(and(eq(conversations.clientId, clientId), eq(conversations.userId, userId)))
     .limit(1);
-
+  
   if (existing) {
     console.log("📌 Conversa existente encontrada:", existing.id);
     return existing;
   }
-
+  
   const [created] = await db
     .insert(conversations)
     .values({ clientId, userId, canal: "whatsapp", ativa: true, oculta: false })
@@ -811,27 +790,15 @@ export async function createOrGetConversation(
   return created;
 }
 
-export async function toggleConversationHidden(
-  conversationId: string,
-  userId: string,
-  oculta: boolean
-): Promise<Conversation | null> {
+export async function toggleConversationHidden(conversationId: string, userId: string, oculta: boolean): Promise<Conversation | null> {
   const [existing] = await db
     .select()
     .from(conversations)
-    .where(
-      and(
-        eq(conversations.id, conversationId),
-        eq(conversations.userId, userId)
-      )
-    )
+    .where(and(eq(conversations.id, conversationId), eq(conversations.userId, userId)))
     .limit(1);
-
+  
   if (!existing) {
-    console.error(
-      "❌ Conversa não encontrada ou sem permissão:",
-      conversationId
-    );
+    console.error("❌ Conversa não encontrada ou sem permissão:", conversationId);
     return null;
   }
 
@@ -841,22 +808,17 @@ export async function toggleConversationHidden(
     .where(eq(conversations.id, conversationId))
     .returning();
 
-  console.log(
-    `🔐 Conversa ${oculta ? "oculta" : "reabrida"}: ${conversationId}`
-  );
+  console.log(`🔐 Conversa ${oculta ? 'oculta' : 'reabrida'}: ${conversationId}`);
   return updated;
 }
 
-export async function getConversations(
-  userId: string,
-  showHidden: boolean = false
-): Promise<any[]> {
+export async function getConversations(userId: string, showHidden: boolean = false): Promise<any[]> {
   // ✅ Get conversations with messages, ordered by latest message
   // Por padrão, filtra conversas ocultas (showHidden=false)
-  const whereCondition = showHidden
+  const whereCondition = showHidden 
     ? eq(conversations.userId, userId)
     : and(eq(conversations.userId, userId), eq(conversations.oculta, false));
-
+    
   const conversationsData = await db
     .select({
       id: conversations.id,
@@ -876,7 +838,7 @@ export async function getConversations(
         celular: clients.celular,
         telefone2: clients.telefone2,
         tags: clients.tags,
-      },
+      }
     })
     .from(conversations)
     .leftJoin(clients, eq(conversations.clientId, clients.id))
@@ -891,7 +853,7 @@ export async function getConversations(
         .select({ count: count() })
         .from(messages)
         .where(eq(messages.conversationId, row.id));
-
+      
       const hasMessages = Number(msgCount[0]?.count || 0) > 0;
       if (!hasMessages) return null;
 
@@ -899,18 +861,15 @@ export async function getConversations(
       return {
         ...row,
         unreadCount,
-        client: row.client && row.client.id ? row.client : null,
+        client: row.client && row.client.id ? row.client : null
       };
     })
   );
-
+  
   return withCounts.filter(Boolean);
 }
 
-export async function getMessages(
-  conversationId: string,
-  limit: number = 50
-): Promise<Message[]> {
+export async function getMessages(conversationId: string, limit: number = 50): Promise<Message[]> {
   return await db
     .select({
       id: messages.id,
@@ -925,9 +884,9 @@ export async function getMessages(
       lido: messages.lido,
       deletado: messages.deletado,
       createdAt: messages.createdAt,
-      origem: messages.origem, // ✅ Adicionado para retornar o campo "Enviado por IA"
-      statusEntrega: messages.statusEntrega, // ✅ Status de entrega (enviado, entregue, lido)
-      whatsappMessageId: messages.whatsappMessageId, // ✅ ID da mensagem no WhatsApp
+      origem: messages.origem,  // ✅ Adicionado para retornar o campo "Enviado por IA"
+      statusEntrega: messages.statusEntrega,  // ✅ Status de entrega (enviado, entregue, lido)
+      whatsappMessageId: messages.whatsappMessageId,  // ✅ ID da mensagem no WhatsApp
     })
     .from(messages)
     .where(eq(messages.conversationId, conversationId))
@@ -938,33 +897,20 @@ export async function getMessages(
 export async function createMessage(data: InsertMessage): Promise<Message> {
   // Garantir que createdAt é sempre UTC ao salvar
   const now = new Date();
-  console.log(
-    `💾 Salvando mensagem: sender=${
-      data.sender
-    }, conteudo=${data.conteudo?.substring(0, 50)}, convId=${
-      data.conversationId
-    }, createdAt=${now.toISOString()}`
-  );
-
-  const [created] = await db
-    .insert(messages)
-    .values({
-      ...data,
-      createdAt: now, // Isso garante UTC
-    })
-    .returning();
-
+  console.log(`💾 Salvando mensagem: sender=${data.sender}, conteudo=${data.conteudo?.substring(0, 50)}, convId=${data.conversationId}, createdAt=${now.toISOString()}`);
+  
+  const [created] = await db.insert(messages).values({
+    ...data,
+    createdAt: now, // Isso garante UTC
+  }).returning();
+  
   if (!created) {
     console.error(`❌ ERRO: createMessage não retornou mensagem!`);
     throw new Error("Failed to create message");
   }
-
-  console.log(
-    `✅ Mensagem salva no DB: ${
-      created.id
-    }, createdAt no DB: ${created.createdAt.toISOString()}`
-  );
-
+  
+  console.log(`✅ Mensagem salva no DB: ${created.id}, createdAt no DB: ${created.createdAt.toISOString()}`);
+  
   // Update conversation last message
   if (created.conversationId) {
     await db
@@ -974,82 +920,67 @@ export async function createMessage(data: InsertMessage): Promise<Message> {
         ultimaMensagemEm: new Date(),
       })
       .where(eq(conversations.id, created.conversationId));
-
+    
     console.log(`✅ Conversa atualizada: ${created.conversationId}`);
   }
-
+  
   return created;
 }
 
-export async function findConversationByPhoneAndUser(
-  telefone: string,
-  userId: string
-): Promise<Conversation | undefined> {
+export async function findConversationByPhoneAndUser(telefone: string, userId: string): Promise<Conversation | undefined> {
   // Normalize phone to SEM 55 format (all clients in system are stored without 55)
   let normalizado = telefone.replace(/\D/g, "");
-
+  
   // Remove 55 prefix if present
   if (normalizado.startsWith("55")) {
     normalizado = normalizado.substring(2);
   }
-
-  console.log(
-    `🔍 findConversationByPhoneAndUser: buscando por "${normalizado}"`
-  );
-
+  
+  console.log(`🔍 findConversationByPhoneAndUser: buscando por "${normalizado}"`);
+  
   // Find client by phone number - search SEM 55 format across phone fields
   const [client] = await db
     .select()
     .from(clients)
-    .where(
-      or(
-        eq(clients.celular, normalizado),
-        eq(clients.telefone2, normalizado),
-        ilike(clients.celular, `%${normalizado}%`),
-        ilike(clients.telefone2, `%${normalizado}%`)
-      )
-    )
+    .where(or(
+      eq(clients.celular, normalizado),
+      eq(clients.telefone2, normalizado),
+      ilike(clients.celular, `%${normalizado}%`),
+      ilike(clients.telefone2, `%${normalizado}%`)
+    ))
     .limit(1);
-
+  
   if (!client) {
     console.log(`⚠️ Cliente não encontrado: "${normalizado}"`);
     return undefined;
   }
-
+  
   console.log(`✅ Cliente encontrado: ${client.id} (${client.nome})`);
-
+  
   // Find or create conversation
   return await createOrGetConversation(client.id, userId);
 }
 
-export async function markMessagesAsRead(
-  conversationId: string
-): Promise<void> {
+export async function markMessagesAsRead(conversationId: string): Promise<void> {
   await db
     .update(messages)
     .set({ lido: true })
-    .where(
-      and(
-        eq(messages.conversationId, conversationId),
-        eq(messages.sender, "client"),
-        eq(messages.lido, false)
-      )
-    );
+    .where(and(
+      eq(messages.conversationId, conversationId),
+      eq(messages.sender, "client"),
+      eq(messages.lido, false)
+    ));
 }
 
-export async function countUnreadMessages(
-  conversationId: string
-): Promise<number> {
+export async function countUnreadMessages(conversationId: string): Promise<number> {
   const result = await db
     .select({ count: sql`COUNT(*)` })
     .from(messages)
-    .where(
-      and(
-        eq(messages.conversationId, conversationId),
-        eq(messages.sender, "client"),
-        eq(messages.lido, false)
-      )
-    );
+    .where(and(
+      eq(messages.conversationId, conversationId),
+      eq(messages.sender, "client"),
+      eq(messages.lido, false)
+    ));
   return result[0]?.count ? Number(result[0].count) : 0;
 }
 
@@ -1068,32 +999,22 @@ export async function getNotificationsByUserId(userId: string): Promise<any[]> {
     .limit(50);
 }
 
-export async function getUnreadNotificationsCount(
-  userId: string
-): Promise<number> {
+export async function getUnreadNotificationsCount(userId: string): Promise<number> {
   const result = await db
     .select({ count: sql`COUNT(*)` })
     .from(notifications)
-    .where(
-      and(eq(notifications.userId, userId), eq(notifications.lida, false))
-    );
+    .where(and(eq(notifications.userId, userId), eq(notifications.lida, false)));
   return result[0]?.count ? Number(result[0].count) : 0;
 }
 
-export async function markAllNotificationsAsRead(
-  userId: string
-): Promise<void> {
+export async function markAllNotificationsAsRead(userId: string): Promise<void> {
   await db
     .update(notifications)
     .set({ lida: true })
-    .where(
-      and(eq(notifications.userId, userId), eq(notifications.lida, false))
-    );
+    .where(and(eq(notifications.userId, userId), eq(notifications.lida, false)));
 }
 
-export async function markNotificationAsRead(
-  notificationId: string
-): Promise<void> {
+export async function markNotificationAsRead(notificationId: string): Promise<void> {
   await db
     .update(notifications)
     .set({ lida: true })
@@ -1101,9 +1022,7 @@ export async function markNotificationAsRead(
 }
 
 // ==================== QUICK REPLIES STORAGE ====================
-export async function getQuickRepliesByUserId(
-  userId: string
-): Promise<QuickReply[]> {
+export async function getQuickRepliesByUserId(userId: string): Promise<QuickReply[]> {
   return await db
     .select()
     .from(quickReplies)
@@ -1111,17 +1030,12 @@ export async function getQuickRepliesByUserId(
     .orderBy(asc(quickReplies.ordem), asc(quickReplies.createdAt));
 }
 
-export async function createQuickReply(
-  data: InsertQuickReply
-): Promise<QuickReply> {
+export async function createQuickReply(data: InsertQuickReply): Promise<QuickReply> {
   const [result] = await db.insert(quickReplies).values(data).returning();
   return result;
 }
 
-export async function updateQuickReply(
-  id: string,
-  data: Partial<InsertQuickReply>
-): Promise<QuickReply | undefined> {
+export async function updateQuickReply(id: string, data: Partial<InsertQuickReply>): Promise<QuickReply | undefined> {
   const [result] = await db
     .update(quickReplies)
     .set(data)
@@ -1135,30 +1049,20 @@ export async function deleteQuickReply(id: string): Promise<void> {
 }
 
 // ==================== CLIENT NOTES STORAGE ====================
-export async function getClientNotesByUserId(
-  userId: string,
-  clientId: string
-): Promise<ClientNote[]> {
+export async function getClientNotesByUserId(userId: string, clientId: string): Promise<ClientNote[]> {
   return await db
     .select()
     .from(clientNotes)
-    .where(
-      and(eq(clientNotes.userId, userId), eq(clientNotes.clientId, clientId))
-    )
+    .where(and(eq(clientNotes.userId, userId), eq(clientNotes.clientId, clientId)))
     .orderBy(desc(clientNotes.createdAt));
 }
 
-export async function createClientNote(
-  data: InsertClientNote
-): Promise<ClientNote> {
+export async function createClientNote(data: InsertClientNote): Promise<ClientNote> {
   const [result] = await db.insert(clientNotes).values(data).returning();
   return result;
 }
 
-export async function updateClientNote(
-  id: string,
-  data: Partial<InsertClientNote>
-): Promise<ClientNote | undefined> {
+export async function updateClientNote(id: string, data: Partial<InsertClientNote>): Promise<ClientNote | undefined> {
   const [result] = await db
     .update(clientNotes)
     .set({ ...data, updatedAt: new Date() })
@@ -1178,17 +1082,10 @@ export async function createTag(data: InsertTag): Promise<Tag> {
 }
 
 export async function getTags(userId: string): Promise<Tag[]> {
-  return await db
-    .select()
-    .from(tags)
-    .where(eq(tags.createdBy, userId))
-    .orderBy(asc(tags.nome));
+  return await db.select().from(tags).where(eq(tags.createdBy, userId)).orderBy(asc(tags.nome));
 }
 
-export async function updateTag(
-  id: string,
-  data: Partial<InsertTag>
-): Promise<Tag | undefined> {
+export async function updateTag(id: string, data: Partial<InsertTag>): Promise<Tag | undefined> {
   const [result] = await db
     .update(tags)
     .set({ ...data, updatedAt: new Date() })
@@ -1207,78 +1104,56 @@ export async function countAllUnreadMessages(userId: string): Promise<number> {
     .select({ count: sql<number>`COUNT(*)` })
     .from(messages)
     .innerJoin(conversations, eq(messages.conversationId, conversations.id))
-    .where(
-      and(
-        eq(conversations.userId, userId),
-        eq(messages.sender, "client"),
-        eq(messages.lido, false)
-      )
-    );
+    .where(and(
+      eq(conversations.userId, userId),
+      eq(messages.sender, "client"),
+      eq(messages.lido, false)
+    ));
   return result[0]?.count ? Number(result[0].count) : 0;
 }
 
 // Set tag to client (only one tag per client - replaces existing)
-export async function addTagToClient(
-  clientId: string,
-  tagName: string
-): Promise<Client | undefined> {
+export async function addTagToClient(clientId: string, tagName: string): Promise<Client | undefined> {
   const client = await getClientById(clientId);
   if (!client) return undefined;
-
+  
   // Only one tag per client - replace existing with new tag
   return updateClient(clientId, { tags: [tagName] });
 }
 
 // Remove tag from client
-export async function removeTagFromClient(
-  clientId: string,
-  tagName: string
-): Promise<Client | undefined> {
+export async function removeTagFromClient(clientId: string, tagName: string): Promise<Client | undefined> {
   const client = await getClientById(clientId);
   if (!client) return undefined;
-
+  
   // Remove the tag (set to empty array)
   if (client.tags?.[0] === tagName) {
     return updateClient(clientId, { tags: [] });
   }
-
+  
   return client;
 }
 
 // ==================== CLIENT SHARING STORAGE ====================
-export async function shareClientWithUser(
-  data: InsertClientSharing
-): Promise<ClientSharing> {
+export async function shareClientWithUser(data: InsertClientSharing): Promise<ClientSharing> {
   const [result] = await db.insert(clientSharing).values(data).returning();
   return result;
 }
 
-export async function unshareClientWithUser(
-  clientId: string,
-  sharedWithUserId: string
-): Promise<void> {
-  await db
-    .delete(clientSharing)
-    .where(
-      and(
-        eq(clientSharing.clientId, clientId),
-        eq(clientSharing.sharedWithUserId, sharedWithUserId)
-      )
-    );
+export async function unshareClientWithUser(clientId: string, sharedWithUserId: string): Promise<void> {
+  await db.delete(clientSharing).where(
+    and(eq(clientSharing.clientId, clientId), eq(clientSharing.sharedWithUserId, sharedWithUserId))
+  );
 }
 
-export async function getClientSharings(
-  clientId: string
-): Promise<ClientSharing[]> {
+export async function getClientSharings(clientId: string): Promise<ClientSharing[]> {
   return await db
     .select()
     .from(clientSharing)
     .where(eq(clientSharing.clientId, clientId));
 }
 
-export async function getSharedClientsForUser(
-  userId: string
-): Promise<ClientSharing[]> {
+export async function getSharedClientsForUser(userId: string): Promise<ClientSharing[]> {
   return await db
     .select()
     .from(clientSharing)
@@ -1287,10 +1162,7 @@ export async function getSharedClientsForUser(
 
 // Check if user can access a client (owner or shared)
 // Returns { canAccess, permissao }
-export async function checkClientAccess(
-  clientId: string,
-  userId: string
-): Promise<{ canAccess: boolean; permissao: string }> {
+export async function checkClientAccess(clientId: string, userId: string): Promise<{ canAccess: boolean; permissao: string }> {
   // Check if user is the owner
   const [client] = await db
     .select()
@@ -1306,12 +1178,7 @@ export async function checkClientAccess(
   const [sharing] = await db
     .select()
     .from(clientSharing)
-    .where(
-      and(
-        eq(clientSharing.clientId, clientId),
-        eq(clientSharing.sharedWithUserId, userId)
-      )
-    )
+    .where(and(eq(clientSharing.clientId, clientId), eq(clientSharing.sharedWithUserId, userId)))
     .limit(1);
 
   if (sharing) {
@@ -1322,41 +1189,30 @@ export async function checkClientAccess(
 }
 
 // Share multiple clients with a user
-export async function shareClientsWithUser(
-  clientIds: string[],
-  sharedWithUserId: string,
-  ownerId: string
-): Promise<ClientSharing[]> {
-  const sharings = clientIds.map((clientId) => ({
+export async function shareClientsWithUser(clientIds: string[], sharedWithUserId: string, ownerId: string): Promise<ClientSharing[]> {
+  const sharings = clientIds.map(clientId => ({
     clientId,
     ownerId,
     sharedWithUserId,
     permissao: "editar",
   }));
-
+  
   return await db.insert(clientSharing).values(sharings).returning();
 }
 
 // ==================== CAMPAIGN SENDINGS STORAGE ====================
-export async function recordCampaignSending(
-  data: InsertCampaignSending
-): Promise<CampaignSending> {
+export async function recordCampaignSending(data: InsertCampaignSending): Promise<CampaignSending> {
   // ✅ UPSERT com prioridade - só atualiza se status for >= ao existente
   // Prioridade: erro(1) < enviado(2) < entregue(3) < lido(4)
   // O índice único (campaignId, clientId) garante não haver duplicatas
-
-  const newStatus = data.status || "erro";
+  
+  const newStatus = data.status || 'erro';
   const getPriority = (status: string) => {
-    const priorities: Record<string, number> = {
-      erro: 1,
-      enviado: 2,
-      entregue: 3,
-      lido: 4,
-    };
+    const priorities: Record<string, number> = { erro: 1, enviado: 2, entregue: 3, lido: 4 };
     return priorities[status] || 0;
   };
   const newPriority = getPriority(newStatus);
-
+  
   // ✅ Todas as atualizações condicionadas à mesma regra de prioridade
   // Se novo status tem prioridade < existente, NÃO atualiza NADA (preserva sucesso)
   const [result] = await db
@@ -1389,7 +1245,7 @@ export async function recordCampaignSending(
               WHEN 'lido' THEN 4 
               ELSE 0 
             END
-          ) THEN ${newStatus === "erro" ? data.erroMensagem || null : null}
+          ) THEN ${newStatus === 'erro' ? (data.erroMensagem || null) : null}
           ELSE ${campaignSendings.erroMensagem}
           END
         `,
@@ -1417,9 +1273,7 @@ export async function recordCampaignSending(
               WHEN 'lido' THEN 4 
               ELSE 0 
             END
-          ) THEN COALESCE(${data.origemDisparo || null}, ${
-          campaignSendings.origemDisparo
-        })
+          ) THEN COALESCE(${data.origemDisparo || null}, ${campaignSendings.origemDisparo})
           ELSE ${campaignSendings.origemDisparo}
           END
         `,
@@ -1433,16 +1287,12 @@ export async function recordCampaignSending(
               WHEN 'lido' THEN 4 
               ELSE 0 
             END
-          ) THEN COALESCE(${data.mensagemUsada || null}, ${
-          campaignSendings.mensagemUsada
-        })
+          ) THEN COALESCE(${data.mensagemUsada || null}, ${campaignSendings.mensagemUsada})
           ELSE ${campaignSendings.mensagemUsada}
           END
         `,
         // whatsappMessageId: SEMPRE atualiza se tiver valor (fundamental para rastreamento)
-        whatsappMessageId: sql`COALESCE(${data.whatsappMessageId ?? null}, ${
-          campaignSendings.whatsappMessageId
-        })`,
+        whatsappMessageId: sql`COALESCE(${data.whatsappMessageId ?? null}, ${campaignSendings.whatsappMessageId})`,
         // statusWhatsapp: só atualiza se novo status >= existente
         statusWhatsapp: sql`
           CASE WHEN ${newPriority} >= (
@@ -1453,9 +1303,7 @@ export async function recordCampaignSending(
               WHEN 'lido' THEN 4 
               ELSE 0 
             END
-          ) THEN COALESCE(${data.statusWhatsapp ?? null}, ${
-          campaignSendings.statusWhatsapp
-        })
+          ) THEN COALESCE(${data.statusWhatsapp ?? null}, ${campaignSendings.statusWhatsapp})
           ELSE ${campaignSendings.statusWhatsapp}
           END
         `,
@@ -1469,63 +1317,44 @@ export async function recordCampaignSending(
               WHEN 'lido' THEN 4 
               ELSE 0 
             END
-          ) THEN COALESCE(${data.estadoDerivado ?? null}, ${
-          campaignSendings.estadoDerivado
-        })
+          ) THEN COALESCE(${data.estadoDerivado ?? null}, ${campaignSendings.estadoDerivado})
           ELSE ${campaignSendings.estadoDerivado}
           END
         `,
       },
     })
     .returning();
-
+  
   return result;
 }
 
-export async function recordMultipleCampaignSendings(
-  records: InsertCampaignSending[]
-): Promise<CampaignSending[]> {
+export async function recordMultipleCampaignSendings(records: InsertCampaignSending[]): Promise<CampaignSending[]> {
   if (records.length === 0) return [];
   return await db.insert(campaignSendings).values(records).returning();
 }
 
-export async function getCampaignSendingHistory(
-  userId: string,
-  clientId: string
-): Promise<CampaignSending[]> {
+export async function getCampaignSendingHistory(userId: string, clientId: string): Promise<CampaignSending[]> {
   return await db
     .select()
     .from(campaignSendings)
-    .where(
-      and(
-        eq(campaignSendings.userId, userId),
-        eq(campaignSendings.clientId, clientId)
-      )
-    )
+    .where(and(eq(campaignSendings.userId, userId), eq(campaignSendings.clientId, clientId)))
     .orderBy(desc(campaignSendings.dataSending));
 }
 
 // ==================== CAMPAIGN GROUPS STORAGE ====================
-export async function createCampaignGroup(
-  data: InsertCampaignGroup
-): Promise<CampaignGroup> {
+export async function createCampaignGroup(data: InsertCampaignGroup): Promise<CampaignGroup> {
   const [result] = await db.insert(campaignGroups).values(data).returning();
   return result;
 }
 
-export async function getCampaignGroups(
-  userId: string
-): Promise<CampaignGroup[]> {
+export async function getCampaignGroups(userId: string): Promise<CampaignGroup[]> {
   return await db
     .select()
     .from(campaignGroups)
     .where(eq(campaignGroups.userId, userId));
 }
 
-export async function getCampaignGroupById(
-  id: string,
-  userId: string
-): Promise<CampaignGroup | undefined> {
+export async function getCampaignGroupById(id: string, userId: string): Promise<CampaignGroup | undefined> {
   const [result] = await db
     .select()
     .from(campaignGroups)
@@ -1534,11 +1363,7 @@ export async function getCampaignGroupById(
   return result;
 }
 
-export async function updateCampaignGroup(
-  id: string,
-  userId: string,
-  data: Partial<InsertCampaignGroup>
-): Promise<CampaignGroup | undefined> {
+export async function updateCampaignGroup(id: string, userId: string, data: Partial<InsertCampaignGroup>): Promise<CampaignGroup | undefined> {
   const [result] = await db
     .update(campaignGroups)
     .set({ ...data, updatedAt: new Date() })
@@ -1547,80 +1372,44 @@ export async function updateCampaignGroup(
   return result;
 }
 
-export async function deleteCampaignGroup(
-  id: string,
-  userId: string
-): Promise<void> {
-  await db
-    .delete(campaignGroups)
-    .where(and(eq(campaignGroups.id, id), eq(campaignGroups.userId, userId)));
+export async function deleteCampaignGroup(id: string, userId: string): Promise<void> {
+  await db.delete(campaignGroups).where(and(eq(campaignGroups.id, id), eq(campaignGroups.userId, userId)));
 }
 
 // ==================== KANBAN STAGES STORAGE ====================
 export async function getAllKanbanStages(): Promise<KanbanStage[]> {
   // Check if stages already exist
-  const existingStages = await db
-    .select()
-    .from(kanbanStages)
-    .orderBy(asc(kanbanStages.ordem));
-
+  const existingStages = await db.select().from(kanbanStages).orderBy(asc(kanbanStages.ordem));
+  
   if (existingStages.length === 0) {
     // Lazy initialize with 10 stages
     const defaultStages = [
       { ordem: 0, titulo: "LEAD", descricao: "Leads iniciais" },
       { ordem: 1, titulo: "CONTATO", descricao: "Em contato com cliente" },
       { ordem: 2, titulo: "PROPOSTA", descricao: "Proposta enviada" },
-      {
-        ordem: 3,
-        titulo: "PROPOSTA ENVIADA",
-        descricao: "Aguardando resposta",
-      },
-      {
-        ordem: 4,
-        titulo: "CONTRATO ENVIADO",
-        descricao: "Contrato enviado ao cliente",
-      },
-      {
-        ordem: 5,
-        titulo: "AGUARDANDO CONTRATO",
-        descricao: "Assinatura de contrato",
-      },
-      {
-        ordem: 6,
-        titulo: "AGUARDANDO ACEITE",
-        descricao: "Aguardando aceitação",
-      },
+      { ordem: 3, titulo: "PROPOSTA ENVIADA", descricao: "Aguardando resposta" },
+      { ordem: 4, titulo: "CONTRATO ENVIADO", descricao: "Contrato enviado ao cliente" },
+      { ordem: 5, titulo: "AGUARDANDO CONTRATO", descricao: "Assinatura de contrato" },
+      { ordem: 6, titulo: "AGUARDANDO ACEITE", descricao: "Aguardando aceitação" },
       { ordem: 7, titulo: "FECHADO", descricao: "Negócio fechado" },
       { ordem: 8, titulo: "PERDIDO", descricao: "Negócio perdido" },
-      {
-        ordem: 9,
-        titulo: "AUTOMÁTICA",
-        descricao: "Resposta automática do sistema",
-      },
+      { ordem: 9, titulo: "AUTOMÁTICA", descricao: "Resposta automática do sistema" },
     ];
-
+    
     console.log("📋 Inicializando 10 etapas do Kanban...");
-    const inserted = await db
-      .insert(kanbanStages)
-      .values(defaultStages)
-      .returning();
+    const inserted = await db.insert(kanbanStages).values(defaultStages).returning();
     return inserted;
   }
-
+  
   return existingStages;
 }
 
-export async function createKanbanStage(
-  data: InsertKanbanStage
-): Promise<KanbanStage> {
+export async function createKanbanStage(data: InsertKanbanStage): Promise<KanbanStage> {
   const [result] = await db.insert(kanbanStages).values(data).returning();
   return result;
 }
 
-export async function updateKanbanStage(
-  id: string,
-  data: Partial<InsertKanbanStage>
-): Promise<KanbanStage | undefined> {
+export async function updateKanbanStage(id: string, data: Partial<InsertKanbanStage>): Promise<KanbanStage | undefined> {
   const [result] = await db
     .update(kanbanStages)
     .set({ ...data, updatedAt: new Date() })
@@ -1647,22 +1436,16 @@ export async function recordEtapaChange(
   userId?: string
 ): Promise<void> {
   try {
-    console.log(
-      `📝 [TIMELINE] Iniciando registro: ${etapaAnterior} → ${etapaNova} (${tipo})`
-    );
-    console.log(
-      `   ClientID: ${clientId}, OppID: ${opportunityId}, UserID: ${userId}`
-    );
+    console.log(`📝 [TIMELINE] Iniciando registro: ${etapaAnterior} → ${etapaNova} (${tipo})`);
+    console.log(`   ClientID: ${clientId}, OppID: ${opportunityId}, UserID: ${userId}`);
 
     const tipoInteracao = "etapa_mudou";
-    const origem =
-      tipo === "ia" ? "ia" : tipo === "sistema" ? "sistema" : "usuario";
-    const titulo =
-      tipo === "ia"
-        ? `Etapa alterada pela IA: ${etapaAnterior} → ${etapaNova}`
-        : tipo === "sistema"
-        ? `Etapa alterada pelo sistema: ${etapaAnterior} → ${etapaNova}`
-        : `Etapa alterada manualmente: ${etapaAnterior} → ${etapaNova}`;
+    const origem = tipo === "ia" ? "ia" : tipo === "sistema" ? "sistema" : "usuario";
+    const titulo = tipo === "ia" 
+      ? `Etapa alterada pela IA: ${etapaAnterior} → ${etapaNova}`
+      : tipo === "sistema"
+      ? `Etapa alterada pelo sistema: ${etapaAnterior} → ${etapaNova}`
+      : `Etapa alterada manualmente: ${etapaAnterior} → ${etapaNova}`;
 
     const insertData = {
       clientId,
@@ -1674,23 +1457,15 @@ export async function recordEtapaChange(
         opportunityId,
         etapa_anterior: etapaAnterior,
         etapa_nova: etapaNova,
-        tipo_movimento:
-          tipo === "manual"
-            ? "manual (usuário)"
-            : tipo === "ia"
-            ? "automática (IA)"
-            : "automática (sistema)",
+        tipo_movimento: tipo === "manual" ? "manual (usuário)" : tipo === "ia" ? "automática (IA)" : "automática (sistema)",
       },
       createdBy: userId || null,
     };
 
-    console.log(
-      `📝 [TIMELINE] Inserindo dados:`,
-      JSON.stringify(insertData, null, 2)
-    );
+    console.log(`📝 [TIMELINE] Inserindo dados:`, JSON.stringify(insertData, null, 2));
 
     const result = await db.insert(interactions).values(insertData).returning();
-
+    
     console.log(`✅ [TIMELINE] Registrada com sucesso! ID: ${result[0]?.id}`);
   } catch (error: any) {
     console.error(`❌ [TIMELINE] ERRO ao registrar:`, error?.message || error);
@@ -1706,9 +1481,7 @@ export async function recordEtapaChange(
  * FECHADO → AGUARDANDO ACEITE → CONTRATO ENVIADO → AGUARDANDO CONTRATO → AGUARDANDO ATENÇÃO →
  * PROPOSTA ENVIADA → PROPOSTA → AUTOMÁTICA → CONTATO → LEAD → REMARKETING
  */
-export async function recalculateClientStatus(
-  clientId: string
-): Promise<string> {
+export async function recalculateClientStatus(clientId: string): Promise<string> {
   // Buscar todas as oportunidades do cliente
   const clientOpportunities = await db
     .select()
@@ -1726,9 +1499,7 @@ export async function recalculateClientStatus(
   }
 
   // Filtrar oportunidades ativas (não PERDIDAS)
-  const activeOpps = clientOpportunities.filter(
-    (opp) => opp.etapa !== "PERDIDO"
-  );
+  const activeOpps = clientOpportunities.filter((opp) => opp.etapa !== "PERDIDO");
 
   // Se todas são PERDIDAS → Perdido
   if (activeOpps.length === 0) {
@@ -1737,16 +1508,11 @@ export async function recalculateClientStatus(
 
   // REMARKETING: Se tem oportunidades ativas MAS também tem oportunidades PERDIDAS
   // Significa que o cliente voltou com interesse após rejeição
-  const hasLostOpps = clientOpportunities.some(
-    (opp) => opp.etapa === "PERDIDO"
-  );
+  const hasLostOpps = clientOpportunities.some((opp) => opp.etapa === "PERDIDO");
   if (hasLostOpps && activeOpps.length > 0) {
     // Se a oportunidade ativa é em LEAD/CONTATO, é REMARKETING puro
-    const isRemarketingStage = activeOpps.some(
-      (opp) =>
-        opp.etapa === "LEAD" ||
-        opp.etapa === "CONTATO" ||
-        opp.etapa === "AUTOMÁTICA"
+    const isRemarketingStage = activeOpps.some((opp) => 
+      opp.etapa === "LEAD" || opp.etapa === "CONTATO" || opp.etapa === "AUTOMÁTICA"
     );
     if (isRemarketingStage) {
       return "remarketing";
@@ -1755,16 +1521,16 @@ export async function recalculateClientStatus(
 
   // Ordem de prioridade (menor número = mais avançado)
   const stagePriority: Record<string, number> = {
-    FECHADO: 0, // Manual - sempre máxima prioridade
-    "AGUARDANDO ACEITE": 1, // Manual + IA (lembretes)
-    "AGUARDANDO ATENÇÃO": 2, // Manual - reciclagem de AGUARDANDO ACEITE
-    "CONTRATO ENVIADO": 3, // Manual
-    "AGUARDANDO CONTRATO": 4, // Manual
-    "PROPOSTA ENVIADA": 5, // Manual + IA (lembretes)
-    PROPOSTA: 6, // IA + Manual
-    AUTOMÁTICA: 7, // IA (mensagens automáticas)
-    CONTATO: 8, // IA + Manual
-    LEAD: 9, // Manual - início da prospecção
+    FECHADO: 0,                    // Manual - sempre máxima prioridade
+    "AGUARDANDO ACEITE": 1,        // Manual + IA (lembretes)
+    "AGUARDANDO ATENÇÃO": 2,       // Manual - reciclagem de AGUARDANDO ACEITE
+    "CONTRATO ENVIADO": 3,         // Manual
+    "AGUARDANDO CONTRATO": 4,      // Manual
+    "PROPOSTA ENVIADA": 5,         // Manual + IA (lembretes)
+    PROPOSTA: 6,                   // IA + Manual
+    AUTOMÁTICA: 7,                 // IA (mensagens automáticas)
+    CONTATO: 8,                    // IA + Manual
+    LEAD: 9,                       // Manual - início da prospecção
   };
 
   // Encontrar a oportunidade com menor prioridade (mais avançada)
@@ -1781,25 +1547,23 @@ export async function recalculateClientStatus(
 
   // Mapear etapa → status cliente conforme regras de negócio
   const stageToStatus: Record<string, string> = {
-    LEAD: "lead_quente", // Manual
-    CONTATO: "engajado", // IA + Manual
-    AUTOMÁTICA: "engajado", // IA (mensagens automáticas)
-    PROPOSTA: "em_negociacao", // IA + Manual
-    "PROPOSTA ENVIADA": "em_negociacao", // Manual + IA (lembretes)
-    "AGUARDANDO CONTRATO": "em_fechamento", // Manual
-    "CONTRATO ENVIADO": "em_fechamento", // Manual
-    "AGUARDANDO ACEITE": "em_fechamento", // Manual + IA (lembretes)
-    "AGUARDANDO ATENÇÃO": "em_fechamento", // Manual (reciclagem)
-    FECHADO: "ativo", // Manual
-    PERDIDO: "perdido", // IA + Manual
+    LEAD: "lead_quente",                      // Manual
+    CONTATO: "engajado",                      // IA + Manual
+    AUTOMÁTICA: "engajado",                   // IA (mensagens automáticas)
+    PROPOSTA: "em_negociacao",                // IA + Manual
+    "PROPOSTA ENVIADA": "em_negociacao",      // Manual + IA (lembretes)
+    "AGUARDANDO CONTRATO": "em_fechamento",   // Manual
+    "CONTRATO ENVIADO": "em_fechamento",      // Manual
+    "AGUARDANDO ACEITE": "em_fechamento",     // Manual + IA (lembretes)
+    "AGUARDANDO ATENÇÃO": "em_fechamento",    // Manual (reciclagem)
+    FECHADO: "ativo",                         // Manual
+    PERDIDO: "perdido",                       // IA + Manual
   };
 
   return stageToStatus[mostAdvancedOpp.etapa] || "ativo";
 }
 
-export async function getOpportunitiesByClientId(
-  clientId: string
-): Promise<Opportunity[]> {
+export async function getOpportunitiesByClientId(clientId: string): Promise<Opportunity[]> {
   return await db
     .select()
     .from(opportunities)
@@ -1810,29 +1574,26 @@ export async function getOpportunitiesByClientId(
 // Retorna a oportunidade aberta do vendedor atual, ou null se não houver
 // - Cada vendedor só vê/atualiza suas próprias oportunidades
 // - FECHADO e PERDIDO são considerados "fechados" (ignorados)
-export async function getOpenOpportunityForClient(
-  clientId: string,
-  userId?: string
-): Promise<Opportunity | null> {
+export async function getOpenOpportunityForClient(clientId: string, userId?: string): Promise<Opportunity | null> {
   const ETAPAS_FECHADAS = ["FECHADO", "PERDIDO"];
-
+  
   const allOpps = await db
     .select()
     .from(opportunities)
     .where(eq(opportunities.clientId, clientId));
-
+  
   // Filtrar apenas oportunidades ABERTAS (não FECHADO nem PERDIDO)
-  let openOpps = allOpps.filter((opp) => !ETAPAS_FECHADAS.includes(opp.etapa));
-
+  let openOpps = allOpps.filter(opp => !ETAPAS_FECHADAS.includes(opp.etapa));
+  
   // Se userId fornecido, filtrar por responsável
   if (userId) {
-    openOpps = openOpps.filter((opp) => opp.responsavelId === userId);
+    openOpps = openOpps.filter(opp => opp.responsavelId === userId);
   }
-
+  
   if (openOpps.length === 0) {
     return null;
   }
-
+  
   // Retornar a mais recente (ou a primeira encontrada)
   return openOpps[0];
 }

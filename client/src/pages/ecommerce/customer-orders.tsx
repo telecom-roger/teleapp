@@ -25,8 +25,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { OrderLinesFill } from "@/components/ecommerce/OrderLinesFill";
 
 interface Order {
   id: string;
@@ -88,7 +86,6 @@ export default function CustomerOrders() {
   const queryClient = useQueryClient();
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-  const [showLinesModal, setShowLinesModal] = useState(false);
 
   const {
     data: customerData,
@@ -688,19 +685,20 @@ export default function CustomerOrders() {
                           </div>
                         </div>
 
-                        {/* Botão para preencher */}
-                        <Button
-                          onClick={() => setShowLinesModal(true)}
-                          className="w-full"
-                          size="lg"
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          {linesSummary.totalLinhasPreenchidas === 0
-                            ? "Começar Preenchimento"
-                            : linesSummary.progresso === 100
-                            ? "Revisar Linhas"
-                            : "Continuar Preenchimento"}
-                        </Button>
+                        {/* Botão/Link para página de preenchimento */}
+                        <Link href="/ecommerce/painel/linhas-portabilidade">
+                          <Button
+                            className="w-full"
+                            size="lg"
+                          >
+                            <Phone className="h-4 w-4 mr-2" />
+                            {linesSummary.totalLinhasPreenchidas === 0
+                              ? "Começar Preenchimento"
+                              : linesSummary.progresso === 100
+                              ? "Revisar Linhas"
+                              : "Continuar Preenchimento"}
+                          </Button>
+                        </Link>
 
                         {linesSummary.progresso === 100 && (
                           <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
@@ -1127,21 +1125,6 @@ export default function CustomerOrders() {
       </div>
 
       <CustomerMobileNav />
-
-      {/* Modal de Preenchimento de Linhas */}
-      <Dialog open={showLinesModal} onOpenChange={setShowLinesModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Preencher Linhas de Portabilidade</DialogTitle>
-          </DialogHeader>
-          {orderId && (
-            <OrderLinesFill 
-              orderId={orderId} 
-              onClose={() => setShowLinesModal(false)}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

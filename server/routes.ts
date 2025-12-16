@@ -220,19 +220,23 @@ export async function registerRoutes(
   app.use("/api/admin/ecommerce/manage", ecommerceManagementRoutes);
 
   // ==================== TEMPORARY: MIGRATION ROUTE ====================
-  app.post("/api/admin/run-migration-endereco", async (req: Request, res: Response) => {
-    try {
-      console.log("🚀 Executando migration: adicionar campo precisa_endereco_instalacao...");
+  app.post(
+    "/api/admin/run-migration-endereco",
+    async (req: Request, res: Response) => {
+      try {
+        console.log(
+          "🚀 Executando migration: adicionar campo precisa_endereco_instalacao..."
+        );
 
-      // Adicionar coluna
-      await db.execute(sql`
+        // Adicionar coluna
+        await db.execute(sql`
         ALTER TABLE ecommerce_products 
         ADD COLUMN IF NOT EXISTS precisa_endereco_instalacao BOOLEAN DEFAULT false
       `);
-      console.log("✅ Coluna precisa_endereco_instalacao adicionada");
+        console.log("✅ Coluna precisa_endereco_instalacao adicionada");
 
-      // Atualizar produtos existentes
-      const result = await db.execute(sql`
+        // Atualizar produtos existentes
+        const result = await db.execute(sql`
         UPDATE ecommerce_products 
         SET precisa_endereco_instalacao = true 
         WHERE categoria IN ('fibra', 'banda larga', 'link dedicado', 'internet-dedicada')
@@ -240,21 +244,22 @@ export async function registerRoutes(
           OR LOWER(categoria) LIKE '%banda larga%'
           OR LOWER(categoria) LIKE '%link dedicado%'
       `);
-      console.log("✅ Produtos de instalação atualizados");
+        console.log("✅ Produtos de instalação atualizados");
 
-      res.json({ 
-        success: true, 
-        message: "Migration executada com sucesso!",
-        rowsUpdated: result.rowCount 
-      });
-    } catch (error: any) {
-      console.error("❌ Erro ao executar migration:", error);
-      res.status(500).json({ 
-        success: false, 
-        error: error.message 
-      });
+        res.json({
+          success: true,
+          message: "Migration executada com sucesso!",
+          rowsUpdated: result.rowCount,
+        });
+      } catch (error: any) {
+        console.error("❌ Erro ao executar migration:", error);
+        res.status(500).json({
+          success: false,
+          error: error.message,
+        });
+      }
     }
-  });
+  );
 
   // ==================== AUTH ROUTES ====================
   app.get("/api/auth/user", isAuthenticated, async (req, res) => {
@@ -3276,9 +3281,7 @@ export async function registerRoutes(
         })
         .where(eq(campaignsTable.id, id));
 
-      console.log(
-        `🔄 Campanha ${id} reagendada para reprocessamento (manual)`
-      );
+      console.log(`🔄 Campanha ${id} reagendada para reprocessamento (manual)`);
       res.json({
         success: true,
         message: "Campanha reagendada para execução",
@@ -5292,9 +5295,7 @@ export async function registerRoutes(
       res.json({ success: true, count: sharings.length });
     } catch (error: any) {
       console.error("Error sharing clients:", error);
-      res
-        .status(500)
-        .json({ error: error.message || "Internal server error" });
+      res.status(500).json({ error: error.message || "Internal server error" });
     }
   });
 

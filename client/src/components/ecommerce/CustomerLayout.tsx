@@ -11,10 +11,12 @@ import {
   LogOut,
   Menu,
   X,
+  Phone,
 } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CustomerOrderNotifications } from "./CustomerOrderNotifications";
+import { Badge } from "@/components/ui/badge";
 
 interface CustomerData {
   user: {
@@ -119,6 +121,18 @@ export function CustomerHeader() {
 export function CustomerSidebar() {
   const [location] = useLocation();
 
+  // Buscar pedidos do cliente para verificar se tem portabilidade ativa
+  const { data: orders } = useQuery<any[]>({
+    queryKey: ["/api/ecommerce/customer/orders"],
+  });
+
+  // Verificar se existe pedido de portabilidade aguardando dados de linhas
+  const temPortabilidadeAtiva = orders?.some(
+    (order) =>
+      order.tipoContratacao === "portabilidade" &&
+      order.etapa === "aguardando_dados_linhas"
+  );
+
   const menuItems = [
     { href: "/ecommerce/painel", icon: Home, label: "Dashboard" },
     {
@@ -139,6 +153,15 @@ export function CustomerSidebar() {
       external: true,
     },
   ];
+
+  // Inserir item de portabilidade após "Meus Pedidos" se tiver portabilidade ativa
+  if (temPortabilidadeAtiva) {
+    menuItems.splice(2, 0, {
+      href: "/ecommerce/painel/linhas-portabilidade",
+      icon: Phone,
+      label: "Linhas de Portabilidade",
+    });
+  }
 
   return (
     <aside className="hidden md:block w-64 bg-white border-r min-h-[calc(100vh-4rem)]">
@@ -189,12 +212,33 @@ export function CustomerSidebar() {
 export function CustomerMobileNav() {
   const [location] = useLocation();
 
+  // Buscar pedidos do cliente para verificar se tem portabilidade ativa
+  const { data: orders } = useQuery<any[]>({
+    queryKey: ["/api/ecommerce/customer/orders"],
+  });
+
+  // Verificar se existe pedido de portabilidade aguardando dados de linhas
+  const temPortabilidadeAtiva = orders?.some(
+    (order) =>
+      order.tipoContratacao === "portabilidade" &&
+      order.etapa === "aguardando_dados_linhas"
+  );
+
   const menuItems = [
     { href: "/ecommerce/painel", icon: Home, label: "Início" },
     { href: "/ecommerce/painel/pedidos", icon: ShoppingBag, label: "Pedidos" },
     { href: "/ecommerce/painel/documentos", icon: FileText, label: "Docs" },
     { href: "/ecommerce/painel/perfil", icon: User, label: "Perfil" },
   ];
+
+  // Inserir item de portabilidade após "Pedidos" se tiver portabilidade ativa
+  if (temPortabilidadeAtiva) {
+    menuItems.splice(2, 0, {
+      href: "/ecommerce/painel/linhas-portabilidade",
+      icon: Phone,
+      label: "Linhas",
+    });
+  }
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-50">
