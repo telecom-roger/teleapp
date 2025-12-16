@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, Search } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -37,6 +39,8 @@ export default function CheckoutConfirmacao() {
   const [endereco, setEndereco] = useState<any>({});
   const [usarOutroEndereco, setUsarOutroEndereco] = useState(false);
   const [editandoEndereco, setEditandoEndereco] = useState(false);
+  const [usarMesmoEndereco, setUsarMesmoEndereco] = useState(true);
+  const [buscandoCep, setBuscandoCep] = useState(false);
   
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
@@ -93,6 +97,34 @@ export default function CheckoutConfirmacao() {
       }
     }
   }, [customerData]);
+  
+  const buscarCep = async () => {
+    const cepLimpo = endereco.cep?.replace(/\D/g, "");
+    if (cepLimpo?.length === 8) {
+      setBuscandoCep(true);
+      try {
+        const response = await fetch(`/api/cep/${cepLimpo}`);
+        if (response.ok) {
+          const data = await response.json();
+          setEndereco({
+            ...endereco,
+            logradouro: data.endereco || "",
+            bairro: data.bairro || "",
+            cidade: data.cidade || "",
+            estado: data.uf || "",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao buscar CEP:", error);
+      } finally {
+        setBuscandoCep(false);
+      }
+    }
+  };
+  
+  const formatCEP = (value: string) => {
+    return value.replace(/\D/g, "").replace(/(\d{5})(\d{1,3})$/, "$1-$2");
+  };
   
   const formatPreco = (centavos: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -240,49 +272,69 @@ export default function CheckoutConfirmacao() {
             
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Endereço de Instalação</CardTitle>
-                  {customerData?.client && !editandoEndereco && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setUsarOutroEndereco(true);
-                        setEditandoEndereco(true);
-                        setEndereco({
-                          logradouro: "",
-                          numero: "",
-                          bairro: "",
-                          cidade: "",
-                          estado: "",
-                          cep: "",
-                          complemento: "",
-                        });
-                      }}
-                    >
-                      Usar outro endereço
-                    </Button>
-                  )}
-                </div>
+                <CardTitle>Endereço de Instalação</CardTitle>
               </CardHeader>
               <CardContent>
-                {editandoEndereco ? (
+                {customerData?.client && (
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="mesmo-endereco"
+                        checked={usarMesmoEndereco}
+                        onCheckedChange={(checked) => {
+                          setUsarMesmoEndereco(checked as boolean);
+                          if (checked) {
+                            setEditandoEndereco(false);
+                            setUsarOutroEndereco(false);
+                            setEndereco({
+                              logradouro: customerData.client.endereco || "",
+                              numero: customerData.client.numero || "",
+                              bairro: customerData.client.bairro || "",
+                              cidade: customerData.client.cidade || "",
+                              estado: customerData.client.uf || "",
+                              cep: customerData.client.cep || "",
+                              complemento: "",
+                            });
+                          } else {
+                            setEditandoEndereco(true);
+                            setUsarOutroEndereco(true);
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor="mesmo-endereco"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        O endereço de instalação é o mesmo do cadastro
+                      </Label>
+                    </div>
+                  </div>
+                )}
+
+                {(!customerData?.client || !usarMesmoEndereco) && editandoEndereco ? (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         placeholder="CEP"
                         value={endereco.cep || ""}
-                        onChange={(e) => setEndereco({ ...endereco, cep: e.target.value })}
-                        className="border rounded px-3 py-2 text-sm"
+                        onChange={(e) => setEndereco({ ...endereco, cep: formatCEP(e.target.value) })}
+                        maxLength={9}
+                        className="border rounded px-3 py-2 text-sm flex-1"
                       />
-                      <input
-                        type="text"
-                        placeholder="Número"
-                        value={endereco.numero || ""}
-                        onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
-                        className="border rounded px-3 py-2 text-sm"
-                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={buscarCep}
+                        disabled={buscandoCep}
+                      >
+                        {buscandoCep ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Search className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                     <input
                       type="text"
@@ -291,6 +343,22 @@ export default function CheckoutConfirmacao() {
                       onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
                       className="border rounded px-3 py-2 text-sm w-full"
                     />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        type="text"
+                        placeholder="Número"
+                        value={endereco.numero || ""}
+                        onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Complemento (opcional)"
+                        value={endereco.complemento || ""}
+                        onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
+                        className="border rounded px-3 py-2 text-sm"
+                      />
+                    </div>
                     <input
                       type="text"
                       placeholder="Bairro"
@@ -310,27 +378,23 @@ export default function CheckoutConfirmacao() {
                         type="text"
                         placeholder="UF"
                         value={endereco.estado || ""}
-                        onChange={(e) => setEndereco({ ...endereco, estado: e.target.value })}
+                        onChange={(e) => setEndereco({ ...endereco, estado: e.target.value.toUpperCase() })}
+                        maxLength={2}
                         className="border rounded px-3 py-2 text-sm"
                       />
                     </div>
-                    <input
-                      type="text"
-                      placeholder="Complemento (opcional)"
-                      value={endereco.complemento || ""}
-                      onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
-                      className="border rounded px-3 py-2 text-sm w-full"
-                    />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditandoEndereco(false);
-                      }}
-                      className="w-full"
-                    >
-                      Confirmar Endereço
-                    </Button>
+                    {customerData?.client && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditandoEndereco(false);
+                        }}
+                        className="w-full"
+                      >
+                        Confirmar Endereço
+                      </Button>
+                    )}
                   </div>
                 ) : (
                   <div>

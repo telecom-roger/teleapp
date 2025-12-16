@@ -60,10 +60,15 @@ export function UpsellModal({
           "Aproveite para adicionar serviços extras ao seu pedido!"
         );
       }
-      // Reset quantities when opening
-      setSvaQuantities({});
+      
+      // Reset quantities when opening e garantir que não ultrapasse o limite
+      const newQuantities: Record<string, number> = {};
+      Object.entries(svaQuantities).forEach(([svaId, qty]) => {
+        newQuantities[svaId] = Math.min(qty, totalLinhas);
+      });
+      setSvaQuantities(newQuantities);
     }
-  }, [isOpen]); // Só executa quando isOpen mudar
+  }, [isOpen, totalLinhas]); // Adiciona totalLinhas como dependência
 
   if (!isOpen || svas.length === 0) return null;
 

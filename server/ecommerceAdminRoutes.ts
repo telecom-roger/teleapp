@@ -1346,7 +1346,7 @@ router.put(
       const [document] = await db
         .update(ecommerceOrderRequestedDocuments)
         .set({
-          status: "pendente", // Volta para pendente para cliente saber que precisa reenviar
+          status: "reprovado", // Status reprovado para exibir claramente ao cliente
           observacoes: motivo || "Documento reprovado - necessário reenviar",
         })
         .where(
