@@ -273,6 +273,18 @@ export default function AdminEcommercePedidos() {
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
   });
+  
+  // Log para debug
+  // useEffect(() => {
+  //   console.log('🔍 [DEBUG] selectedOrder mudou:', selectedOrder?.orderCode, selectedOrder?.id);
+  // }, [selectedOrder]);
+  
+  // useEffect(() => {
+  //   console.log('🔍 [DEBUG] orderDetails mudou:', orderDetails ? 'CARREGADO' : 'NULL');
+  //   if (orderDetails) {
+  //     console.log('📦 ORDER DETAILS:', orderDetails.orderCode, orderDetails.tipoContratacao);
+  //   }
+  // }, [orderDetails]);
 
   const { data: requestedDocuments } = useQuery<any[]>({
     queryKey: [
@@ -312,21 +324,34 @@ export default function AdminEcommercePedidos() {
       etapa,
       execucaoTipo,
       observacoes,
+      orderCode,
     }: {
       orderId: string;
       etapa: string;
       execucaoTipo?: string;
       observacoes?: string;
+      orderCode?: string;
     }) => {
+      console.log("[ADMIN] 🔄 Tentando atualizar etapa:", { orderId, etapa, execucaoTipo, observacoes });
       const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/etapa`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ etapa, execucaoTipo, observacoes }),
       });
-      if (!res.ok) throw new Error("Erro ao atualizar etapa");
-      return res.json();
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("[ADMIN] ❌ Erro ao atualizar etapa:", {
+          status: res.status,
+          statusText: res.statusText,
+          errorText
+        });
+        throw new Error(`Erro ao atualizar etapa: ${res.status} ${errorText}`);
+      }
+      const data = await res.json();
+      console.log("[ADMIN] ✅ Etapa atualizada com sucesso:", data);
+      return { ...data, orderCode, etapa };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: ["/api/admin/ecommerce/orders"],
       });
@@ -338,18 +363,23 @@ export default function AdminEcommercePedidos() {
           queryKey: [`/api/admin/ecommerce/orders/${selectedOrder.id}`],
         });
       }
+      
+      const etapaLabel = etapas.find(e => e.value === data.etapa)?.label || data.etapa;
+      const orderCodeDisplay = data.orderCode || selectedOrder?.orderCode || "desconhecido";
+      
       toast({
         title: "Etapa atualizada",
-        description: "A etapa do pedido foi atualizada com sucesso",
+        description: `O pedido #${orderCodeDisplay} foi movido para "${etapaLabel}".`,
       });
       setNovaEtapa("");
       setExecucaoTipo("");
       setObservacoes("");
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("[ADMIN] ❌ ERRO NA MUTATION:", error);
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar a etapa",
+        description: error?.message || "Não foi possível atualizar a etapa",
         variant: "destructive",
       });
     },
@@ -609,11 +639,27 @@ export default function AdminEcommercePedidos() {
 
   const handleUpdateEtapa = () => {
     if (!selectedOrder || !novaEtapa) return;
+    
+    console.log("========================================");
+    console.log("🔄 ANTES DE ATUALIZAR ETAPA");
+    console.log("OrderID:", selectedOrder.id);
+    console.log("Order Code:", selectedOrder.orderCode);
+    console.log("Etapa Atual:", selectedOrder.etapa);
+    console.log("Nova Etapa:", novaEtapa);
+    if (orderDetails?.items) {
+      console.log("Total de Items ANTES:", orderDetails.items.length);
+      orderDetails.items.forEach((item, i) => {
+        console.log(`  Item ${i+1}: ${item.productName}, Quantidade: ${item.quantidade}`);
+      });
+    }
+    console.log("========================================");
+    
     updateEtapaMutation.mutate({
       orderId: selectedOrder.id,
       etapa: novaEtapa,
       execucaoTipo: novaEtapa === "em_andamento" ? execucaoTipo : undefined,
       observacoes,
+      orderCode: selectedOrder.orderCode,
     });
   };
 
@@ -648,6 +694,7 @@ export default function AdminEcommercePedidos() {
     updateEtapaMutation.mutate({
       orderId: draggedOrder.id,
       etapa: toEtapa,
+      orderCode: order.orderCode,
     });
 
     setDraggedOrder(null);
@@ -1229,6 +1276,15 @@ export default function AdminEcommercePedidos() {
             </DialogDescription>
           </DialogHeader>
 
+          {!orderDetails && (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando detalhes...</p>
+              </div>
+            </div>
+          )}
+          
           {orderDetails && (
             <div className="space-y-6">
               {/* Cliente */}
@@ -1293,6 +1349,43 @@ export default function AdminEcommercePedidos() {
                 </div>
               </div>
 
+              {/* Detalhes da Contratação */}
+              <div className="space-y-3">
+                <h3 className="font-semibold flex items-center gap-2 text-lg">
+                  <Phone className="h-5 w-5 text-primary" />
+                  Detalhes da Contratação
+                </h3>
+                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
+                      Tipo de Contratação
+                    </p>
+                    <Badge variant={orderDetails.tipoContratacao === "portabilidade" ? "default" : "secondary"}>
+                      {orderDetails.tipoContratacao === "portabilidade" ? "📱 Portabilidade" : "🆕 Linha Nova"}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
+                      Operadora
+                    </p>
+                    <p className="font-semibold text-slate-900">
+                      {(() => {
+                        const firstProduct = orderDetails.items?.find((item: any) => 
+                          item.productCategoria === "movel" || item.productOperadora
+                        );
+                        const operadora = firstProduct?.productOperadora || firstProduct?.product?.operadora;
+                        
+                        if (operadora === "V") return "Vivo";
+                        if (operadora === "T") return "Tim";
+                        if (operadora === "C") return "Claro";
+                        if (operadora === "O") return "Oi";
+                        return "Não informado";
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Itens */}
               <div className="space-y-3">
                 <h3 className="font-semibold flex items-center gap-2 text-lg">
@@ -1340,6 +1433,10 @@ export default function AdminEcommercePedidos() {
               {/* Linhas de Portabilidade */}
               {orderDetails.tipoContratacao === "portabilidade" && (
                 <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
+                    <Phone className="h-5 w-5 text-primary" />
+                    Linhas de Portabilidade
+                  </h3>
                   <AdminOrderLines orderId={orderDetails.id} />
                 </div>
               )}

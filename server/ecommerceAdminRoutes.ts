@@ -306,11 +306,29 @@ router.get(
         .where(eq(clients.id, order.clientId))
         .limit(1);
 
-      // Buscar itens
+      // Buscar itens com informações do produto
       const items = await db
-        .select()
+        .select({
+          id: ecommerceOrderItems.id,
+          orderId: ecommerceOrderItems.orderId,
+          productId: ecommerceOrderItems.productId,
+          quantidade: ecommerceOrderItems.quantidade,
+          precoUnitario: ecommerceOrderItems.precoUnitario,
+          subtotal: ecommerceOrderItems.subtotal,
+          linhasAdicionais: ecommerceOrderItems.linhasAdicionais,
+          productNome: ecommerceProducts.nome,
+          productCategoria: ecommerceProducts.categoria,
+          productOperadora: ecommerceProducts.operadora,
+          product: ecommerceProducts,
+        })
         .from(ecommerceOrderItems)
+        .leftJoin(ecommerceProducts, eq(ecommerceOrderItems.productId, ecommerceProducts.id))
         .where(eq(ecommerceOrderItems.orderId, orderId));
+      
+      console.log(`📦 ITEMS DO PEDIDO ${orderId}:`, items.length);
+      items.forEach((item, i) => {
+        console.log(`   Item ${i + 1}: quantidade=${item.quantidade}, productId=${item.productId}, operadora=${item.product?.operadora}`);
+      });
 
       // Buscar documentos
       const documents = await db
@@ -318,8 +336,20 @@ router.get(
         .from(ecommerceOrderDocuments)
         .where(eq(ecommerceOrderDocuments.orderId, orderId));
 
+      // Verificar se tem linhas de portabilidade cadastradas
+      const { ecommerceOrderLines } = await import("@shared/schema");
+      const linhasPortabilidade = await db
+        .select()
+        .from(ecommerceOrderLines)
+        .where(eq(ecommerceOrderLines.orderId, orderId))
+        .limit(1);
+      
+      // Se tem linhas OU tipoContratacao é portabilidade, é portabilidade
+      const isPortabilidade = order.tipoContratacao === "portabilidade" || linhasPortabilidade.length > 0;
+
       res.json({
         ...order,
+        tipoContratacao: isPortabilidade ? "portabilidade" : (order.tipoContratacao || "linha_nova"),
         client,
         items,
         documents,
@@ -356,6 +386,14 @@ router.put(
       if (!currentOrder) {
         return res.status(404).json({ error: "Pedido não encontrado" });
       }
+
+      console.log("========================================");
+      console.log("🔄 ATUALIZANDO ETAPA DO PEDIDO");
+      console.log("OrderID:", orderId);
+      console.log("Order Code:", currentOrder.orderCode);
+      console.log("Etapa Atual:", currentOrder.etapa);
+      console.log("Nova Etapa:", etapa);
+      console.log("========================================");
 
       // Atualizar observações baseado no tipo de execução
       let observacoesAtualizadas: string | null;
@@ -403,6 +441,13 @@ router.put(
         })
         .where(eq(ecommerceOrders.id, orderId))
         .returning();
+
+      console.log("✅ Etapa atualizada com sucesso!");
+      console.log("OrderID:", order.id);
+      console.log("Order Code:", order.orderCode);
+      console.log("Nova Etapa:", order.etapa);
+      console.log("⚠️ IMPORTANTE: Nenhum item do pedido foi modificado - apenas a etapa foi atualizada");
+      console.log("========================================");
 
       // Se mudou para "aguardando_documentos", carregar documentos padrão
       if (

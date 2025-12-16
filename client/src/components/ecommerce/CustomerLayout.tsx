@@ -122,12 +122,14 @@ export function CustomerSidebar() {
   const [location] = useLocation();
 
   // Buscar pedidos do cliente para verificar se tem portabilidade ativa
-  const { data: orders } = useQuery<any[]>({
+  const { data } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
   });
 
+  const orders = data?.orders || [];
+
   // Verificar se existe pedido de portabilidade aguardando dados de linhas
-  const temPortabilidadeAtiva = orders?.some(
+  const temPortabilidadeAtiva = orders.some(
     (order) =>
       order.tipoContratacao === "portabilidade" &&
       order.etapa === "aguardando_dados_linhas"
@@ -213,12 +215,14 @@ export function CustomerMobileNav() {
   const [location] = useLocation();
 
   // Buscar pedidos do cliente para verificar se tem portabilidade ativa
-  const { data: orders } = useQuery<any[]>({
+  const { data } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
   });
 
+  const orders = data?.orders || [];
+
   // Verificar se existe pedido de portabilidade aguardando dados de linhas
-  const temPortabilidadeAtiva = orders?.some(
+  const temPortabilidadeAtiva = orders.some(
     (order) =>
       order.tipoContratacao === "portabilidade" &&
       order.etapa === "aguardando_dados_linhas"

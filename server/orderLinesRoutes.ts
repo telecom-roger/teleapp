@@ -32,7 +32,7 @@ router.get("/:orderId", requireRole(["customer", "admin"]), async (req: Request,
     }
 
     // Buscar linhas do pedido com informações do produto
-    const lines = await db
+    const linesResult = await db
       .select({
         line: ecommerceOrderLines,
         product: ecommerceProducts,
@@ -40,6 +40,12 @@ router.get("/:orderId", requireRole(["customer", "admin"]), async (req: Request,
       .from(ecommerceOrderLines)
       .leftJoin(ecommerceProducts, eq(ecommerceOrderLines.productId, ecommerceProducts.id))
       .where(eq(ecommerceOrderLines.orderId, orderId));
+
+    // Flatten para facilitar uso no frontend
+    const lines = linesResult.map(({ line, product }) => ({
+      ...line,
+      product,
+    }));
 
     res.json(lines);
   } catch (error: any) {
@@ -88,9 +94,22 @@ router.get("/:orderId/summary", requireRole(["customer", "admin"]), async (req: 
     const produtosDisponiveis: any[] = [];
     const svasDisponiveis: any[] = [];
 
+    console.log('🔍 CALCULANDO LINHAS CONTRATADAS:');
+    console.log('   OrderID:', orderId);
+    console.log('   Order Code:', order.orderCode);
+    console.log('   Order Etapa:', order.etapa);
+    console.log('   Total de items no pedido:', orderItems.length);
+    
+    if (orderItems.length === 0) {
+      console.log('   ⚠️ AVISO: Nenhum item encontrado para este pedido!');
+      console.log('   Isso pode indicar que os items foram deletados ou o pedido está vazio');
+    }
+
     orderItems.forEach(({ item, product }) => {
       const categoria = product?.categoria?.toLowerCase() || "";
       const isSVA = categoria.includes("sva");
+      
+      console.log(`   Item: ${product?.nome}, Categoria: ${categoria}, Quantidade: ${item.quantidade}, É SVA: ${isSVA}`);
 
       if (isSVA) {
         // Adicionar SVA à lista de disponíveis
@@ -101,20 +120,28 @@ router.get("/:orderId/summary", requireRole(["customer", "admin"]), async (req: 
           productId: item.productId,
           quantidade: item.quantidade,
         });
+        console.log(`      ➡️ SVA adicionado`);
       } else {
-        // Contar linhas do produto
-        totalLinhasContratadas += (item.quantidade || 1) + (item.linhasAdicionais || 0);
+        // Contar linhas do produto (quantidade * linhas por unidade)
+        const linhasPorUnidade = 1; // Cada unidade = 1 linha
+        const quantidadeTotal = (item.quantidade || 1) * linhasPorUnidade;
+        
+        console.log(`      ➡️ Produto: ${quantidadeTotal} linhas`);
+        
+        totalLinhasContratadas += quantidadeTotal;
         produtosDisponiveis.push({
           id: product?.id,
           nome: product?.nome,
           operadora: product?.operadora,
           categoria: product?.categoria,
           productId: item.productId,
-          quantidade: (item.quantidade || 1) + (item.linhasAdicionais || 0),
+          quantidade: quantidadeTotal,
           svasUpsell: product?.svasUpsell || [],
         });
       }
     });
+    
+    console.log('✅ TOTAL DE LINHAS CONTRATADAS:', totalLinhasContratadas);
 
     // Buscar linhas já preenchidas
     const linhasPreenchidas = await db

@@ -38,7 +38,18 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
   const { data: lines, isLoading: loadingLines } = useQuery<any[]>({
     queryKey: [`/api/ecommerce/order-lines/${orderId}`],
     refetchInterval: 3000,
+    staleTime: 0, // Sempre considerar dados como stale
+    cacheTime: 0, // Não fazer cache
   });
+
+  // Log para debug (comentado)
+  // useEffect(() => {
+  //   console.log('🔍 [ADMIN ORDER LINES] Summary:', summary);
+  //   console.log('🔍 [ADMIN ORDER LINES] Lines RAW:', lines);
+  //   if (lines && lines.length > 0) {
+  //     lines.forEach((line, i) => console.log(`Linha ${i + 1}:`, line));
+  //   }
+  // }, [summary, lines]);
 
   // Atualizar slots quando dados mudarem
   useEffect(() => {
@@ -314,10 +325,13 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
           const isEditing = editingSlot === index;
           const availableProducts = getAvailableProducts(index);
           const availableSVAs = getAvailableSVAs(slot.productId);
+          
+          // Key única e estável para cada Card
+          const cardKey = `line-${slot.id}-${isEditing ? 'edit' : 'view'}`;
 
           return (
             <Card
-              key={slot.id}
+              key={cardKey}
               className={`p-4 transition-all ${
                 slot.filled
                   ? "border-green-200 bg-green-50"
@@ -544,7 +558,11 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
                     )}
                     {slot.svas && slot.svas.length > 0 && (
                       <p>
-                        <strong>SVAs:</strong> {slot.svas.length} selecionado(s)
+                        <strong>SVAs:</strong>{" "}
+                        {slot.svas.map((svaId: string) => {
+                          const sva = summary?.svasDisponiveis?.find((s: any) => s.id === svaId);
+                          return sva?.nome || svaId;
+                        }).join(", ")}
                       </p>
                     )}
                     {slot.observacoes && (

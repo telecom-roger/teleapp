@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import {
   CustomerHeader,
   CustomerSidebar,
@@ -11,6 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
 export default function CustomerLinhasPortabilidade() {
+  // Persistir o ID do pedido para não mudar ao trocar de etapa
+  const [fixedOrderId, setFixedOrderId] = useState<string | null>(null);
+  
   const {
     data: customerData,
     isLoading: loadingAuth,
@@ -20,17 +24,49 @@ export default function CustomerLinhasPortabilidade() {
     retry: false,
   });
 
-  const { data: orders, isLoading: loadingOrders } = useQuery<any[]>({
+  const { data: ordersData, isLoading: loadingOrders } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData,
   });
 
-  // Encontrar pedido de portabilidade ativo (aguardando_dados_linhas)
-  const pedidoPortabilidade = orders?.find(
-    (order) =>
-      order.tipoContratacao === "portabilidade" &&
-      order.etapa === "aguardando_dados_linhas"
+  // Encontrar pedido de portabilidade ativo ou recente
+  // Prioriza: aguardando_dados_linhas, depois qualquer pedido com portabilidade
+  const pedidoPortabilidade = ordersData?.orders?.find(
+    (order) => {
+      // Se já temos um pedido fixo, usar ele
+      if (fixedOrderId && order.id === fixedOrderId) return true;
+      
+      // Se não tem pedido fixo ainda, buscar o primeiro adequado
+      if (!fixedOrderId) {
+        // Prioridade 1: Aguardando dados de linhas
+        if (order.etapa === "aguardando_dados_linhas") return true;
+        
+        // Prioridade 2: Tem campo tipoContratacao = portabilidade
+        if (order.tipoContratacao === "portabilidade") return true;
+        
+        // Prioridade 3: Tem produtos de portabilidade nos itens
+        const temProdutoPortabilidade = order.items?.some((item: any) => 
+          item.productNome?.toLowerCase().includes('portabilidade') ||
+          item.productCategoria?.toLowerCase().includes('portabilidade')
+        );
+        
+        return temProdutoPortabilidade;
+      }
+      
+      return false;
+    }
   );
+  
+  // Fixar o pedido na primeira vez que encontrar
+  useEffect(() => {
+    if (pedidoPortabilidade && !fixedOrderId) {
+      setFixedOrderId(pedidoPortabilidade.id);
+    }
+  }, [pedidoPortabilidade, fixedOrderId]);
+  
+  // Verifica se pode editar (apenas em aguardando_dados_linhas)
+  const podeEditar = pedidoPortabilidade?.etapa === "aguardando_dados_linhas";
+
 
   // Buscar informações do pedido se existir
   const { data: orderDetail } = useQuery<any>({
@@ -190,29 +226,49 @@ export default function CustomerLinhasPortabilidade() {
                 </Card>
 
                 {/* Alerta informativo */}
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardContent className="pt-6">
-                    <div className="flex gap-3 items-start">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-blue-900 mb-1">
-                          Importante
-                        </h3>
-                        <p className="text-sm text-blue-700">
-                          Para continuar com a portabilidade, precisamos que você
-                          preencha as informações de cada linha contratada. Certifique-se
-                          de informar os números corretos e a operadora atual de cada
-                          linha.
-                        </p>
+                {podeEditar ? (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardContent className="pt-6">
+                      <div className="flex gap-3 items-start">
+                        <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-blue-900 mb-1">
+                            Importante
+                          </h3>
+                          <p className="text-sm text-blue-700">
+                            Para continuar com a portabilidade, precisamos que você
+                            preencha as informações de cada linha contratada. Certifique-se
+                            de informar os números corretos e a operadora atual de cada
+                            linha.
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card className="border-amber-200 bg-amber-50">
+                    <CardContent className="pt-6">
+                      <div className="flex gap-3 items-start">
+                        <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-amber-900 mb-1">
+                            Dados Enviados para Análise
+                          </h3>
+                          <p className="text-sm text-amber-700">
+                            Suas linhas já foram enviadas para análise pela nossa equipe.
+                            Você não pode mais editar essas informações. Caso precise fazer
+                            alguma alteração, entre em contato com nosso suporte.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Componente de preenchimento */}
                 <Card>
                   <CardContent className="pt-6">
-                    <OrderLinesFill orderId={pedidoPortabilidade.id} />
+                    <OrderLinesFill orderId={pedidoPortabilidade.id} readOnly={!podeEditar} />
                   </CardContent>
                 </Card>
               </div>

@@ -74,7 +74,6 @@ import {
   followUps,
   clientScores,
 } from "@shared/schema";
-import { contracts, contractDocuments, contractRenewals, contractNotificationSettings } from "@shared/schema";
 
 // ==================== USER STORAGE ====================
 export async function upsertUser(user: UpsertUser): Promise<User> {
@@ -208,6 +207,8 @@ export async function getClients(params: {
 }
 
 // ==================== CONTRACT STORAGE HELPERS ====================
+// NOTA: Funções de contratos comentadas temporariamente - tabelas não existem no schema
+/*
 export async function createContract(data: any) {
   const [result] = await db.insert(contracts).values(data).returning();
   return result;
@@ -257,6 +258,7 @@ export async function getContractsWithUpcomingRenewals(beforeDate: Date) {
   const res = await db.select().from(contracts).where(sql`${contracts.dataProximaRenovacao} <= ${beforeDate}`).orderBy(contracts.dataProximaRenovacao);
   return res;
 }
+*/
 
 export async function deleteClient(id: string): Promise<void> {
   await db.delete(clients).where(eq(clients.id, id));
