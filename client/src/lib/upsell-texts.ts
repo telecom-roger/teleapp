@@ -3,16 +3,16 @@
  */
 
 const UPSELL_TEXTS = [
-  "Pode ser útil para você: O serviço [nome_servico] está disponível para complementar seu plano por [preco].",
-  "Serviço opcional: Caso queira, você pode adicionar [nome_servico] por [preco].",
-  "Um complemento disponível: O [nome_servico] pode ser adicionado à sua contratação por [preco].",
-  "Se fizer sentido para você: Adicione o serviço [nome_servico] por [preco] e complemente seu plano.",
-  "Complemento para este plano: O serviço [nome_servico] está disponível por [preco].",
-  "Clientes com este plano costumam adicionar [nome_servico] como um complemento opcional por [preco].",
-  "Disponível para sua contratação: O serviço [nome_servico] pode ser incluído por [preco], se desejar.",
-  "Você decide: O serviço [nome_servico] está disponível por [preco] e pode ser adicionado agora ou depois.",
-  "Adicional opcional: [nome_servico] por [preco], caso queira ampliar sua contratação.",
-  "Sugestão relacionada ao seu plano: O serviço [nome_servico] está disponível por [preco].",
+  "Você decide. O serviço [nome_servico] pode ser adicionado a este pedido por [preco]/mês, se fizer sentido para você.",
+  "Serviço opcional disponível: [nome_servico] por [preco]/mês. Pode ser removido a qualquer momento.",
+  "Baseado no seu pedido, [nome_servico] está disponível por [preco]/mês. Decisão totalmente sua.",
+  "Caso seja útil, o serviço [nome_servico] pode ser incluído por [preco]/mês.",
+  "Considere [nome_servico] para complementar seu plano ([preco]/mês). Sem obrigatoriedade.",
+  "Você pode incluir [nome_servico] neste pedido por [preco]/mês. Totalmente opcional.",
+  "Disponível se precisar: [nome_servico] por [preco]/mês. Pode ser adicionado ou removido depois.",
+  "Serviço adicional: [nome_servico] por [preco]/mês. Analise se faz sentido para seu caso.",
+  "Opcional para seu plano: [nome_servico] ([preco]/mês). Você escolhe.",
+  "[nome_servico] está disponível por [preco]/mês. Você pode adicionar agora ou não utilizar.",
 ];
 
 /**

@@ -779,10 +779,14 @@ router.post("/orders/:orderId/upsell-response", async (req: Request, res: Respon
     const acceptedList = order.upsellsAccepted || [];
     const refusedList = order.upsellsRefused || [];
 
-    // Adicionar aos oferecidos se ainda não está
+    // SEMPRE adicionar aos oferecidos (independente de aceitar/recusar)
     if (!offered.includes(svaId)) {
       offered.push(svaId);
     }
+
+    console.log(`📊 [UPSELL RESPONSE] SVA: ${svaId}, Aceito: ${accepted}`);
+    console.log(`   Antes - Oferecidos: [${order.upsellsOffered?.join(', ') || 'vazio'}]`);
+    console.log(`   Depois - Oferecidos: [${offered.join(', ')}]`);
 
     // Adicionar à lista apropriada
     if (accepted) {
@@ -800,8 +804,10 @@ router.post("/orders/:orderId/upsell-response", async (req: Request, res: Respon
         await db.insert(ecommerceOrderItems).values({
           orderId,
           productId: sva.id,
-          quantity: 1,
+          quantidade: 1,
           preco: sva.preco,
+          precoUnitario: sva.preco,
+          subtotal: sva.preco,
         });
 
         // Atualizar total do pedido

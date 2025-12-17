@@ -8,6 +8,7 @@ import { useLocation } from "wouter";
 import { ArrowLeft, CheckCircle, Loader2, Search } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { CartUpsellPreview } from "@/components/ecommerce/CartUpsellPreview";
 
 interface CustomerData {
   user: {
@@ -294,6 +295,13 @@ export default function CheckoutConfirmacao() {
           <h1 className="text-3xl font-bold mb-2">Confirmar Pedido</h1>
           <p className="text-slate-600">Etapa 5 de 5 • Revisão Final</p>
         </div>
+        
+        {/* 🆕 UPSELL NO CHECKOUT - Antes de finalizar */}
+        <CartUpsellPreview 
+          onAccept={(svaId) => {
+            console.log(`✅ [CHECKOUT] SVA ${svaId} adicionado ao carrinho pelo upsell`);
+          }}
+        />
         
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-6">
