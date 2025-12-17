@@ -632,31 +632,32 @@ router.get("/documents/download/:filename", async (req: Request, res: Response) 
  * GET /api/ecommerce/customer/orders/:orderId/next-upsell
  * Retorna próximo SVA elegível para oferecer ao cliente
  * Regra: lista ordenada, consome próximo não oferecido, limite máximo de ofertas
+ * Funciona para clientes logados E não logados (usa sessão)
  */
-router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req: Request, res: Response) => {
+router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
     const { orderId } = req.params;
     const LIMITE_OFERTAS = 3; // Máximo de ofertas por pedido
 
-    // Buscar pedido do cliente
+    console.log(`\n🎯 [UPSELL] Buscando próximo upsell para pedido: ${orderId}`);
+
+    // Buscar pedido (com ou sem autenticação)
     const [order] = await db
       .select()
       .from(ecommerceOrders)
-      .where(
-        and(
-          eq(ecommerceOrders.id, orderId),
-          eq(ecommerceOrders.clientId, user.clientId)
-        )
-      );
+      .where(eq(ecommerceOrders.id, orderId));
 
     if (!order) {
+      console.log(`❌ [UPSELL] Pedido não encontrado: ${orderId}`);
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
+
+    console.log(`✅ [UPSELL] Pedido encontrado. Total ofertas até agora: ${order.upsellsOffered?.length || 0}`);
 
     // Verificar limite de ofertas
     const totalOfertas = order.upsellsOffered?.length || 0;
     if (totalOfertas >= LIMITE_OFERTAS) {
+      console.log(`🚫 [UPSELL] Limite de ofertas atingido (${totalOfertas}/${LIMITE_OFERTAS})`);
       return res.json({ upsell: null, reason: "limit_reached" });
     }
 
@@ -666,9 +667,11 @@ router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req
       .from(ecommerceOrderItems)
       .where(eq(ecommerceOrderItems.orderId, orderId));
 
+    console.log(`📦 [UPSELL] Pedido tem ${items.length} itens`);
+
     // Coletar todos os SVAs disponíveis dos produtos (manter ordem)
     const allSvasAvailable: string[] = [];
-    const svasData = new Map(); // Armazena dados do SVA (textos, nome, preço)
+    const svasData = new Map(); // Armazena dados do SVA (nome, preço, descricao)
 
     for (const item of items) {
       const [product] = await db
@@ -693,7 +696,6 @@ router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req
                 nome: sva.nome,
                 descricao: sva.descricao,
                 preco: sva.preco,
-                textosUpsell: product.textosUpsell || [],
               });
             }
           }
@@ -705,8 +707,19 @@ router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req
     const offered = order.upsellsOffered || [];
     const svasElegiveis = allSvasAvailable.filter(svaId => !offered.includes(svaId));
 
+    console.log(`📊 [UPSELL] Total SVAs disponíveis: ${allSvasAvailable.length}`);
+    console.log(`📊 [UPSELL] SVAs já oferecidos: ${offered.length}`);
+    console.log(`📊 [UPSELL] SVAs elegíveis: ${svasElegiveis.length}`);
+    if (allSvasAvailable.length > 0) {
+      console.log(`   Disponíveis: [${allSvasAvailable.join(', ')}]`);
+    }
+    if (svasElegiveis.length > 0) {
+      console.log(`   Elegíveis: [${svasElegiveis.join(', ')}]`);
+    }
+
     // Retornar primeiro elegível
     if (svasElegiveis.length === 0) {
+      console.log(`⚠️ [UPSELL] Nenhum SVA elegível disponível`);
       return res.json({ upsell: null, reason: "no_more_svas" });
     }
 
@@ -714,26 +727,25 @@ router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req
     const nextSvaData = svasData.get(nextSvaId);
 
     if (!nextSvaData) {
+      console.log(`❌ [UPSELL] Dados do SVA ${nextSvaId} não encontrados`);
       return res.json({ upsell: null, reason: "sva_not_found" });
     }
 
-    // Determinar momento (qual texto usar)
-    const momento = totalOfertas; // 0 = checkout, 1 = pós-checkout, 2 = painel
-    const textos = nextSvaData.textosUpsell;
-    const textoMomento = textos[momento] || textos[0] || `Aproveite: ${nextSvaData.nome}`;
+    console.log(`✅ [UPSELL] Próximo SVA selecionado: ${nextSvaData.nome} (${nextSvaId})`);
+    console.log(`💰 [UPSELL] Preço: R$ ${(nextSvaData.preco / 100).toFixed(2)}`);
 
+    // Retornar dados do SVA (texto será randomizado no frontend)
     res.json({
       upsell: {
         id: nextSvaData.id,
         nome: nextSvaData.nome,
         descricao: nextSvaData.descricao,
         preco: nextSvaData.preco,
-        texto: textoMomento,
-        momento: momento === 0 ? 'checkout' : momento === 1 ? 'pos-checkout' : 'painel',
+        momento: totalOfertas === 0 ? 'checkout' : totalOfertas === 1 ? 'pos-checkout' : 'painel',
       },
     });
   } catch (error: any) {
-    console.error("Erro ao buscar próximo upsell:", error);
+    console.error("❌ [UPSELL] Erro ao buscar próximo upsell:", error);
     res.status(500).json({ error: "Erro ao buscar upsell" });
   }
 });
@@ -741,10 +753,10 @@ router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req
 /**
  * POST /api/ecommerce/customer/orders/:orderId/upsell-response
  * Registra resposta do cliente ao upsell (aceitar/recusar)
+ * Funciona para clientes logados E não logados (usa sessão)
  */
-router.post("/orders/:orderId/upsell-response", requireRole(["customer"]), async (req: Request, res: Response) => {
+router.post("/orders/:orderId/upsell-response", async (req: Request, res: Response) => {
   try {
-    const user = req.user as any;
     const { orderId } = req.params;
     const { svaId, accepted } = req.body;
 
@@ -752,16 +764,11 @@ router.post("/orders/:orderId/upsell-response", requireRole(["customer"]), async
       return res.status(400).json({ error: "svaId e accepted são obrigatórios" });
     }
 
-    // Buscar pedido
+    // Buscar pedido (com ou sem autenticação)
     const [order] = await db
       .select()
       .from(ecommerceOrders)
-      .where(
-        and(
-          eq(ecommerceOrders.id, orderId),
-          eq(ecommerceOrders.clientId, user.clientId)
-        )
-      );
+      .where(eq(ecommerceOrders.id, orderId));
 
     if (!order) {
       return res.status(404).json({ error: "Pedido não encontrado" });
@@ -844,3 +851,4 @@ router.post("/orders/:orderId/upsell-response", requireRole(["customer"]), async
   }
 });
 
+export default router;

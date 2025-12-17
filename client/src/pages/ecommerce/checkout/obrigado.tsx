@@ -34,6 +34,13 @@ export default function CheckoutObrigado() {
   return (
     <div className="min-h-screen py-8 px-4" style={{ background: "#FAFAFA" }}>
       <div className="max-w-2xl mx-auto space-y-6">
+        {/* Card de upsell - PRIMEIRO, bem destacado */}
+        {pedidoId && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-700">
+            <UpsellCard orderId={pedidoId} momento="pos-checkout" />
+          </div>
+        )}
+
         {/* Card de confirmação */}
         <Card
           className="overflow-hidden"
@@ -172,9 +179,6 @@ export default function CheckoutObrigado() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Card de upsell pós-checkout */}
-        {pedidoId && <UpsellCard orderId={pedidoId} momento="pos-checkout" />}
       </div>
     </div>
   );

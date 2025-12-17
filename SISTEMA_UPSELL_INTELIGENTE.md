@@ -4,9 +4,31 @@
 
 Sistema que oferece SVAs (Serviços de Valor Agregado) de forma sequencial e contextual ao longo da jornada do cliente, respeitando prioridades e limites definidos.
 
+**✨ Funciona para clientes logados E não logados!**
+
 ## 🎯 Regra de Ouro
 
 **A lista de SVAs funciona como uma fila ordenada consumida ao longo da jornada, sem repetição dentro do mesmo pedido.**
+
+## 💬 Sistema de Textos Randomizados
+
+Os textos são **gerados automaticamente** usando 10 templates randomizados, substituindo variáveis:
+- `[nome_servico]` → Nome do SVA
+- `[preco]` → Preço formatado (ex: R$ 25,00)
+
+### Templates Disponíveis:
+1. "Pode ser útil para você: O serviço [nome_servico] está disponível para complementar seu plano por [preco]."
+2. "Serviço opcional: Caso queira, você pode adicionar [nome_servico] por [preco]."
+3. "Um complemento disponível: O [nome_servico] pode ser adicionado à sua contratação por [preco]."
+4. "Se fizer sentido para você: Adicione o serviço [nome_servico] por [preco] e complemente seu plano."
+5. "Complemento para este plano: O serviço [nome_servico] está disponível por [preco]."
+6. "Clientes com este plano costumam adicionar [nome_servico] como um complemento opcional por [preco]."
+7. "Disponível para sua contratação: O serviço [nome_servico] pode ser incluído por [preco], se desejar."
+8. "Você decide: O serviço [nome_servico] está disponível por [preco] e pode ser adicionado agora ou depois."
+9. "Adicional opcional: [nome_servico] por [preco], caso queira ampliar sua contratação."
+10. "Sugestão relacionada ao seu plano: O serviço [nome_servico] está disponível por [preco]."
+
+**Cada exibição seleciona um texto aleatório!**
 
 ## ⚙️ Como Funciona
 
@@ -16,11 +38,7 @@ Sistema que oferece SVAs (Serviços de Valor Agregado) de forma sequencial e con
 ```typescript
 {
   svasUpsell: ['sva-1', 'sva-2', 'sva-3'], // Array ordenado por prioridade
-  textosUpsell: [
-    'Texto momento 1 (checkout)',
-    'Texto momento 2 (pós-checkout)', 
-    'Texto momento 3 (painel)'
-  ]
+  // textosUpsell NÃO É MAIS USADO - textos são randomizados automaticamente
 }
 ```
 
@@ -47,11 +65,12 @@ PARA CADA momento da jornada:
 
 ### 3. Momentos de Oferta
 
-| Momento | Local | Texto Usado | Índice |
-|---------|-------|-------------|--------|
-| **Checkout** | Página de confirmação (obrigado.tsx) | textosUpsell[0] | 0 |
-| **Pós-Checkout** | Após conclusão do pedido (obrigado.tsx) | textosUpsell[1] | 1 |
-| **Painel** | Detalhes do pedido (customer-orders.tsx) | textosUpsell[2] | 2 |
+| Momento | Local | Autenticação | Índice |
+|---------|-------|--------------|--------|
+| **Pós-Checkout** | Após conclusão do pedido (obrigado.tsx) | Não requerida | 0 |
+| **Painel** | Detalhes do pedido (customer-orders.tsx) | Requerida (customer) | 1+ |
+
+**Nota:** Clientes não logados veem upsell na página de obrigado. Clientes logados veem no painel também.
 
 ## 📊 Exemplos Práticos
 

@@ -1198,16 +1198,27 @@ export default function AdminProdutos() {
               <div className="space-y-2">
                 {textosUpsell.map((texto, index) => (
                   <div key={index} className="flex gap-2">
-                    <Input
-                      value={texto}
-                      onChange={(e) => {
-                        const novosTextos = [...textosUpsell];
-                        novosTextos[index] = e.target.value;
-                        setTextosUpsell(novosTextos);
-                      }}
-                      placeholder="Inclua [nome_servico] por apenas [preco]!"
-                      className="flex-1"
-                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <Badge variant="outline" className="shrink-0 min-w-[100px] justify-center">
+                        {index === 0 ? "Checkout" : index === 1 ? "Pós-Checkout" : index === 2 ? "Painel" : `Momento ${index + 1}`}
+                      </Badge>
+                      <Input
+                        value={texto}
+                        onChange={(e) => {
+                          const novosTextos = [...textosUpsell];
+                          novosTextos[index] = e.target.value;
+                          setTextosUpsell(novosTextos);
+                        }}
+                        placeholder={
+                          index === 0 
+                            ? "Ex: Antes de finalizar, aproveite nosso [nome_servico]!" 
+                            : index === 1 
+                            ? "Ex: Parabéns! Adicione [nome_servico] ao seu pedido"
+                            : "Ex: Aproveite para incluir [nome_servico] agora!"
+                        }
+                        className="flex-1"
+                      />
+                    </div>
                     {textosUpsell.length > 1 && (
                       <Button
                         type="button"
@@ -1226,7 +1237,10 @@ export default function AdminProdutos() {
                 ))}
               </div>
               <div className="text-xs text-muted-foreground space-y-1">
-                <p>• Sistema escolhe um texto aleatoriamente para cada venda</p>
+                <p>• <strong>Momento 1 (Checkout):</strong> Exibido durante a finalização do pedido</p>
+                <p>• <strong>Momento 2 (Pós-Checkout):</strong> Exibido após confirmação do pedido</p>
+                <p>• <strong>Momento 3 (Painel):</strong> Exibido nos detalhes do pedido no painel do cliente</p>
+                <p>• Sistema oferece SVAs sequencialmente, um por vez, respeitando a ordem e limite de 3 ofertas</p>
                 <p>
                   • Use variáveis:{" "}
                   <code className="bg-slate-100 px-1 rounded">
