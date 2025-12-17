@@ -129,6 +129,11 @@ const etapas = [
     color: "bg-indigo-100 text-indigo-800 border-indigo-300",
   },
   {
+    value: "ajuste_solicitado",
+    label: "Ajuste Solicitado",
+    color: "bg-rose-100 text-rose-800 border-rose-300",
+  },
+  {
     value: "aguardando_documentos",
     label: "Aguardando Docs",
     color: "bg-orange-100 text-orange-800 border-orange-300",
@@ -182,6 +187,8 @@ const getEtapaIcon = (etapa: string) => {
     case "aguardando_dados_linhas":
       return Phone;
     case "em_analise":
+      return AlertCircle;
+    case "ajuste_solicitado":
       return AlertCircle;
     case "aguardando_documentos":
       return FileText;
@@ -1012,7 +1019,7 @@ export default function AdminEcommercePedidos() {
                                   {order.nomeCompleto || order.razaoSocial}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
-                                  #{order.id.slice(0, 8)}
+                                  #{order.orderCode}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1096,7 +1103,7 @@ export default function AdminEcommercePedidos() {
                         <TableRow key={order.id}>
                           <TableCell>
                             <span className="font-mono text-xs">
-                              #{order.id.slice(0, 8)}
+                              #{order.orderCode}
                             </span>
                           </TableCell>
                           <TableCell>

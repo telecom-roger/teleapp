@@ -202,7 +202,7 @@ export default function CustomerProfile() {
                       <div className="space-y-2">
                         <Label htmlFor="nome">Nome Completo</Label>
                         <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                          <User className="h-4 w-4 text-gray-700" />
                           <Input
                             id="nome"
                             value={customerData?.client?.nome || ""}
@@ -230,7 +230,7 @@ export default function CustomerProfile() {
                       <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
                         <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <Mail className="h-4 w-4 text-gray-700" />
                           <Input
                             id="email"
                             type="email"
@@ -254,7 +254,7 @@ export default function CustomerProfile() {
                       <div className="space-y-2">
                         <Label htmlFor="telefone">Telefone</Label>
                         <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <Phone className="h-4 w-4 text-gray-700" />
                           <Input
                             id="telefone"
                             type="tel"
@@ -280,7 +280,7 @@ export default function CustomerProfile() {
                       <div className="space-y-2 pt-4 border-t">
                         <Label htmlFor="endereco">Endereço</Label>
                         <div className="flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground mt-3" />
+                          <MapPin className="h-4 w-4 text-gray-700 mt-3" />
                           <div className="flex-1 space-y-2">
                             <Input
                               id="endereco"
@@ -306,7 +306,7 @@ export default function CustomerProfile() {
                             </div>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-gray-700">
                           Para alterar o endereço, entre em contato com nosso
                           suporte
                         </p>
@@ -362,7 +362,7 @@ export default function CustomerProfile() {
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Senha Atual</Label>
                     <div className="flex items-center gap-2">
-                      <Key className="h-4 w-4 text-muted-foreground" />
+                      <Key className="h-4 w-4 text-gray-700" />
                       <Input
                         id="currentPassword"
                         type="password"

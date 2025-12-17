@@ -74,7 +74,7 @@ export function CustomerHeader() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-gray-700">
               Olá,{" "}
               <span className="font-medium text-foreground">
                 {data?.client?.nome || data?.user?.email}
@@ -98,7 +98,7 @@ export function CustomerHeader() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t">
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-muted-foreground px-3 py-2">
+              <span className="text-sm text-gray-700 px-3 py-2">
                 {data?.client?.nome || data?.user?.email}
               </span>
               <Button
@@ -121,19 +121,43 @@ export function CustomerHeader() {
 export function CustomerSidebar() {
   const [location] = useLocation();
 
-  // Buscar pedidos do cliente para verificar se tem portabilidade ativa
+  // Buscar pedidos do cliente para verificar se tem portabilidade
   const { data } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    onSuccess: (data) => {
+      console.log('\n🏠 [SIDEBAR] Pedidos recebidos para menu:');
+      console.log('   Total:', data?.orders?.length || 0);
+      const temPort = data?.orders?.some(order => order.tipoContratacao === "portabilidade") || false;
+      console.log(`   📍 Menu de Portabilidade deve aparecer? ${temPort ? "SIM ✅" : "NÃO ❌"}`);
+      if (!temPort) {
+        console.log('   🔍 Tipos de contratação encontrados:');
+        data?.orders?.forEach(o => {
+          console.log(`      - ${o.orderCode}: "${o.tipoContratacao}"`);
+        });
+      }
+    }
   });
 
   const orders = data?.orders || [];
+  
+  // Debug: verificar dados dos pedidos
+  console.log('🔍 [SIDEBAR] Total de pedidos:', orders.length);
+  orders.forEach((order, i) => {
+    console.log(`  Pedido ${i + 1}:`, {
+      orderCode: order.orderCode,
+      tipoContratacao: order.tipoContratacao,
+      etapa: order.etapa
+    });
+  });
 
-  // Verificar se existe pedido de portabilidade aguardando dados de linhas
-  const temPortabilidadeAtiva = orders.some(
-    (order) =>
-      order.tipoContratacao === "portabilidade" &&
-      order.etapa === "aguardando_dados_linhas"
+  // Verificar se existe qualquer pedido de portabilidade (qualquer etapa)
+  const temPortabilidade = orders.some(
+    (order) => order.tipoContratacao === "portabilidade"
   );
+  
+  console.log('📱 [SIDEBAR] Tem portabilidade?', temPortabilidade);
 
   const menuItems = [
     { href: "/ecommerce/painel", icon: Home, label: "Dashboard" },
@@ -156,8 +180,8 @@ export function CustomerSidebar() {
     },
   ];
 
-  // Inserir item de portabilidade após "Meus Pedidos" se tiver portabilidade ativa
-  if (temPortabilidadeAtiva) {
+  // Inserir item de portabilidade após "Meus Pedidos" se tiver portabilidade
+  if (temPortabilidade) {
     menuItems.splice(2, 0, {
       href: "/ecommerce/painel/linhas-portabilidade",
       icon: Phone,
@@ -181,7 +205,7 @@ export function CustomerSidebar() {
                 rel="noopener noreferrer"
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  "text-gray-700 hover:bg-accent hover:text-accent-foreground"
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -197,7 +221,7 @@ export function CustomerSidebar() {
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "text-gray-700 hover:bg-accent hover:text-accent-foreground"
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -214,18 +238,16 @@ export function CustomerSidebar() {
 export function CustomerMobileNav() {
   const [location] = useLocation();
 
-  // Buscar pedidos do cliente para verificar se tem portabilidade ativa
+  // Buscar pedidos do cliente para verificar se tem portabilidade
   const { data } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
   });
 
   const orders = data?.orders || [];
 
-  // Verificar se existe pedido de portabilidade aguardando dados de linhas
-  const temPortabilidadeAtiva = orders.some(
-    (order) =>
-      order.tipoContratacao === "portabilidade" &&
-      order.etapa === "aguardando_dados_linhas"
+  // Verificar se existe qualquer pedido de portabilidade (qualquer etapa)
+  const temPortabilidade = orders.some(
+    (order) => order.tipoContratacao === "portabilidade"
   );
 
   const menuItems = [
@@ -235,8 +257,8 @@ export function CustomerMobileNav() {
     { href: "/ecommerce/painel/perfil", icon: User, label: "Perfil" },
   ];
 
-  // Inserir item de portabilidade após "Pedidos" se tiver portabilidade ativa
-  if (temPortabilidadeAtiva) {
+  // Inserir item de portabilidade após "Pedidos" se tiver portabilidade
+  if (temPortabilidade) {
     menuItems.splice(2, 0, {
       href: "/ecommerce/painel/linhas-portabilidade",
       icon: Phone,

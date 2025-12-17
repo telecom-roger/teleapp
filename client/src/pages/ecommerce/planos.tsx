@@ -130,6 +130,15 @@ export default function EcommercePlanos() {
   const [tempoInicioPagina] = useState(Date.now());
   const [tooltipOperadoraOpen, setTooltipOperadoraOpen] = useState(false);
   const [tooltipCategoriaOpen, setTooltipCategoriaOpen] = useState(false);
+  const [tipoContratacao, setTipoContratacao] = useState<"linha_nova" | "portabilidade">(() => {
+    const saved = localStorage.getItem("tipo-contratacao");
+    return (saved === "portabilidade" ? "portabilidade" : "linha_nova");
+  });
+
+  // Salvar tipoContratacao no localStorage sempre que mudar
+  useEffect(() => {
+    localStorage.setItem("tipo-contratacao", tipoContratacao);
+  }, [tipoContratacao]);
 
   const { addItem, removeItem, openCart, items: cartItems } = useCartStore();
 
@@ -647,6 +656,80 @@ export default function EcommercePlanos() {
                     >
                       {tipo.icon && <tipo.icon className="w-4 h-4" />}
                       {tipo.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tipo de Contratação */}
+              <div>
+                <label
+                  className="block text-sm font-bold mb-3"
+                  style={{ color: "#111111" }}
+                >
+                  Como você quer contratar?
+                </label>
+                <div className="flex gap-3 flex-wrap">
+                  {[
+                    {
+                      value: "linha_nova" as const,
+                      label: "Linha Nova",
+                      description: "Novos números",
+                    },
+                    {
+                      value: "portabilidade" as const,
+                      label: "Portabilidade",
+                      description: "Manter números atuais",
+                    },
+                  ].map((tipo) => (
+                    <button
+                      key={tipo.value}
+                      onClick={() => setTipoContratacao(tipo.value)}
+                      className={cn(
+                        "flex-1 min-w-[160px] h-auto px-4 py-3 font-semibold border-0 transition-all duration-300 text-left",
+                        tipoContratacao === tipo.value
+                          ? "shadow-lg"
+                          : "hover:shadow-md"
+                      )}
+                      style={{
+                        borderRadius: "12px",
+                        backgroundColor:
+                          tipoContratacao === tipo.value
+                            ? "#1E90FF"
+                            : "#FFFFFF",
+                        color:
+                          tipoContratacao === tipo.value
+                            ? "#FFFFFF"
+                            : "#555555",
+                        border:
+                          tipoContratacao === tipo.value
+                            ? "none"
+                            : "1px solid #E0E0E0",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (tipoContratacao !== tipo.value) {
+                          e.currentTarget.style.borderColor = "#1E90FF";
+                          e.currentTarget.style.color = "#1E90FF";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (tipoContratacao !== tipo.value) {
+                          e.currentTarget.style.borderColor = "#E0E0E0";
+                          e.currentTarget.style.color = "#555555";
+                        }
+                      }}
+                    >
+                      <div className="font-bold text-sm">{tipo.label}</div>
+                      <div 
+                        className="text-xs mt-1" 
+                        style={{ 
+                          color: tipoContratacao === tipo.value 
+                            ? "rgba(255,255,255,0.9)" 
+                            : "#999999" 
+                        }}
+                      >
+                        {tipo.description}
+                      </div>
                     </button>
                   ))}
                 </div>

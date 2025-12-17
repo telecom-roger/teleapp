@@ -63,6 +63,7 @@ export default function EcommercePainel() {
   const statusColors: Record<string, string> = {
     novo_pedido: "bg-yellow-100 text-yellow-700",
     em_analise: "bg-indigo-100 text-indigo-700",
+    ajuste_solicitado: "bg-rose-100 text-rose-700",
     aguardando_documentos: "bg-orange-100 text-orange-700",
     validando_documentos: "bg-amber-100 text-amber-700",
     contrato_enviado: "bg-blue-100 text-blue-700",
@@ -77,6 +78,7 @@ export default function EcommercePainel() {
   const statusLabels: Record<string, string> = {
     novo_pedido: "Pedido recebido",
     em_analise: "Em análise",
+    ajuste_solicitado: "Ajuste solicitado",
     aguardando_documentos: "Aguardando documentos",
     validando_documentos: "Validando documentos",
     contrato_enviado: "Contrato enviado",
@@ -470,12 +472,12 @@ export default function EcommercePainel() {
                 <div>
                   <p
                     className="text-sm mb-2 font-medium"
-                    style={{ color: "#555555" }}
+                    style={{ color: "#374151" }}
                   >
                     Pedidos em Andamento
                   </p>
                   <p
-                    className="text-4xl font-bold"
+                    className="text-2xl font-bold"
                     style={{ color: "#1E90FF" }}
                   >
                     {pendingOrders.length}
@@ -515,12 +517,12 @@ export default function EcommercePainel() {
                 <div>
                   <p
                     className="text-sm mb-2 font-medium"
-                    style={{ color: "#555555" }}
+                    style={{ color: "#374151" }}
                   >
                     Total de Pedidos
                   </p>
                   <p
-                    className="text-4xl font-bold"
+                    className="text-2xl font-bold"
                     style={{ color: "#111111" }}
                   >
                     {orders.length}
@@ -560,12 +562,12 @@ export default function EcommercePainel() {
                 <div>
                   <p
                     className="text-sm mb-2 font-medium"
-                    style={{ color: "#555555" }}
+                    style={{ color: "#374151" }}
                   >
                     Pedidos Concluídos
                   </p>
                   <p
-                    className="text-4xl font-bold"
+                    className="text-2xl font-bold"
                     style={{ color: "#1AD1C1" }}
                   >
                     {orders.filter((o: any) => o.etapa === "concluido").length}
@@ -608,7 +610,7 @@ export default function EcommercePainel() {
               }}
             >
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold" style={{ color: "#111111" }}>
+                <h2 className="text-lg font-semibold" style={{ color: "#111111" }}>
                   Último Pedido
                 </h2>
                 <Badge
@@ -631,21 +633,21 @@ export default function EcommercePainel() {
                   className="flex justify-between items-center p-3 rounded-lg"
                   style={{ background: "#FAFAFA" }}
                 >
-                  <span className="font-medium" style={{ color: "#555555" }}>
+                  <span className="font-medium" style={{ color: "#374151" }}>
                     Pedido:
                   </span>
                   <span
                     className="font-mono font-bold"
                     style={{ color: "#111111" }}
                   >
-                    #{lastOrder.id.slice(0, 8)}
+                    #{lastOrder.orderCode}
                   </span>
                 </div>
                 <div
                   className="flex justify-between items-center p-3 rounded-lg"
                   style={{ background: "#FAFAFA" }}
                 >
-                  <span className="font-medium" style={{ color: "#555555" }}>
+                  <span className="font-medium" style={{ color: "#374151" }}>
                     Data:
                   </span>
                   <span className="font-semibold" style={{ color: "#111111" }}>
@@ -656,11 +658,11 @@ export default function EcommercePainel() {
                   className="flex justify-between items-center p-3 rounded-lg"
                   style={{ background: "rgba(30,144,255,0.08)" }}
                 >
-                  <span className="font-medium" style={{ color: "#555555" }}>
+                  <span className="font-medium" style={{ color: "#374151" }}>
                     Total:
                   </span>
                   <span
-                    className="text-xl font-bold"
+                    className="text-lg font-bold"
                     style={{ color: "#1E90FF" }}
                   >
                     {formatPrice(lastOrder.total)}/mês
@@ -703,7 +705,7 @@ export default function EcommercePainel() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
             }}
           >
-            <h2 className="text-xl font-bold mb-4" style={{ color: "#111111" }}>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: "#111111" }}>
               Ações Rápidas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

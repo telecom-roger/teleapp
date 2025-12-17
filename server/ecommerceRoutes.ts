@@ -369,6 +369,11 @@ export function registerEcommerceRoutes(app: Express): void {
   app.post("/api/ecommerce/orders", async (req, res) => {
     try {
       const orderData = req.body;
+      
+      console.log("\n🆕 [CRIAR PEDIDO] Dados recebidos:");
+      console.log("   tipoContratacao:", orderData.tipoContratacao);
+      console.log("   tipoPessoa:", orderData.tipoPessoa);
+      console.log("   items:", orderData.items?.length, "produtos");
 
       // Validar CPF/CNPJ (mais permissivo em desenvolvimento)
       const isDev = process.env.NODE_ENV === "development";
@@ -544,6 +549,11 @@ export function registerEcommerceRoutes(app: Express): void {
           etapa: etapaInicial,
         })
         .returning();
+      
+      console.log("\n✅ [PEDIDO CRIADO]");
+      console.log("   Order Code:", orderCode);
+      console.log("   tipoContratacao salvo:", order.tipoContratacao);
+      console.log("   Etapa:", order.etapa);
 
       // Criar itens do pedido
       if (orderData.items && orderData.items.length > 0) {

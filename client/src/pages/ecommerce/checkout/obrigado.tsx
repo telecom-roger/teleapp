@@ -73,7 +73,7 @@ export default function CheckoutObrigado() {
                   Número do pedido:
                 </span>
                 <p className="text-xl font-bold font-mono" style={{ color: "#1E90FF" }}>
-                  #{pedidoId}
+                  #{orderCode}
                 </p>
               </div>
             )}

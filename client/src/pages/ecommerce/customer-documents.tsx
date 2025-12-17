@@ -180,7 +180,7 @@ export default function CustomerDocuments() {
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
               <h1 className="text-3xl font-bold">Documentos</h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-gray-700 mt-1">
                 Envie e gerencie documentos dos seus pedidos
               </p>
             </div>
@@ -210,9 +210,9 @@ export default function CustomerDocuments() {
                       >
                         <div>
                           <p className="font-medium">
-                            Pedido #{order.id.slice(0, 8)}
+                            Pedido #{order.orderCode}
                           </p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-gray-700">
                             {new Date(order.createdAt).toLocaleDateString(
                               "pt-BR"
                             )}{" "}
@@ -234,7 +234,7 @@ export default function CustomerDocuments() {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-muted-foreground">
+                  <div className="text-center py-8 text-gray-700">
                     <File className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p>Nenhum pedido necessita de documentos no momento</p>
                   </div>
@@ -253,8 +253,8 @@ export default function CustomerDocuments() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                    <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-sm text-muted-foreground mb-4">
+                    <Upload className="h-12 w-12 text-gray-700 mx-auto mb-3" />
+                    <p className="text-sm text-gray-700 mb-4">
                       Arraste arquivos aqui ou clique para selecionar
                     </p>
                     <input
@@ -289,12 +289,12 @@ export default function CustomerDocuments() {
                           className="flex items-center justify-between p-3 border rounded-lg"
                         >
                           <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <File className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                            <File className="h-5 w-5 text-gray-700 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">
                                 {file.name}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-gray-700">
                                 {formatFileSize(file.size)}
                               </p>
                             </div>
@@ -364,7 +364,7 @@ export default function CustomerDocuments() {
                               <p className="text-sm font-medium truncate">
                                 {doc.originalName}
                               </p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-xs text-gray-700">
                                 {formatFileSize(doc.size)} • Enviado em{" "}
                                 {new Date(doc.uploadedAt).toLocaleDateString(
                                   "pt-BR"
@@ -385,7 +385,7 @@ export default function CustomerDocuments() {
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8 text-muted-foreground">
+                    <div className="text-center py-8 text-gray-700">
                       <AlertCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
                       <p>Nenhum documento enviado ainda</p>
                     </div>

@@ -196,7 +196,7 @@ export function CustomerOrderNotifications() {
                   Atualizações de Pedidos
                 </h3>
                 {updateCount > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-gray-700 mt-1">
                     {updateCount} atualiza{updateCount > 1 ? "ções" : "ção"}
                   </p>
                 )}
@@ -219,13 +219,13 @@ export function CustomerOrderNotifications() {
           {/* Content */}
           {isLoading && updateCount === 0 ? (
             <div className="p-8 text-center">
-              <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Carregando...</p>
+              <Loader2 className="h-5 w-5 animate-spin mx-auto mb-2 text-gray-700" />
+              <p className="text-sm text-gray-700">Carregando...</p>
             </div>
           ) : updateCount === 0 ? (
             <div className="p-8 text-center">
               <Bell className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm text-muted-foreground">Sem atualizações</p>
+              <p className="text-sm text-gray-700">Sem atualizações</p>
             </div>
           ) : (
             <ScrollArea className="h-80">
@@ -240,14 +240,14 @@ export function CustomerOrderNotifications() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm">
-                            Pedido #{order.id.slice(0, 8)}...
+                            Pedido #{order.orderCode}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-700">
                             {order.itemsCount}{" "}
                             {order.itemsCount === 1 ? "item" : "itens"}
                           </p>
                         </div>
-                        <p className="text-xs text-muted-foreground flex-shrink-0">
+                        <p className="text-xs text-gray-700 flex-shrink-0">
                           {formatDistanceToNow(new Date(order.updatedAt), {
                             addSuffix: false,
                             locale: ptBR,

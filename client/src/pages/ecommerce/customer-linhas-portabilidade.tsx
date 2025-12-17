@@ -7,13 +7,21 @@ import {
 } from "@/components/ecommerce/CustomerLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderLinesFill } from "@/components/ecommerce/OrderLinesFill";
-import { AlertCircle, Phone, Package } from "lucide-react";
+import { AlertCircle, Phone, Package, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { formatOrderStatus } from "@/lib/order-status-utils";
 
 export default function CustomerLinhasPortabilidade() {
-  // Persistir o ID do pedido para não mudar ao trocar de etapa
-  const [fixedOrderId, setFixedOrderId] = useState<string | null>(null);
+  // ID do pedido selecionado
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   
   const {
     data: customerData,
@@ -27,45 +35,46 @@ export default function CustomerLinhasPortabilidade() {
   const { data: ordersData, isLoading: loadingOrders } = useQuery<{ orders: any[] }>({
     queryKey: ["/api/ecommerce/customer/orders"],
     enabled: !!customerData,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+    onSuccess: (data) => {
+      console.log('\n📦 [PÁGINA PORT] Pedidos recebidos:');
+      console.log('   Total:', data?.orders?.length || 0);
+      data?.orders?.forEach(o => {
+        console.log(`   - ${o.orderCode}: tipo="${o.tipoContratacao}" etapa="${o.etapa}"`);
+      });
+      const port = data?.orders?.filter(o => o.tipoContratacao === "portabilidade") || [];
+      console.log(`   ✅ Portabilidade: ${port.length}`);
+      if (port.length === 0) {
+        console.error('   ❌ NENHUM pedido de portabilidade!');
+      }
+    }
   });
 
-  // Encontrar pedido de portabilidade ativo ou recente
-  // Prioriza: aguardando_dados_linhas, depois qualquer pedido com portabilidade
-  const pedidoPortabilidade = ordersData?.orders?.find(
-    (order) => {
-      // Se já temos um pedido fixo, usar ele
-      if (fixedOrderId && order.id === fixedOrderId) return true;
-      
-      // Se não tem pedido fixo ainda, buscar o primeiro adequado
-      if (!fixedOrderId) {
-        // Prioridade 1: Aguardando dados de linhas
-        if (order.etapa === "aguardando_dados_linhas") return true;
-        
-        // Prioridade 2: Tem campo tipoContratacao = portabilidade
-        if (order.tipoContratacao === "portabilidade") return true;
-        
-        // Prioridade 3: Tem produtos de portabilidade nos itens
-        const temProdutoPortabilidade = order.items?.some((item: any) => 
-          item.productNome?.toLowerCase().includes('portabilidade') ||
-          item.productCategoria?.toLowerCase().includes('portabilidade')
-        );
-        
-        return temProdutoPortabilidade;
-      }
-      
-      return false;
+  // Filtrar todos os pedidos de portabilidade
+  const pedidosPortabilidade = ordersData?.orders?.filter(
+    (order) => order.tipoContratacao === "portabilidade"
+  ) || [];
+
+  // Selecionar automaticamente o primeiro pedido aguardando dados, ou o primeiro disponível
+  useEffect(() => {
+    if (pedidosPortabilidade.length > 0 && !selectedOrderId) {
+      // Priorizar pedido aguardando dados
+      const aguardandoDados = pedidosPortabilidade.find(
+        (order) => order.etapa === "aguardando_dados_linhas"
+      );
+      setSelectedOrderId(aguardandoDados?.id || pedidosPortabilidade[0].id);
     }
+  }, [pedidosPortabilidade, selectedOrderId]);
+  
+  // Pedido selecionado atualmente
+  const pedidoPortabilidade = pedidosPortabilidade.find(
+    (order) => order.id === selectedOrderId
   );
   
-  // Fixar o pedido na primeira vez que encontrar
-  useEffect(() => {
-    if (pedidoPortabilidade && !fixedOrderId) {
-      setFixedOrderId(pedidoPortabilidade.id);
-    }
-  }, [pedidoPortabilidade, fixedOrderId]);
-  
-  // Verifica se pode editar (apenas em aguardando_dados_linhas)
-  const podeEditar = pedidoPortabilidade?.etapa === "aguardando_dados_linhas";
+  // Verifica se pode editar (aguardando_dados_linhas ou em_analise com permissão)
+  const podeEditar = pedidoPortabilidade?.etapa === "aguardando_dados_linhas" || 
+                     pedidoPortabilidade?.etapa === "em_analise";
 
 
   // Buscar informações do pedido se existir
@@ -135,13 +144,13 @@ export default function CustomerLinhasPortabilidade() {
                   Linhas de Portabilidade
                 </h1>
               </div>
-              <p className="text-muted-foreground">
+              <p className="text-gray-700">
                 Preencha as informações de cada linha para continuar com seu pedido
               </p>
             </div>
 
             {/* Conteúdo */}
-            {!pedidoPortabilidade ? (
+            {pedidosPortabilidade.length === 0 ? (
               <Card className="border-blue-200 bg-blue-50">
                 <CardContent className="pt-6">
                   <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -158,24 +167,52 @@ export default function CustomerLinhasPortabilidade() {
               </Card>
             ) : (
               <div className="space-y-4">
+                {/* Seletor de Pedido - aparece apenas se houver mais de um */}
+                {pedidosPortabilidade.length > 1 && (
+                  <Card>
+                    <CardContent className="pt-6">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">
+                          Selecione o pedido para preencher as linhas:
+                        </label>
+                        <Select
+                          value={selectedOrderId || ""}
+                          onValueChange={setSelectedOrderId}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um pedido" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pedidosPortabilidade.map((order) => (
+                              <SelectItem key={order.id} value={order.id}>
+                                Pedido #{order.orderCode} - {formatOrderStatus(order.etapa)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Info do Pedido */}
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">
-                        Pedido #{pedidoPortabilidade.orderCode}
-                      </CardTitle>
-                      <Badge variant="secondary">
-                        {pedidoPortabilidade.etapa === "aguardando_dados_linhas"
-                          ? "Aguardando Dados"
-                          : pedidoPortabilidade.etapa}
-                      </Badge>
-                    </div>
-                  </CardHeader>
+                {pedidoPortabilidade && (
+                  <>
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">
+                          Pedido #{pedidoPortabilidade.orderCode}
+                        </CardTitle>
+                        <Badge variant="secondary">
+                          {formatOrderStatus(pedidoPortabilidade.etapa)}
+                        </Badge>
+                      </div>
+                    </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div>
-                        <p className="text-muted-foreground mb-1">Total do Pedido</p>
+                        <p className="text-gray-700 mb-1">Total do Pedido</p>
                         <p className="text-lg font-bold">
                           R$ {(pedidoPortabilidade.total / 100).toFixed(2)}
                         </p>
@@ -183,7 +220,7 @@ export default function CustomerLinhasPortabilidade() {
                       {linesSummary && (
                         <>
                           <div>
-                            <p className="text-muted-foreground mb-1">
+                            <p className="text-gray-700 mb-1">
                               Linhas Contratadas
                             </p>
                             <p className="text-lg font-bold">
@@ -191,7 +228,7 @@ export default function CustomerLinhasPortabilidade() {
                             </p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground mb-1">
+                            <p className="text-gray-700 mb-1">
                               Linhas Preenchidas
                             </p>
                             <p className="text-lg font-bold text-green-600">
@@ -209,7 +246,7 @@ export default function CustomerLinhasPortabilidade() {
                           {orderDetail.items.map((item: any) => (
                             <li
                               key={item.id}
-                              className="text-sm text-muted-foreground flex justify-between"
+                              className="text-sm text-gray-700 flex justify-between"
                             >
                               <span>
                                 {item.quantidade}x {item.productNome}
@@ -271,6 +308,8 @@ export default function CustomerLinhasPortabilidade() {
                     <OrderLinesFill orderId={pedidoPortabilidade.id} readOnly={!podeEditar} />
                   </CardContent>
                 </Card>
+                </>
+                )}
               </div>
             )}
           </div>

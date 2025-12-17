@@ -207,7 +207,7 @@ export default function CustomerDashboard() {
                 )}
                 !
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-gray-700 mt-1">
                 Bem-vindo ao seu painel. Aqui você pode acompanhar seus pedidos
                 e serviços.
               </p>
@@ -220,7 +220,7 @@ export default function CustomerDashboard() {
                   <CardTitle className="text-sm font-medium">
                     Total de Pedidos
                   </CardTitle>
-                  <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+                  <ShoppingBag className="h-4 w-4 text-gray-700" />
                 </CardHeader>
                 <CardContent>
                   {loadingOrders ? (
@@ -255,7 +255,7 @@ export default function CustomerDashboard() {
                       </p>
                     </>
                   ) : (
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-gray-700">
                       Nenhum pedido ainda
                     </div>
                   )}
@@ -267,7 +267,7 @@ export default function CustomerDashboard() {
                   <CardTitle className="text-sm font-medium">
                     Documentos Pendentes
                   </CardTitle>
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <FileText className="h-4 w-4 text-gray-700" />
                 </CardHeader>
                 <CardContent>
                   {loadingOrders ? (
@@ -394,7 +394,7 @@ export default function CustomerDashboard() {
                                 <p className="font-medium">
                                   Pedido #{order.orderCode || order.id.slice(0, 8)}
                                 </p>
-                                <p className="text-sm text-muted-foreground">
+                                <p className="text-sm text-gray-700">
                                   {new Date(order.createdAt).toLocaleDateString(
                                     "pt-BR"
                                   )}

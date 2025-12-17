@@ -145,8 +145,16 @@ export default function CheckoutConfirmacao() {
         throw new Error("Dados incompletos. Por favor, preencha todos os campos.");
       }
 
+      // Recuperar tipo de contratação do localStorage
+      const tipoContratacao = localStorage.getItem("tipo-contratacao") || "linha_nova";
+      
+      console.log("\n📦 [CHECKOUT] Criando pedido com:");
+      console.log("   tipoContratacao:", tipoContratacao);
+      console.log("   tipoPessoa:", tipoPessoa);
+      
       const orderData = {
         tipoPessoa,
+        tipoContratacao, // linha_nova ou portabilidade
         // Dados pessoais
         nomeCompleto: tipoPessoa === "PF" ? dados.nome : undefined,
         razaoSocial: tipoPessoa === "PJ" ? (dados.razaoSocial || dados.nome) : undefined,

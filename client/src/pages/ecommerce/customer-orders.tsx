@@ -419,7 +419,7 @@ export default function CustomerOrders() {
                     Voltar
                   </Button>
                 </Link>
-                <h1 className="text-3xl font-bold">Detalhes do Pedido</h1>
+                <h1 className="text-xl font-semibold">Detalhes do Pedido</h1>
               </div>
 
               {loadingDetail ? (
@@ -437,7 +437,7 @@ export default function CustomerOrders() {
                           <CardTitle>
                             Pedido #{orderDetail.orderCode || orderDetail.id.slice(0, 8)}
                           </CardTitle>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-sm text-gray-700 mt-1">
                             Realizado em{" "}
                             {new Date(orderDetail.createdAt).toLocaleDateString(
                               "pt-BR",
@@ -504,9 +504,9 @@ export default function CustomerOrders() {
                       )}
                       <div className="grid gap-4 sm:grid-cols-3">
                         <div className="flex items-center gap-3">
-                          <Calendar className="h-5 w-5 text-muted-foreground" />
+                          <Calendar className="h-5 w-5 text-gray-700" />
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-gray-700">
                               Data
                             </p>
                             <p className="font-medium">
@@ -517,20 +517,20 @@ export default function CustomerOrders() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <DollarSign className="h-5 w-5 text-muted-foreground" />
+                          <DollarSign className="h-5 w-5 text-gray-700" />
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-gray-700">
                               Valor Total
                             </p>
-                            <p className="font-medium text-lg">
+                            <p className="font-semibold text-base">
                               R$ {(orderDetail.total / 100).toFixed(2)}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Package className="h-5 w-5 text-muted-foreground" />
+                          <Package className="h-5 w-5 text-gray-700" />
                           <div>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-sm text-gray-700">
                               Itens
                             </p>
                             <p className="font-medium">
@@ -543,7 +543,7 @@ export default function CustomerOrders() {
                       {/* Endereço de Entrega/Instalação */}
                       {(orderDetail.endereco || orderDetail.cidade) && (
                         <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                          <p className="text-sm text-muted-foreground mb-2 font-medium">
+                          <p className="text-sm text-gray-700 mb-2 font-medium">
                             Endereço de Entrega/Instalação
                           </p>
                           <p className="text-sm text-slate-900">
@@ -585,7 +585,7 @@ export default function CustomerOrders() {
                                   {item.productNome}
                                 </h3>
                                 {item.productDescricao && (
-                                  <p className="text-sm text-muted-foreground">
+                                  <p className="text-sm text-gray-700">
                                     {item.productDescricao}
                                   </p>
                                 )}
@@ -594,7 +594,7 @@ export default function CustomerOrders() {
                                 R$ {(item.subtotal / 100).toFixed(2)}
                               </p>
                             </div>
-                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-700">
                               <span>Quantidade: {item.quantidade}</span>
                               {item.linhasAdicionais > 0 && (
                                 <span>
@@ -612,7 +612,7 @@ export default function CustomerOrders() {
 
                       <div className="border-t mt-6 pt-4 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">
+                          <span className="text-gray-700">
                             Subtotal
                           </span>
                           <span>
@@ -629,7 +629,7 @@ export default function CustomerOrders() {
                         )}
                         {orderDetail.taxaInstalacao > 0 && (
                           <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">
+                            <span className="text-gray-700">
                               Taxa de Instalação
                             </span>
                             <span>
@@ -637,78 +637,13 @@ export default function CustomerOrders() {
                             </span>
                           </div>
                         )}
-                        <div className="flex justify-between text-lg font-bold border-t pt-2">
+                        <div className="flex justify-between text-base font-semibold border-t pt-2">
                           <span>Total</span>
                           <span>R$ {(orderDetail.total / 100).toFixed(2)}</span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-
-                  {/* Linhas de Portabilidade - Mostrar se estiver aguardando dados */}
-                  {orderDetail.etapa === "aguardando_dados_linhas" && linesSummary && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Phone className="h-5 w-5 text-blue-500" />
-                          Linhas de Portabilidade
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Preencha as informações de cada linha que será portada para dar continuidade ao pedido.
-                        </p>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Progresso */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <p className="text-sm font-medium text-blue-900">
-                                Progresso do preenchimento
-                              </p>
-                              <p className="text-xs text-blue-700 mt-1">
-                                {linesSummary.totalLinhasPreenchidas} de {linesSummary.totalLinhasContratadas} linhas preenchidas
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-3xl font-bold text-blue-600">
-                                {linesSummary.progresso}%
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Barra de progresso */}
-                          <div className="w-full bg-blue-200 rounded-full h-3">
-                            <div
-                              className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                              style={{ width: `${linesSummary.progresso}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Botão/Link para página de preenchimento */}
-                        <Link href="/ecommerce/painel/linhas-portabilidade">
-                          <Button
-                            className="w-full"
-                            size="lg"
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            {linesSummary.totalLinhasPreenchidas === 0
-                              ? "Começar Preenchimento"
-                              : linesSummary.progresso === 100
-                              ? "Revisar Linhas"
-                              : "Continuar Preenchimento"}
-                          </Button>
-                        </Link>
-
-                        {linesSummary.progresso === 100 && (
-                          <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>Todas as linhas foram preenchidas! Seu pedido seguirá para a próxima etapa.</span>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
 
                   {/* Documentos - Mostrar sempre que houver documentos solicitados */}
                   {requestedDocuments && requestedDocuments.length > 0 && (
@@ -718,7 +653,7 @@ export default function CustomerOrders() {
                           <FileText className="h-5 w-5" />
                           Documentos Solicitados
                         </CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-gray-700">
                           {orderDetail.etapa === "aguardando_documentos"
                             ? "Envie todos os documentos solicitados. Assim que o envio estiver completo, seu pedido seguirá automaticamente para validação."
                             : "Documentos solicitados para este pedido. Envie os pendentes o quanto antes."}
@@ -741,8 +676,8 @@ export default function CustomerOrders() {
                                     return {
                                       icon: Clock,
                                       color: "text-orange-600",
-                                      bg: "bg-orange-50",
-                                      borderColor: "border-orange-200",
+                                      bg: "bg-white",
+                                      borderColor: "border-gray-200",
                                       label: "Pendente",
                                       badgeVariant: "secondary" as const,
                                     };
@@ -750,8 +685,8 @@ export default function CustomerOrders() {
                                     return {
                                       icon: FileText,
                                       color: "text-blue-600",
-                                      bg: "bg-blue-50",
-                                      borderColor: "border-blue-200",
+                                      bg: "bg-white",
+                                      borderColor: "border-gray-200",
                                       label: "Recebido",
                                       badgeVariant: "default" as const,
                                     };
@@ -759,8 +694,8 @@ export default function CustomerOrders() {
                                     return {
                                       icon: CheckCircle2,
                                       color: "text-green-600",
-                                      bg: "bg-green-50",
-                                      borderColor: "border-green-200",
+                                      bg: "bg-white",
+                                      borderColor: "border-gray-200",
                                       label: "Aprovado",
                                       badgeVariant: "default" as const,
                                     };
@@ -768,8 +703,8 @@ export default function CustomerOrders() {
                                     return {
                                       icon: AlertCircle,
                                       color: "text-red-600",
-                                      bg: "bg-red-50",
-                                      borderColor: "border-red-300",
+                                      bg: "bg-white",
+                                      borderColor: "border-gray-200",
                                       label: "Reprovado",
                                       badgeVariant: "destructive" as const,
                                     };
@@ -803,16 +738,6 @@ export default function CustomerOrders() {
                                             </Badge>
                                           )}
                                         </div>
-                                        {doc.observacoes && (
-                                          <p className={`text-sm mt-1 ${
-                                            doc.status === "reprovado" 
-                                              ? "text-red-700 font-semibold" 
-                                              : "text-muted-foreground"
-                                          }`}>
-                                            {doc.status === "reprovado" && "⚠️ "}
-                                            {doc.observacoes}
-                                          </p>
-                                        )}
                                       </div>
                                     </div>
                                     <Badge variant={statusInfo.badgeVariant}>
@@ -822,7 +747,7 @@ export default function CustomerOrders() {
                                   {/* Arquivos enviados */}
                                   {doc.uploads && doc.uploads.length > 0 && (
                                     <div className="mt-3 pt-3 border-t">
-                                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                                      <p className="text-xs font-medium text-gray-700 mb-2">
                                         Arquivo(s) enviado(s):
                                       </p>
                                       {doc.uploads.map((upload: any) => (
@@ -931,8 +856,8 @@ export default function CustomerOrders() {
                                       />
                                       <Button
                                         size="sm"
-                                        variant={doc.status === "reprovado" ? "default" : "outline"}
-                                        className={doc.status === "reprovado" ? "bg-red-600 hover:bg-red-700 w-full" : "w-full"}
+                                        variant="outline"
+                                        className={doc.status === "reprovado" ? "border-red-500 text-red-600 hover:bg-red-50 w-full" : "w-full"}
                                         onClick={() =>
                                           fileInputRefs.current[doc.id]?.click()
                                         }
@@ -952,8 +877,17 @@ export default function CustomerOrders() {
                                           </>
                                         )}
                                       </Button>
-                                      <p className="text-xs text-muted-foreground mt-1 text-center">
+                                      <p className="text-xs text-gray-700 mt-1 text-center">
                                         PDF, JPG ou PNG • Máx 5MB
+                                      </p>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Mensagem de observações abaixo do card */}
+                                  {doc.observacoes && doc.status === "reprovado" && (
+                                    <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                      <p className="text-sm text-red-600">
+                                        {doc.observacoes}
                                       </p>
                                     </div>
                                   )}
@@ -962,10 +896,10 @@ export default function CustomerOrders() {
                             })}
 
                             {/* Barra de progresso */}
-                            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                            <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-sm font-semibold text-gray-700">
-                                  📊 Progresso dos Documentos
+                                  Progresso dos Documentos
                                 </span>
                                 <span className="text-sm font-bold text-blue-600">
                                   {
@@ -980,7 +914,7 @@ export default function CustomerOrders() {
                               </div>
                               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                 <div
-                                  className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                                  className="bg-blue-500 h-3 rounded-full transition-all duration-500 ease-out"
                                   style={{
                                     width: `${
                                       (requestedDocuments.filter(
@@ -997,7 +931,7 @@ export default function CustomerOrders() {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm text-muted-foreground text-center py-4">
+                          <p className="text-sm text-gray-700 text-center py-4">
                             Nenhum documento solicitado no momento.
                           </p>
                         )}
@@ -1007,7 +941,7 @@ export default function CustomerOrders() {
                 </>
               ) : (
                 <Card>
-                  <CardContent className="p-8 text-center text-muted-foreground">
+                  <CardContent className="p-8 text-center text-gray-700">
                     Pedido não encontrado
                   </CardContent>
                 </Card>
@@ -1073,7 +1007,7 @@ export default function CustomerOrders() {
                                     {statusInfo.label}
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-muted-foreground mt-1">
+                                <p className="text-sm text-gray-700 mt-1">
                                   {new Date(order.createdAt).toLocaleDateString(
                                     "pt-BR",
                                     {
@@ -1086,7 +1020,7 @@ export default function CustomerOrders() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="text-lg font-bold">
+                              <p className="text-base font-semibold">
                                 R$ {(order.total / 100).toFixed(2)}
                               </p>
                               <Button
@@ -1107,11 +1041,11 @@ export default function CustomerOrders() {
             ) : (
               <Card>
                 <CardContent className="p-12 text-center">
-                  <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">
+                  <Package className="h-16 w-16 text-gray-700 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">
                     Nenhum pedido encontrado
                   </h3>
-                  <p className="text-muted-foreground mb-6">
+                  <p className="text-gray-700 mb-6">
                     Você ainda não realizou nenhum pedido.
                   </p>
                   <Link href="/ecommerce/planos">

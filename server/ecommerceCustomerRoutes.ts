@@ -52,16 +52,37 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
       .where(eq(ecommerceOrders.clientId, user.clientId))
       .orderBy(desc(ecommerceOrders.createdAt));
 
-    // Para cada pedido, buscar os itens
+    // Para cada pedido, buscar os itens e detectar se é portabilidade
+    const { ecommerceOrderLines } = await import("@shared/schema");
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
+        console.log(`\n🔍 [ORDER ${order.orderCode}] Verificando tipo...`);
+        console.log(`   DB tipoContratacao: "${order.tipoContratacao}"`);
+        
         const items = await db
           .select()
           .from(ecommerceOrderItems)
           .where(eq(ecommerceOrderItems.orderId, order.id));
 
+        // Verificar se tem linhas de portabilidade cadastradas
+        const linhasPortabilidade = await db
+          .select()
+          .from(ecommerceOrderLines)
+          .where(eq(ecommerceOrderLines.orderId, order.id))
+          .limit(1);
+        
+        console.log(`   Tem linhas? ${linhasPortabilidade.length > 0} (qty: ${linhasPortabilidade.length})`);
+        
+        // Se foi criado como portabilidade OU tem linhas, mantém como portabilidade
+        // Uma vez portabilidade, sempre portabilidade (mesmo se remover todas as linhas)
+        const isPortabilidade = order.tipoContratacao === "portabilidade" || linhasPortabilidade.length > 0;
+        
+        console.log(`   ✅ isPortabilidade: ${isPortabilidade}`);
+        console.log(`   📤 Retornando: "${isPortabilidade ? "portabilidade" : (order.tipoContratacao || "linha_nova")}"`);
+
         return {
           ...order,
+          tipoContratacao: isPortabilidade ? "portabilidade" : (order.tipoContratacao || "linha_nova"),
           items,
         };
       })

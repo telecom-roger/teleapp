@@ -208,7 +208,7 @@ router.post("/", requireRole(["customer", "admin"]), async (req: Request, res: R
       return res.status(404).json({ error: "Produto não encontrado" });
     }
 
-    // Validar se número já existe em pedidos ativos
+    // Validar se número já existe em pedidos ativos (exceto no pedido atual)
     const existingLines = await db
       .select({
         line: ecommerceOrderLines,
@@ -218,8 +218,10 @@ router.post("/", requireRole(["customer", "admin"]), async (req: Request, res: R
       .leftJoin(ecommerceOrders, eq(ecommerceOrderLines.orderId, ecommerceOrders.id))
       .where(eq(ecommerceOrderLines.numero, numero));
 
-    const numeroJaUsado = existingLines.some(({ order: existingOrder }) => {
+    const numeroJaUsado = existingLines.some(({ line, order: existingOrder }) => {
       if (!existingOrder) return false;
+      // Ignorar se for do mesmo pedido (permite editar linhas do próprio pedido)
+      if (existingOrder.id === orderId) return false;
       // Considerar ativo se não for cancelado, reprovado ou concluído
       const etapasInativas = ["cancelado", "reprovado", "concluido", "encerrado"];
       return !etapasInativas.includes(existingOrder.etapa);
@@ -338,8 +340,10 @@ router.put("/:lineId", requireRole(["customer", "admin"]), async (req: Request, 
           sql`${ecommerceOrderLines.id} != ${lineId}`
         ));
 
-      const numeroJaUsado = existingLines.some(({ order: existingOrder }) => {
+      const numeroJaUsado = existingLines.some(({ line: existingLine, order: existingOrder }) => {
         if (!existingOrder) return false;
+        // Ignorar se for do mesmo pedido (permite ter o mesmo número em linhas diferentes do mesmo pedido)
+        if (existingOrder.id === line.line.orderId) return false;
         const etapasInativas = ["cancelado", "reprovado", "concluido", "encerrado"];
         return !etapasInativas.includes(existingOrder.etapa);
       });
