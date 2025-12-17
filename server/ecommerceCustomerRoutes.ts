@@ -56,9 +56,6 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
     const { ecommerceOrderLines } = await import("@shared/schema");
     const ordersWithItems = await Promise.all(
       orders.map(async (order) => {
-        console.log(`\n🔍 [ORDER ${order.orderCode}] Verificando tipo...`);
-        console.log(`   DB tipoContratacao: "${order.tipoContratacao}"`);
-        
         const items = await db
           .select()
           .from(ecommerceOrderItems)
@@ -71,14 +68,8 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
           .where(eq(ecommerceOrderLines.orderId, order.id))
           .limit(1);
         
-        console.log(`   Tem linhas? ${linhasPortabilidade.length > 0} (qty: ${linhasPortabilidade.length})`);
-        
         // Se foi criado como portabilidade OU tem linhas, mantém como portabilidade
-        // Uma vez portabilidade, sempre portabilidade (mesmo se remover todas as linhas)
         const isPortabilidade = order.tipoContratacao === "portabilidade" || linhasPortabilidade.length > 0;
-        
-        console.log(`   ✅ isPortabilidade: ${isPortabilidade}`);
-        console.log(`   📤 Retornando: "${isPortabilidade ? "portabilidade" : (order.tipoContratacao || "linha_nova")}"`);
 
         return {
           ...order,
@@ -639,7 +630,12 @@ router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) =
     const { orderId } = req.params;
     const LIMITE_OFERTAS = 3; // Máximo de ofertas por pedido
 
-    console.log(`\n🎯 [UPSELL] Buscando próximo upsell para pedido: ${orderId}`);
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🎯 [UPSELL GET] INICIANDO BUSCA DE PRÓXIMO UPSELL`);
+    console.log(`${'='.repeat(60)}`);
+    console.log(`   Pedido ID: ${orderId}`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    console.log(`${'='.repeat(60)}\n`);
 
     // Buscar pedido (com ou sem autenticação)
     const [order] = await db
@@ -652,7 +648,12 @@ router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) =
       return res.status(404).json({ error: "Pedido não encontrado" });
     }
 
-    console.log(`✅ [UPSELL] Pedido encontrado. Total ofertas até agora: ${order.upsellsOffered?.length || 0}`);
+    console.log(`✅ [UPSELL] Pedido encontrado`);
+    console.log(`📊 [UPSELL] Arrays do banco de dados:`);
+    console.log(`   upsellsOffered: ${JSON.stringify(order.upsellsOffered)}`);
+    console.log(`   upsellsAccepted: ${JSON.stringify(order.upsellsAccepted)}`);
+    console.log(`   upsellsRefused: ${JSON.stringify(order.upsellsRefused)}`);
+    console.log(`   Total ofertas: ${order.upsellsOffered?.length || 0}`);
 
     // Verificar limite de ofertas
     const totalOfertas = order.upsellsOffered?.length || 0;
@@ -703,18 +704,28 @@ router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) =
       }
     }
 
-    // Filtrar SVAs já oferecidos
-    const offered = order.upsellsOffered || [];
-    const svasElegiveis = allSvasAvailable.filter(svaId => !offered.includes(svaId));
+    // Filtrar SVAs já oferecidos OU aceitos
+    const offered = Array.isArray(order.upsellsOffered) ? order.upsellsOffered : [];
+    const accepted = Array.isArray(order.upsellsAccepted) ? order.upsellsAccepted : [];
+    
+    // NUNCA mostrar SVAs que já foram oferecidos (inclui aceitos e recusados)
+    let svasElegiveis = allSvasAvailable.filter(svaId => !offered.includes(svaId));
+    
+    // GARANTIA EXTRA: Também remover aceitos (caso tenha alguma inconsistência)
+    svasElegiveis = svasElegiveis.filter(svaId => !accepted.includes(svaId));
+    
+    // RANDOMIZAR a ordem dos SVAs elegíveis
+    svasElegiveis = svasElegiveis.sort(() => Math.random() - 0.5);
 
     console.log(`📊 [UPSELL] Total SVAs disponíveis: ${allSvasAvailable.length}`);
-    console.log(`📊 [UPSELL] SVAs já oferecidos: ${offered.length}`);
-    console.log(`📊 [UPSELL] SVAs elegíveis: ${svasElegiveis.length}`);
+    console.log(`📊 [UPSELL] SVAs já oferecidos: ${offered.length} -> ${JSON.stringify(offered)}`);
+    console.log(`📊 [UPSELL] SVAs já aceitos: ${accepted.length} -> ${JSON.stringify(accepted)}`);
+    console.log(`📊 [UPSELL] SVAs elegíveis (RANDOMIZADOS): ${svasElegiveis.length} -> ${JSON.stringify(svasElegiveis)}`);
     if (allSvasAvailable.length > 0) {
-      console.log(`   Disponíveis: [${allSvasAvailable.join(', ')}]`);
+      console.log(`   🎯 Todos disponíveis: [${allSvasAvailable.join(', ')}]`);
     }
     if (svasElegiveis.length > 0) {
-      console.log(`   Elegíveis: [${svasElegiveis.join(', ')}]`);
+      console.log(`   ✅ Elegíveis randomizados: [${svasElegiveis.join(', ')}]`);
     }
 
     // Retornar primeiro elegível
@@ -751,6 +762,70 @@ router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) =
 });
 
 /**
+ * POST /api/ecommerce/customer/orders/:orderId/upsell-viewed
+ * Registra que o cliente VISUALIZOU um upsell (sem responder ainda)
+ * Funciona para clientes logados E não logados (usa sessão)
+ */
+router.post("/orders/:orderId/upsell-viewed", async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const { svaId } = req.body;
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`👁️  [UPSELL VIEWED] REGISTRANDO VISUALIZAÇÃO`);
+    console.log(`${'='.repeat(60)}`);
+    console.log(`   Pedido ID: ${orderId}`);
+    console.log(`   SVA ID: ${svaId}`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    console.log(`${'='.repeat(60)}\n`);
+
+    if (!orderId || !svaId) {
+      return res.status(400).json({ error: "orderId e svaId são obrigatórios" });
+    }
+
+    const [order] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(eq(ecommerceOrders.id, orderId));
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Atualizar array de oferecidos (apenas adicionar se ainda não está)
+    const offered = Array.isArray(order.upsellsOffered) ? [...order.upsellsOffered] : [];
+
+    console.log(`📊 [UPSELL VIEWED] Array ANTES: ${JSON.stringify(offered)}`);
+
+    if (!offered.includes(svaId)) {
+      offered.push(svaId);
+      console.log(`   ➕ Adicionado aos oferecidos`);
+
+      await db
+        .update(ecommerceOrders)
+        .set({
+          upsellsOffered: offered,
+          updatedAt: new Date(),
+        })
+        .where(eq(ecommerceOrders.id, orderId));
+
+      console.log(`💾 [UPSELL VIEWED] Array atualizado no banco de dados`);
+      console.log(`📊 [UPSELL VIEWED] Array DEPOIS: ${JSON.stringify(offered)}`);
+    } else {
+      console.log(`   ⚠️ JÁ estava nos oferecidos - não fez nada`);
+    }
+
+    return res.json({ 
+      success: true, 
+      message: "Visualização registrada",
+    });
+  } catch (error: any) {
+    console.error("❌ [UPSELL VIEWED] Erro ao registrar visualização:", error);
+    res.status(500).json({ error: "Erro ao registrar visualização" });
+  }
+});
+
+/**
  * POST /api/ecommerce/customer/orders/:orderId/upsell-response
  * Registra resposta do cliente ao upsell (aceitar/recusar)
  * Funciona para clientes logados E não logados (usa sessão)
@@ -759,6 +834,15 @@ router.post("/orders/:orderId/upsell-response", async (req: Request, res: Respon
   try {
     const { orderId } = req.params;
     const { svaId, accepted } = req.body;
+
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`📨 [UPSELL POST] RECEBENDO RESPOSTA DO CLIENTE`);
+    console.log(`${'='.repeat(60)}`);
+    console.log(`   Pedido ID: ${orderId}`);
+    console.log(`   SVA ID: ${svaId}`);
+    console.log(`   Aceito: ${accepted}`);
+    console.log(`   Timestamp: ${new Date().toISOString()}`);
+    console.log(`${'='.repeat(60)}\n`);
 
     if (!svaId || typeof accepted !== "boolean") {
       return res.status(400).json({ error: "svaId e accepted são obrigatórios" });
@@ -775,53 +859,131 @@ router.post("/orders/:orderId/upsell-response", async (req: Request, res: Respon
     }
 
     // Atualizar arrays de tracking
-    const offered = order.upsellsOffered || [];
-    const acceptedList = order.upsellsAccepted || [];
-    const refusedList = order.upsellsRefused || [];
+    const offered = Array.isArray(order.upsellsOffered) ? [...order.upsellsOffered] : [];
+    const acceptedList = Array.isArray(order.upsellsAccepted) ? [...order.upsellsAccepted] : [];
+    const refusedList = Array.isArray(order.upsellsRefused) ? [...order.upsellsRefused] : [];
+
+    console.log(`📊 [UPSELL RESPONSE] Recebido:`);
+    console.log(`   SVA ID: ${svaId}`);
+    console.log(`   Aceito: ${accepted}`);
+    console.log(`   Arrays ANTES da atualização:`);
+    console.log(`     Oferecidos: ${JSON.stringify(offered)}`);
+    console.log(`     Aceitos: ${JSON.stringify(acceptedList)}`);
+    console.log(`     Recusados: ${JSON.stringify(refusedList)}`);
 
     // SEMPRE adicionar aos oferecidos (independente de aceitar/recusar)
     if (!offered.includes(svaId)) {
       offered.push(svaId);
+      console.log(`   ➕ Adicionado aos oferecidos`);
+    } else {
+      console.log(`   ⚠️ JÁ estava nos oferecidos!`);
     }
-
-    console.log(`📊 [UPSELL RESPONSE] SVA: ${svaId}, Aceito: ${accepted}`);
-    console.log(`   Antes - Oferecidos: [${order.upsellsOffered?.join(', ') || 'vazio'}]`);
-    console.log(`   Depois - Oferecidos: [${offered.join(', ')}]`);
 
     // Adicionar à lista apropriada
     if (accepted) {
       if (!acceptedList.includes(svaId)) {
         acceptedList.push(svaId);
       }
+      console.log(`✅ [UPSELL] SVA aceito: ${svaId}`);
+    } else {
+      if (!refusedList.includes(svaId)) {
+        refusedList.push(svaId);
+      }
+      console.log(`❌ [UPSELL] SVA recusado: ${svaId}`);
+    }
+
+    console.log(`📊 [UPSELL] Arrays APÓS atualização:`);
+    console.log(`   Oferecidos: ${JSON.stringify(offered)}`);
+    console.log(`   Aceitos: ${JSON.stringify(acceptedList)}`);
+    console.log(`   Recusados: ${JSON.stringify(refusedList)}`);
+
+    // ATUALIZAR OS ARRAYS PRIMEIRO (SEMPRE)
+    await db
+      .update(ecommerceOrders)
+      .set({
+        upsellsOffered: offered,
+        upsellsAccepted: acceptedList,
+        upsellsRefused: refusedList,
+        updatedAt: new Date(),
+      })
+      .where(eq(ecommerceOrders.id, orderId));
+
+    console.log(`💾 [UPSELL] Arrays atualizados no banco de dados`);
+
+    // VERIFICAR SE REALMENTE SALVOU
+    const [orderVerify] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(eq(ecommerceOrders.id, orderId));
       
-      // Se aceito, adicionar ao pedido
+    console.log(`🔍 [UPSELL] VERIFICAÇÃO PÓS-SAVE:`);
+    console.log(`   Oferecidos no DB: ${JSON.stringify(orderVerify.upsellsOffered)}`);
+    console.log(`   Aceitos no DB: ${JSON.stringify(orderVerify.upsellsAccepted)}`);
+    console.log(`   Recusados no DB: ${JSON.stringify(orderVerify.upsellsRefused)}`);
+
+    // Se aceito, adicionar ao pedido (DEPOIS de atualizar arrays)
+    if (accepted) {
+      // Verificar se o SVA JÁ existe nos itens do pedido
+      const existingItem = await db
+        .select()
+        .from(ecommerceOrderItems)
+        .where(
+          and(
+            eq(ecommerceOrderItems.orderId, orderId),
+            eq(ecommerceOrderItems.productId, svaId)
+          )
+        );
+
+      if (existingItem.length > 0) {
+        console.log(`⚠️ [UPSELL] SVA ${svaId} JÁ existe no pedido - não vai adicionar novamente`);
+        console.log(`   Item encontrado:`, existingItem[0]);
+        return res.json({ 
+          success: true, 
+          message: "SVA já estava no pedido",
+        });
+      } else {
+        console.log(`✅ [UPSELL] SVA ${svaId} NÃO existe no pedido - vai adicionar`);
+      }
+
       const [sva] = await db
         .select()
         .from(ecommerceProducts)
         .where(eq(ecommerceProducts.id, svaId));
 
       if (sva) {
+        console.log(`✅ [UPSELL] Adicionando SVA ao pedido: ${sva.nome}`);
+        
         await db.insert(ecommerceOrderItems).values({
           orderId,
           productId: sva.id,
+          productNome: sva.nome,
+          productDescricao: sva.descricao,
+          productCategoria: sva.categoria,
+          productOperadora: sva.operadora,
           quantidade: 1,
+          linhasAdicionais: 0,
           preco: sva.preco,
           precoUnitario: sva.preco,
+          valorPorLinhaAdicional: 0,
           subtotal: sva.preco,
         });
 
+        console.log(`💾 [UPSELL] SVA adicionado com sucesso aos itens do pedido`);
+
         // Atualizar total do pedido
         const newTotal = order.total + sva.preco;
+        
+        console.log(`💰 [UPSELL] Atualizando total: ${order.total} + ${sva.preco} = ${newTotal}`);
+        
         await db
           .update(ecommerceOrders)
           .set({
             total: newTotal,
-            upsellsOffered: offered,
-            upsellsAccepted: acceptedList,
-            upsellsRefused: refusedList,
             updatedAt: new Date(),
           })
           .where(eq(ecommerceOrders.id, orderId));
+
+        console.log(`💾 [UPSELL] Total do pedido atualizado`);
 
         return res.json({ 
           success: true, 
@@ -829,28 +991,12 @@ router.post("/orders/:orderId/upsell-response", async (req: Request, res: Respon
           newTotal,
         });
       }
-    } else {
-      if (!refusedList.includes(svaId)) {
-        refusedList.push(svaId);
-      }
-
-      await db
-        .update(ecommerceOrders)
-        .set({
-          upsellsOffered: offered,
-          upsellsAccepted: acceptedList,
-          upsellsRefused: refusedList,
-          updatedAt: new Date(),
-        })
-        .where(eq(ecommerceOrders.id, orderId));
-
-      return res.json({ 
-        success: true, 
-        message: "Resposta registrada",
-      });
     }
 
-    res.json({ success: true });
+    return res.json({ 
+      success: true, 
+      message: "Resposta registrada",
+    });
   } catch (error: any) {
     console.error("Erro ao processar resposta de upsell:", error);
     res.status(500).json({ error: "Erro ao processar resposta" });

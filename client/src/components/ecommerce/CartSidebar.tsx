@@ -111,18 +111,12 @@ export function CartSidebar() {
         )}
       >
         {/* Header */}
-        <div
-          className="flex items-center justify-between p-4"
-          style={{
-            borderBottom: "1px solid #E0E0E0",
-            backgroundColor: "#FFFFFF",
-          }}
-        >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
           <div>
-            <h3 className="font-black text-lg" style={{ color: "#111111" }}>
+            <h3 className="font-black text-lg text-gray-900">
               Resumo da Contratação
             </h3>
-            <p className="text-sm" style={{ color: "#555555" }}>
+            <p className="text-sm text-gray-600">
               {getItemCount()}{" "}
               {getItemCount() === 1
                 ? "plano selecionado"
@@ -133,10 +127,7 @@ export function CartSidebar() {
             variant="ghost"
             size="icon"
             onClick={closeCart}
-            className="transition-colors"
-            style={{ color: "#555555" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#111111")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
+            className="transition-colors text-gray-600 hover:text-gray-900"
           >
             <X className="w-5 h-5" />
           </Button>
@@ -156,13 +147,7 @@ export function CartSidebar() {
             return (
               <div
                 key={`${item.product.id}-${index}`}
-                className="p-4 transition-all space-y-3"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "12px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
+                className="p-4 transition-all space-y-3 bg-white border border-gray-200 rounded-2xl shadow-sm"
               >
                 {/* Product Header */}
                 <div className="flex items-start justify-between gap-3">
@@ -170,24 +155,13 @@ export function CartSidebar() {
                     <div className="flex items-center gap-2 mb-1">
                       {(() => {
                         const Icon = getCategoryIcon(item.product.categoria);
-                        return (
-                          <Icon
-                            className="h-5 w-5 stroke-[1.5]"
-                            style={{ color: "#1E90FF" }}
-                          />
-                        );
+                        return <Icon className="h-5 w-5 stroke-[1.5] text-blue-600" />;
                       })()}
-                      <h4
-                        className="font-bold text-base"
-                        style={{ color: "#111111" }}
-                      >
+                      <h4 className="font-bold text-base text-gray-900">
                         {item.product.nome}
                       </h4>
                     </div>
-                    <div
-                      className="flex items-center gap-2 text-sm"
-                      style={{ color: "#555555" }}
-                    >
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
                       {item.product.operadora && (
                         <span className="font-semibold">
                           {operadoraNames[item.product.operadora] ||
@@ -210,17 +184,7 @@ export function CartSidebar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 transition-colors"
-                    style={{ color: "#555555" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#FF6B35";
-                      e.currentTarget.style.backgroundColor =
-                        "rgba(255,107,53,0.1)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "#555555";
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }}
+                    className="h-8 w-8 transition-colors text-gray-600 hover:text-orange-600 hover:bg-orange-50"
                     onClick={() => removeItem(item.product.id, item.cartItemId)}
                   >
                     <X className="w-4 h-4" />
@@ -229,20 +193,13 @@ export function CartSidebar() {
 
                 {/* SVA Info - mostrar quantos podem ser adicionados ainda */}
                 {item.categoria?.toLowerCase().includes('sva') && (
-                  <div
-                    className="p-3 mb-2"
-                    style={{
-                      backgroundColor: "#F0F9FF",
-                      border: "1px solid #1E90FF",
-                      borderRadius: "12px",
-                    }}
-                  >
+                  <div className="p-3 mb-2 bg-blue-50 border border-blue-500 rounded-xl">
                     <div className="text-xs space-y-1">
                       <div className="flex justify-between items-center">
-                        <span style={{ color: "#555555" }}>
+                        <span className="text-gray-600">
                           SVAs deste tipo no carrinho:
                         </span>
-                        <span className="font-semibold" style={{ color: "#1E90FF" }}>
+                        <span className="font-semibold text-blue-600">
                           {getSvaCount(item.product.id)} de {getTotalLinhas()}
                         </span>
                       </div>
@@ -272,28 +229,15 @@ export function CartSidebar() {
 
                 {/* GB Info */}
                 {item.product.franquia && item.quantidade > 1 && (
-                  <div
-                    className="p-3"
-                    style={{
-                      backgroundColor: "#FAFAFA",
-                      border: "1px solid #1E90FF",
-                      borderRadius: "12px",
-                    }}
-                  >
+                  <div className="p-3 bg-gray-50 border border-blue-500 rounded-xl">
                     <div className="text-xs space-y-1.5">
-                      <div
-                        className="flex justify-between"
-                        style={{ color: "#1E90FF" }}
-                      >
+                      <div className="flex justify-between text-blue-600">
                         <span className="font-medium">GB por linha:</span>
                         <span className="font-semibold">
                           {item.product.franquia}
                         </span>
                       </div>
-                      <div
-                        className="flex justify-between"
-                        style={{ color: "#111111" }}
-                      >
+                      <div className="flex justify-between text-gray-900">
                         <span className="font-bold">GB Total:</span>
                         <span className="font-bold text-base">
                           {(() => {
@@ -327,61 +271,28 @@ export function CartSidebar() {
                 )}
 
                 {/* Quantity Control */}
-                <div
-                  className="flex items-center justify-between pt-2"
-                  style={{ borderTop: "1px solid #E0E0E0" }}
-                >
-                  <span
-                    className="text-sm font-medium"
-                    style={{ color: "#111111" }}
-                  >
+                <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  <span className="text-sm font-medium text-gray-900">
                     Quantidade
                   </span>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 border-0 transition-all"
-                      style={{
-                        backgroundColor: "#FAFAFA",
-                        borderRadius: "8px",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#1E90FF";
-                        e.currentTarget.style.color = "#FFFFFF";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#FAFAFA";
-                        e.currentTarget.style.color = "";
-                      }}
+                      className="h-8 w-8 border-0 transition-all rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white"
                       onClick={() =>
                         updateQuantity(item.product.id, item.quantidade - 1, item.cartItemId)
                       }
                     >
                       <Minus className="w-3 h-3" />
                     </Button>
-                    <span
-                      className="w-10 text-center text-base font-bold"
-                      style={{ color: "#111111" }}
-                    >
+                    <span className="w-10 text-center text-base font-bold text-gray-900">
                       {item.quantidade}
                     </span>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 border-0 transition-all"
-                      style={{
-                        backgroundColor: "#FAFAFA",
-                        borderRadius: "8px",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = "#1E90FF";
-                        e.currentTarget.style.color = "#FFFFFF";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "#FAFAFA";
-                        e.currentTarget.style.color = "";
-                      }}
+                      className="h-8 w-8 border-0 transition-all rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white"
                       onClick={() => {
                         // Se for SVA, validar máximo baseado em linhas (1 por linha para cada tipo)
                         if (item.categoria === "sva") {
@@ -419,40 +330,18 @@ export function CartSidebar() {
                 </div>
 
                 {/* Item Total & Actions */}
-                <div
-                  className="flex items-center justify-between pt-3"
-                  style={{ borderTop: "1px solid #E0E0E0" }}
-                >
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                   <div>
-                    <p className="text-xs" style={{ color: "#555555" }}>
-                      Subtotal
-                    </p>
-                    <p
-                      className="text-xl font-bold"
-                      style={{ color: "#1E90FF" }}
-                    >
+                    <p className="text-xs text-gray-600">Subtotal</p>
+                    <p className="text-3xl font-bold text-blue-600">
                       {formatPrice(itemTotal)}
-                      <span
-                        className="text-sm font-normal"
-                        style={{ color: "#555555" }}
-                      >
-                        /mês
-                      </span>
+                      <span className="text-sm font-normal text-gray-500">/mês</span>
                     </p>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 text-xs border-0 transition-all"
-                    style={{ backgroundColor: "#FAFAFA", borderRadius: "8px" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#1E90FF";
-                      e.currentTarget.style.color = "#FFFFFF";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#FAFAFA";
-                      e.currentTarget.style.color = "";
-                    }}
+                    className="h-8 text-xs border-0 transition-all rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white"
                     onClick={() => duplicateItem(item.product.id)}
                   >
                     <Copy className="w-3 h-3 mr-1" />
@@ -465,49 +354,30 @@ export function CartSidebar() {
         </div>
 
         {/* Footer - Totals */}
-        <div
-          className="p-4"
-          style={{ borderTop: "1px solid #E0E0E0", backgroundColor: "#FAFAFA" }}
-        >
+        <div className="p-4 border-t border-gray-200 bg-gray-50">
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="font-medium" style={{ color: "#555555" }}>
-                Subtotal
-              </span>
-              <span className="font-bold" style={{ color: "#111111" }}>
-                {formatPrice(subtotal)}
-              </span>
+              <span className="font-medium text-gray-600">Subtotal</span>
+              <span className="font-bold text-gray-900">{formatPrice(subtotal)}</span>
             </div>
 
             {economia > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="font-medium" style={{ color: "#1E90FF" }}>
-                  Economia estimada
-                </span>
-                <span className="font-bold" style={{ color: "#1E90FF" }}>
-                  -{formatPrice(economia)}
-                </span>
+                <span className="font-medium text-blue-600">Economia estimada</span>
+                <span className="font-bold text-blue-600">-{formatPrice(economia)}</span>
               </div>
             )}
 
-            <div className="pt-3" style={{ borderTop: "1px solid #E0E0E0" }}>
+            <div className="pt-3 border-t border-gray-200">
               <div className="flex justify-between items-baseline mb-1">
-                <span
-                  className="text-base font-bold"
-                  style={{ color: "#111111" }}
-                >
+                <span className="text-base font-bold text-gray-900">
                   Total Mensal
                 </span>
                 <div className="text-right">
-                  <span
-                    className="text-2xl font-bold"
-                    style={{ color: "#1E90FF" }}
-                  >
+                  <span className="text-3xl font-bold text-blue-600">
                     {formatPrice(total)}
                   </span>
-                  <span className="text-sm ml-1" style={{ color: "#555555" }}>
-                    /mês
-                  </span>
+                  <span className="text-sm ml-1 text-gray-500">/mês</span>
                 </div>
               </div>
             </div>
@@ -516,20 +386,7 @@ export function CartSidebar() {
               <Button
                 onClick={closeCart}
                 variant="outline"
-                className="w-full h-12 font-medium border-2 transition-all"
-                style={{
-                  borderColor: "#E0E0E0",
-                  color: "#555555",
-                  borderRadius: "12px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                  e.currentTarget.style.color = "#1E90FF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                  e.currentTarget.style.color = "#555555";
-                }}
+                className="w-full h-12 font-medium border-2 border-gray-300 text-gray-600 hover:border-blue-600 hover:text-blue-600 rounded-xl transition-all"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Continuar Contratando
@@ -541,27 +398,14 @@ export function CartSidebar() {
                   handleIrParaCheckout();
                 }}
                 href="#"
-                className="flex items-center justify-center w-full h-12 px-8 font-bold text-base transition-all shadow-lg cursor-pointer border-0"
-                style={{
-                  backgroundColor: "#1E90FF",
-                  color: "#FFFFFF",
-                  borderRadius: "12px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#00CFFF";
-                  e.currentTarget.style.transform = "scale(1.02)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1E90FF";
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
+                className="flex items-center justify-center w-full h-12 px-8 font-semibold text-base transition-all shadow-sm hover:shadow-md cursor-pointer border-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Finalizar Contratação
                 <ChevronRight className="w-5 h-5 ml-2" />
               </a>
             </div>
 
-            <p className="text-xs text-center" style={{ color: "#555555" }}>
+            <p className="text-xs text-center text-gray-600">
               {getItemCount()}{" "}
               {getItemCount() === 1
                 ? "plano selecionado"

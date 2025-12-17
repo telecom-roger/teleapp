@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useCartStore } from "@/stores/cartStore";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface CustomerData {
   user: {
@@ -43,38 +44,22 @@ export function EcommerceHeader() {
     : "/ecommerce/login";
 
   return (
-    <header
-      className="sticky top-0 z-50 w-full shadow-sm"
-      style={{
-        borderBottom: "1px solid #E0E0E0",
-        backgroundColor: "rgba(255,255,255,0.95)",
-        backdropFilter: "blur(8px)",
-      }}
-    >
+    <header className="sticky top-0 z-50 w-full shadow-sm bg-white/95 backdrop-blur-sm border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/ecommerce">
             <div className="flex items-center space-x-2 cursor-pointer">
               <div className="relative">
-                <div
-                  className="h-10 w-10 flex items-center justify-center"
-                  style={{ borderRadius: "12px", backgroundColor: "#1E90FF" }}
-                >
+                <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600">
                   <span className="text-white font-bold text-lg">T</span>
                 </div>
               </div>
               <div className="flex flex-col">
-                <span
-                  className="text-xl font-bold"
-                  style={{ color: "#111111" }}
-                >
+                <span className="text-xl font-bold text-gray-900">
                   TelePlanos
                 </span>
-                <span
-                  className="text-[10px] -mt-1"
-                  style={{ color: "#555555" }}
-                >
+                <span className="text-[10px] -mt-1 text-gray-600">
                   Conecte-se melhor
                 </span>
               </div>
@@ -87,24 +72,17 @@ export function EcommerceHeader() {
               <a
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors cursor-pointer relative group ${
-                  location === item.href ? "" : ""
-                }`}
-                style={{
-                  color: location === item.href ? "#1E90FF" : "#555555",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1E90FF")}
-                onMouseLeave={(e) => {
-                  if (location !== item.href)
-                    e.currentTarget.style.color = "#555555";
-                }}
+                className={cn(
+                  "text-sm font-medium transition-colors cursor-pointer relative group",
+                  location === item.href ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+                )}
               >
                 {item.label}
                 <span
-                  className={`absolute -bottom-1 left-0 h-0.5 transition-all group-hover:w-full ${
+                  className={cn(
+                    "absolute -bottom-1 left-0 h-0.5 bg-blue-600 transition-all group-hover:w-full",
                     location === item.href ? "w-full" : "w-0"
-                  }`}
-                  style={{ backgroundColor: "#1E90FF" }}
+                  )}
                 ></span>
               </a>
             ))}
@@ -116,17 +94,11 @@ export function EcommerceHeader() {
             {itemCount > 0 && (
               <button
                 onClick={openCart}
-                className="relative p-2 transition-colors"
-                style={{ color: "#555555" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#1E90FF")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
+                className="relative p-2 transition-colors text-gray-600 hover:text-blue-600"
                 aria-label="Abrir carrinho"
               >
                 <ShoppingCart className="h-5 w-5" />
-                <Badge
-                  className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] border-0"
-                  style={{ backgroundColor: "#FF6B35", color: "#FFFFFF" }}
-                >
+                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full border-0 bg-orange-500 text-white">
                   {itemCount}
                 </Badge>
               </button>
@@ -135,44 +107,15 @@ export function EcommerceHeader() {
             {/* Login do Cliente - Desktop */}
             <a
               href={loginUrl}
-              className="hidden sm:inline-flex items-center justify-center text-sm font-medium transition-all duration-300 h-10 px-4"
-              style={{
-                borderRadius: "12px",
-                border: "1px solid #E0E0E0",
-                backgroundColor: "#FFFFFF",
-                color: "#555555",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "#1E90FF";
-                e.currentTarget.style.color = "#1E90FF";
-                e.currentTarget.style.backgroundColor = "rgba(30,144,255,0.05)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "#E0E0E0";
-                e.currentTarget.style.color = "#555555";
-                e.currentTarget.style.backgroundColor = "#FFFFFF";
-              }}
+              className="hidden sm:inline-flex items-center justify-center text-sm font-medium transition-all h-10 px-4 rounded-xl border border-gray-300 bg-white text-gray-600 hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <User className="mr-2 h-4 w-4" />
               {customerData?.client ? "Meu Painel" : "Entrar"}
             </a>
 
             <a
-              href="/ecommerce/checkout"
-              className="hidden md:inline-flex items-center justify-center text-sm font-bold transition-all duration-300 h-10 px-6 shadow-lg"
-              style={{
-                borderRadius: "12px",
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#00CFFF";
-                e.currentTarget.style.transform = "scale(1.05)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
+              href="/ecommerce/planos"
+              className="hidden md:inline-flex items-center justify-center text-sm font-semibold transition-all h-10 px-6 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md"
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
               Contrate Agora
@@ -180,13 +123,13 @@ export function EcommerceHeader() {
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden p-2 text-slate-700 hover:text-[#6366F1] transition-colors"
+              className="lg:hidden p-2 rounded-lg hover:bg-blue-50 transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-6 w-6 text-gray-600" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-6 w-6 text-gray-600" />
               )}
             </button>
           </div>
@@ -194,33 +137,33 @@ export function EcommerceHeader() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-slate-200 py-4 space-y-1 bg-white">
+          <div className="lg:hidden border-t border-gray-200 py-4 space-y-2 bg-white">
             {navItems.map((item) => (
               <a
                 key={item.href}
                 href={item.href}
-                className="block py-3 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#6366F1] rounded-lg transition-colors"
+                className="block py-3 px-4 mx-2 text-sm font-semibold text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {item.label}
               </a>
             ))}
-            <div className="px-4 pt-4 space-y-2">
+            <div className="px-4 pt-2 space-y-2">
               <a
                 href={loginUrl}
-                className="flex items-center justify-center w-full rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-[#6366F1] transition-all h-10 px-4"
+                className="flex items-center justify-center w-full rounded-xl border-2 border-gray-300 bg-white text-gray-600 hover:bg-blue-50 hover:border-blue-600 hover:text-blue-600 transition-all h-11 px-4 font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <User className="mr-2 h-4 w-4" />
                 {customerData?.client ? "Meu Painel" : "Entrar"}
               </a>
               <a
-                href="/ecommerce/checkout"
-                className="flex items-center justify-center w-full rounded-lg bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white hover:shadow-lg transition-all h-10 px-4 font-semibold"
+                href="/ecommerce/planos"
+                className="flex items-center justify-center w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md transition-all h-11 px-4 font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" />
-                Contratar Agora
+                Contrate Agora
               </a>
             </div>
           </div>

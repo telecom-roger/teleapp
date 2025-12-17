@@ -817,12 +817,12 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       {currentOrder?.etapa === "em_analise" && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-blue-900">Pedido em Análise</p>
-                  <p className="text-xs text-blue-700">As informações estão bloqueadas para edição. Para solicitar alterações, clique no botão ao lado.</p>
+                  <p className="text-xs text-blue-700">As informações estão bloqueadas para edição. Para solicitar alterações, clique no botão abaixo.</p>
                 </div>
               </div>
               <Button 
@@ -830,7 +830,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                   // Abrir modal para digitar motivo
                   setShowMotivoDialog(true);
                 }}
-                className="bg-orange-600 hover:bg-orange-700 border-0 flex-shrink-0"
+                className="bg-orange-600 hover:bg-orange-700 border-0 flex-shrink-0 w-full sm:w-auto"
                 size="sm"
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
@@ -845,12 +845,12 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       {isAjusteSolicitado && (
         <Card className="border-green-200 bg-green-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-green-900">Pedido Liberado para Ajustes</p>
-                  <p className="text-xs text-green-700">Faça as alterações necessárias e clique em "Finalizar Alterações" quando terminar.</p>
+                  <p className="text-xs text-green-700">Faça as alterações necessárias e clique no botão abaixo quando terminar.</p>
                 </div>
               </div>
               <Button 
@@ -858,7 +858,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                   // Abrir popup de resumo para reenviar
                   setShowResumo(true);
                 }}
-                className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                className="bg-green-600 hover:bg-green-700 flex-shrink-0 w-full sm:w-auto"
                 size="sm"
               >
                 <Check className="h-4 w-4 mr-2" />
@@ -990,10 +990,10 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
             >
               <CardContent className="p-4">
                 {/* Header do Card da Linha - Compacto */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between mb-4 gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {/* Indicador de status simples */}
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium ${
+                    <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-xs sm:text-sm font-medium ${
                       currentSlot.saved 
                         ? "bg-green-500 text-white" 
                         : isEditing
@@ -1007,8 +1007,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                       )}
                     </div>
                     
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-xs sm:text-sm font-semibold text-gray-900 truncate">
                         {currentSlot.numero || `Linha ${index + 1}`}
                       </h3>
                       <p className="text-xs text-gray-500">
@@ -1024,7 +1024,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                   
                   {/* Status badge discreto */}
                   {currentSlot.saved && (
-                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded">
+                    <span className="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded flex-shrink-0">
                       OK
                     </span>
                   )}
@@ -1033,9 +1033,9 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 {!currentSlot.saved || isEditing ? (
                   <>
                     {/* MODO DE EDIÇÃO - Formulário Limpo */}
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                     {/* Número */}
-                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                    <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                       <Label className="text-xs font-medium text-gray-800 mb-1.5 block">
                         Número da Linha *
                       </Label>
@@ -1057,8 +1057,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                     </div>
 
                     {/* Plano */}
-                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
-                      <div className="flex items-center justify-between mb-1.5">
+                    <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mb-1.5">
                         <Label className="text-xs font-medium text-gray-800">
                           Plano Contratado *
                         </Label>
@@ -1114,7 +1114,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                     </div>
 
                     {/* Operadora Atual */}
-                    <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                    <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                       <Label className="text-xs font-medium text-gray-800 mb-1.5 block">
                         Operadora Atual
                       </Label>
@@ -1139,7 +1139,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
 
                     {/* SVAs - Múltiplos (opcionais) */}
                     {currentSlot.productId && availableSVAs.length > 0 && (
-                      <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                      <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                         <div className="flex items-center justify-between mb-2">
                           <Label className="text-xs font-medium text-gray-800">
                             Serviços Adicionais
@@ -1223,11 +1223,12 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
 
                     {/* Botões de ação - alinhados à esquerda */}
                     {canEdit && (
-                      <div className="flex justify-start gap-2 pt-3 border-t border-gray-200">
+                      <div className="flex flex-col sm:flex-row justify-start gap-2 pt-3 border-t border-gray-200">
                         {currentSlot.filled && (
                           <Button
                             variant="outline"
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => {
                               // Restaurar estado do backup ao cancelar
                               if (slotBackup && slotBackup.backupIndex !== undefined) {
@@ -1271,7 +1272,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                           }}
                           disabled={createLineMutation.isPending || updateLineMutation.isPending}
                           size="sm"
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
                         >
                           {createLineMutation.isPending || updateLineMutation.isPending ? (
                             <Loader2 className="h-4 w-4 animate-spin mr-1" />
@@ -1287,17 +1288,17 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 ) : (
                   <>
                     {/* MODO VISUALIZAÇÃO - Card Resumido e Moderno */}
-                    <div className="space-y-3">
+                    <div className="space-y-2.5 sm:space-y-3">
                       {/* Informações principais */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                        <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                           <Label className="text-xs text-gray-700 font-medium mb-1 block">
                             Número
                           </Label>
                           <p className="text-sm font-medium text-gray-900">{currentSlot.numero}</p>
                         </div>
                         
-                        <div className="bg-blue-50 p-3 rounded border border-blue-200">
+                        <div className="bg-blue-50 p-2.5 sm:p-3 rounded border border-blue-200">
                           <Label className="text-xs text-blue-600 font-medium mb-1 block">
                             Plano
                           </Label>
@@ -1308,7 +1309,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                       </div>
                       
                       {currentSlot.operadoraAtual && (
-                        <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                        <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                           <Label className="text-xs text-gray-700 font-medium mb-1 block">
                             Operadora de Origem
                           </Label>
@@ -1319,7 +1320,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                       )}
                       
                       {currentSlot.svas && currentSlot.svas.length > 0 && (
-                        <div className="bg-gray-50 p-3 rounded border border-gray-200">
+                        <div className="bg-gray-50 p-2.5 sm:p-3 rounded border border-gray-200">
                           <Label className="text-xs text-gray-700 font-medium mb-2 block">
                             Serviços Adicionais
                           </Label>
@@ -1362,10 +1363,11 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                       if (!shouldShow) return null;
                       
                       return (
-                        <div className="flex justify-start gap-2 pt-3 border-t border-gray-200">
+                        <div className="flex flex-col sm:flex-row justify-start gap-2 pt-3 border-t border-gray-200">
                           <Button
                             variant="outline"
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={() => {
                               console.log(`✏️ Editando Slot ${index}`);
                               // Fazer backup ANTES de permitir edição
@@ -1379,8 +1381,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                           <Button
                             variant="outline"
                             size="sm"
+                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-500 w-full sm:w-auto"
                             onClick={() => handleDeleteSlot(index)}
-                            className="hover:bg-red-50 hover:text-red-600 hover:border-red-500"
                             disabled={deleteLineMutation.isPending}
                           >
                             {deleteLineMutation.isPending ? (

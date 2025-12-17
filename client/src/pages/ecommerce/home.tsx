@@ -292,19 +292,13 @@ export default function EcommerceHome() {
           <div className="container mx-auto px-6 py-24 md:py-32 relative z-10">
             <div className="max-w-5xl mx-auto text-center space-y-8">
               {/* Título */}
-              <h1
-                className="text-5xl md:text-7xl font-black leading-tight tracking-tight transition-transform duration-300 hover:scale-[1.02]"
-                style={{ color: "#111111" }}
-              >
+              <h1 className="text-5xl md:text-7xl font-black leading-tight tracking-tight transition-transform duration-300 hover:scale-[1.02] text-gray-900">
                 {banner.titulo}
               </h1>
 
               {/* Subtítulo */}
               {banner.subtitulo && (
-                <p
-                  className="text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed"
-                  style={{ color: "#555555" }}
-                >
+                <p className="text-xl md:text-2xl max-w-3xl mx-auto font-light leading-relaxed text-gray-600">
                   {banner.subtitulo}
                 </p>
               )}
@@ -315,18 +309,7 @@ export default function EcommerceHome() {
                   <Button
                     asChild
                     size="lg"
-                    className="font-bold text-lg px-12 h-16 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
-                    style={{
-                      backgroundColor: "#1E90FF",
-                      borderRadius: "12px",
-                      color: "#FFFFFF",
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#00CFFF")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "#1E90FF")
-                    }
+                    className="font-semibold text-lg px-12 h-16 transition-all hover:scale-105 shadow-sm hover:shadow-lg rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
                   >
                     <a
                       href={banner.linkDestino}
@@ -341,37 +324,15 @@ export default function EcommerceHome() {
 
               {/* Badges */}
               <div className="flex flex-wrap items-center justify-center gap-4 pt-6">
-                <Badge
-                  className="border-0 px-6 py-3 text-sm font-bold transition-transform duration-300 hover:scale-110"
-                  style={{
-                    backgroundColor: "#1E90FF",
-                    color: "#FFFFFF",
-                    borderRadius: "12px",
-                  }}
-                >
+                <Badge className="border-0 px-6 py-3 text-sm font-semibold transition-transform duration-300 hover:scale-110 rounded-xl bg-blue-600 text-white">
                   <Star className="w-4 h-4 mr-2 inline fill-white" />
                   Avaliação 4.8★
                 </Badge>
-                <Badge
-                  className="border-0 px-6 py-3 text-sm font-bold transition-transform duration-300 hover:scale-110"
-                  style={{
-                    backgroundColor: "#FF6B35",
-                    color: "#FFFFFF",
-                    borderRadius: "12px",
-                  }}
-                >
+                <Badge className="border-0 px-6 py-3 text-sm font-semibold transition-transform duration-300 hover:scale-110 rounded-xl bg-orange-500 text-white">
                   <Award className="w-4 h-4 mr-2 inline" />
                   #1 em 2025
                 </Badge>
-                <Badge
-                  className="border px-6 py-3 text-sm font-bold transition-all duration-300 hover:bg-white"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    color: "#111111",
-                    borderColor: "#E0E0E0",
-                    borderRadius: "12px",
-                  }}
-                >
+                <Badge className="border px-6 py-3 text-sm font-semibold transition-all duration-300 hover:bg-white rounded-xl bg-white text-gray-900 border-gray-300">
                   <Shield className="w-4 h-4 mr-2 inline" />
                   100% Seguro
                 </Badge>
@@ -427,33 +388,16 @@ export default function EcommerceHome() {
 
         <div className="container mx-auto px-6">
           <div className="max-w-6xl mx-auto">
-            {/* Filtros em Card Branco - Altura Reduzida */}
-            <div
-              className="bg-white p-6 md:p-8 transition-all duration-500 hover:shadow-xl"
-              style={{
-                borderRadius: "16px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                border: "1px solid #E0E0E0",
-              }}
-            >
+            {/* Filtros em Card Branco */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 md:p-6 transition-all duration-300 hover:shadow-md">
               <div className="space-y-6">
                 {/* Filtro 1: PF ou PJ - OBRIGATÓRIO */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label
-                      className="text-sm md:text-xs font-bold"
-                      style={{ color: "#111111" }}
-                    >
-                      Você é Pessoa Física ou Jurídica?
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-base font-semibold text-gray-900">
+                      Pessoa Física ou Jurídica
                     </label>
-                    <Badge
-                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                      style={{
-                        backgroundColor: "#1E90FF",
-                        color: "#FFFFFF",
-                        borderRadius: "6px",
-                      }}
-                    >
+                    <Badge className="text-xs font-semibold bg-blue-100 text-blue-700 border-0 px-2 py-0.5">
                       OBRIGATÓRIO
                     </Badge>
                   </div>
@@ -469,34 +413,12 @@ export default function EcommerceHome() {
                       <button
                         key={tipo.value}
                         onClick={() => setTipoPessoa(tipo.value as "PF" | "PJ")}
-                        className="p-3 flex items-center justify-center gap-2 text-left font-bold transition-all duration-300 text-sm md:text-xs"
-                        style={{
-                          borderRadius: "12px",
-                          border: `2px solid ${
-                            tipoPessoa === tipo.value ? "#1E90FF" : "#E0E0E0"
-                          }`,
-                          backgroundColor:
-                            tipoPessoa === tipo.value
-                              ? "rgba(30,144,255,0.05)"
-                              : "#FFFFFF",
-                          color:
-                            tipoPessoa === tipo.value ? "#1E90FF" : "#555555",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (tipoPessoa !== tipo.value) {
-                            e.currentTarget.style.borderColor = "#1E90FF";
-                            e.currentTarget.style.backgroundColor =
-                              "rgba(30,144,255,0.05)";
-                            e.currentTarget.style.color = "#1E90FF";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (tipoPessoa !== tipo.value) {
-                            e.currentTarget.style.borderColor = "#E0E0E0";
-                            e.currentTarget.style.backgroundColor = "#FFFFFF";
-                            e.currentTarget.style.color = "#555555";
-                          }
-                        }}
+                        className={cn(
+                          "h-12 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2",
+                          tipoPessoa === tipo.value
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                        )}
                       >
                         <tipo.icon className="w-5 h-5" />
                         {tipo.label}
@@ -506,12 +428,9 @@ export default function EcommerceHome() {
                 </div>
 
                 {/* Filtro 2: Novo Cliente ou Portabilidade */}
-                <div>
-                  <label
-                    className="block text-sm md:text-xs font-bold mb-3"
-                    style={{ color: "#111111" }}
-                  >
-                    É cliente novo ou quer fazer portabilidade?
+                <div className="space-y-3">
+                  <label className="block text-base font-semibold text-gray-900">
+                    Cliente novo ou portabilidade
                   </label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
@@ -523,34 +442,12 @@ export default function EcommerceHome() {
                         onClick={() =>
                           setModalidade(opt.value as "novo" | "portabilidade")
                         }
-                        className="p-3 text-center font-bold transition-all duration-300 text-sm md:text-xs"
-                        style={{
-                          borderRadius: "12px",
-                          border: `2px solid ${
-                            modalidade === opt.value ? "#1E90FF" : "#E0E0E0"
-                          }`,
-                          backgroundColor:
-                            modalidade === opt.value
-                              ? "rgba(30,144,255,0.05)"
-                              : "#FFFFFF",
-                          color:
-                            modalidade === opt.value ? "#1E90FF" : "#555555",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (modalidade !== opt.value) {
-                            e.currentTarget.style.borderColor = "#1E90FF";
-                            e.currentTarget.style.backgroundColor =
-                              "rgba(30,144,255,0.05)";
-                            e.currentTarget.style.color = "#1E90FF";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (modalidade !== opt.value) {
-                            e.currentTarget.style.borderColor = "#E0E0E0";
-                            e.currentTarget.style.backgroundColor = "#FFFFFF";
-                            e.currentTarget.style.color = "#555555";
-                          }
-                        }}
+                        className={cn(
+                          "h-12 px-4 rounded-xl font-medium text-sm transition-all duration-200",
+                          modalidade === opt.value
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "bg-white border border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50"
+                        )}
                       >
                         {opt.label}
                       </button>
@@ -559,23 +456,13 @@ export default function EcommerceHome() {
                 </div>
 
                 {/* Filtro 3: Categoria - MULTI SELECT */}
-                <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <label
-                        className="text-sm md:text-xs font-bold"
-                        style={{ color: "#111111" }}
-                      >
-                        Que tipo de plano você busca?
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <label className="text-base font-semibold text-gray-900">
+                        Que tipo de plano você busca
                       </label>
-                      <Badge
-                        className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                        style={{
-                          backgroundColor: "#FF6B35",
-                          color: "#FFFFFF",
-                          borderRadius: "6px",
-                        }}
-                      >
-                        MULTI
+                      <Badge className="text-xs text-gray-500 bg-gray-100 border-0">
+                        Seleção múltipla
                       </Badge>
                       <TooltipProvider>
                         <Tooltip open={tooltipCategoriaOpen} onOpenChange={setTooltipCategoriaOpen}>
@@ -609,45 +496,13 @@ export default function EcommerceHome() {
                           <button
                             key={cat.id}
                             onClick={() => toggleCategoria(catSlug)}
-                            className="p-3 flex flex-col items-center gap-2 font-bold text-xs transition-all duration-300 relative"
-                            style={{
-                              borderRadius: "12px",
-                              border: `2px solid ${
-                                isSelected ? "#1E90FF" : "#E0E0E0"
-                              }`,
-                              backgroundColor: isSelected
-                                ? "#1E90FF"
-                                : "#FAFAFA",
-                              color: isSelected ? "#FFFFFF" : "#555555",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = "#1E90FF";
-                                e.currentTarget.style.backgroundColor =
-                                  "rgba(30,144,255,0.1)";
-                                e.currentTarget.style.color = "#1E90FF";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = "#E0E0E0";
-                                e.currentTarget.style.backgroundColor =
-                                  "#FAFAFA";
-                                e.currentTarget.style.color = "#555555";
-                              }
-                            }}
-                          >
-                            {isSelected && (
-                              <div
-                                className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                                style={{ backgroundColor: "#00CFFF" }}
-                              >
-                                <Check
-                                  className="w-3 h-3"
-                                  style={{ color: "#FFFFFF" }}
-                                />
-                              </div>
+                            className={cn(
+                              "h-auto min-h-[48px] px-3 py-2 rounded-xl font-medium text-xs transition-all duration-200 flex flex-col items-center gap-2",
+                              isSelected
+                                ? "bg-blue-100 text-blue-700 border border-blue-300"
+                                : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50"
                             )}
+                          >
                             <IconeCategoria className="w-5 h-5" />
                             {cat.nome}
                           </button>
@@ -657,23 +512,13 @@ export default function EcommerceHome() {
                   </div>
 
                   {/* Filtro 4: Operadora - MULTI SELECT */}
-                  <div>
-                    <div className="flex items-center gap-2 mb-3">
-                      <label
-                        className="text-sm md:text-xs font-bold"
-                        style={{ color: "#111111" }}
-                      >
-                        Tem preferência de operadora?
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <label className="text-base font-semibold text-gray-900">
+                        Tem preferência de operadora
                       </label>
-                      <Badge
-                        className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                        style={{
-                          backgroundColor: "#FF6B35",
-                          color: "#FFFFFF",
-                          borderRadius: "6px",
-                        }}
-                      >
-                        MULTI
+                      <Badge className="text-xs text-gray-500 bg-gray-100 border-0">
+                        Seleção múltipla
                       </Badge>
                       <TooltipProvider>
                         <Tooltip open={tooltipOperadoraOpen} onOpenChange={setTooltipOperadoraOpen}>
@@ -719,45 +564,13 @@ export default function EcommerceHome() {
                                 toggleOperadora(op.value);
                               }
                             }}
-                            className="p-3 text-center font-bold text-xs transition-all duration-300 relative"
-                            style={{
-                              borderRadius: "12px",
-                              border: `2px solid ${
-                                isSelected ? "#1E90FF" : "#E0E0E0"
-                              }`,
-                              backgroundColor: isSelected
-                                ? "#1E90FF"
-                                : "#FAFAFA",
-                              color: isSelected ? "#FFFFFF" : "#555555",
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = "#1E90FF";
-                                e.currentTarget.style.backgroundColor =
-                                  "rgba(30,144,255,0.1)";
-                                e.currentTarget.style.color = "#1E90FF";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.borderColor = "#E0E0E0";
-                                e.currentTarget.style.backgroundColor =
-                                  "#FAFAFA";
-                                e.currentTarget.style.color = "#555555";
-                              }
-                            }}
-                          >
-                            {isSelected && op.value !== "todos" && (
-                              <div
-                                className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                                style={{ backgroundColor: "#00CFFF" }}
-                              >
-                                <Check
-                                  className="w-3 h-3"
-                                  style={{ color: "#FFFFFF" }}
-                                />
-                              </div>
+                            className={cn(
+                              "h-10 px-4 rounded-full font-medium text-sm transition-all duration-200",
+                              isSelected
+                                ? "bg-blue-100 text-blue-700 border border-blue-300"
+                                : "bg-white text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50"
                             )}
+                          >
                             {op.label}
                           </button>
                         );
@@ -767,12 +580,9 @@ export default function EcommerceHome() {
                 </div>
 
                 {/* Filtro: Quantidade de Linhas - Último, lado esquerdo reduzido */}
-                <div className="max-w-md">
-                  <label
-                    className="block text-sm md:text-xs font-bold mb-3"
-                    style={{ color: "#111111" }}
-                  >
-                    Quantas linhas você precisa?
+                <div className="max-w-md space-y-3">
+                  <label className="block text-base font-semibold text-gray-900">
+                    Quantas linhas você precisa
                   </label>
                   {!mostrarCampoPersonalizado ? (
                     <select
@@ -782,7 +592,6 @@ export default function EcommerceHome() {
                         if (val === 10) {
                           setMostrarCampoPersonalizado(true);
                           setLinhasPersonalizado("10");
-                          // Focar no campo após um pequeno delay para renderizar
                           setTimeout(() => {
                             document.getElementById("linhas-personalizado-home")?.focus();
                           }, 100);
@@ -790,23 +599,7 @@ export default function EcommerceHome() {
                           setQuantidadeLinhas(val);
                         }
                       }}
-                      className="w-full p-3 font-bold transition-all duration-300 text-sm md:text-xs"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#555555",
-                        outline: "none",
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                        e.currentTarget.style.backgroundColor =
-                          "rgba(30,144,255,0.05)";
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                        e.currentTarget.style.backgroundColor = "#FFFFFF";
-                      }}
+                      className="w-full h-12 px-4 rounded-xl border border-gray-300 bg-white text-gray-800 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
                     >
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                         <option key={num} value={num}>
@@ -824,15 +617,8 @@ export default function EcommerceHome() {
                         max="999"
                         value={linhasPersonalizado}
                         onChange={(e) => setLinhasPersonalizado(e.target.value)}
-                        className="flex-1 p-3 font-bold transition-all duration-300 text-sm md:text-xs"
+                        className="flex-1 h-12 px-4 rounded-xl border-2 border-blue-500 bg-blue-50 text-gray-800 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
                         placeholder="Digite a quantidade de linhas..."
-                        style={{
-                          borderRadius: "12px",
-                          border: "2px solid #1E90FF",
-                          backgroundColor: "rgba(30,144,255,0.05)",
-                          color: "#111111",
-                          outline: "none",
-                        }}
                         autoFocus
                       />
                       <button
@@ -840,23 +626,7 @@ export default function EcommerceHome() {
                           setMostrarCampoPersonalizado(false);
                           setQuantidadeLinhas(1);
                         }}
-                        className="px-4 py-3 font-bold transition-all duration-300"
-                        style={{
-                          borderRadius: "12px",
-                          border: "1px solid #E0E0E0",
-                          backgroundColor: "#FAFAFA",
-                          color: "#555555",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FF6B35";
-                          e.currentTarget.style.color = "#FFFFFF";
-                          e.currentTarget.style.borderColor = "#FF6B35";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FAFAFA";
-                          e.currentTarget.style.color = "#555555";
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                        }}
+                        className="h-12 px-4 rounded-xl bg-gray-100 border border-gray-300 text-gray-600 hover:bg-gray-200 transition-all"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -869,42 +639,25 @@ export default function EcommerceHome() {
                   <Button
                     size="lg"
                     onClick={handleComparar}
-                    className="w-full font-bold text-lg h-14 shadow-lg transition-all duration-300"
-                    style={{
-                      backgroundColor: "#1E90FF",
-                      borderRadius: "12px",
-                      color: "#FFFFFF",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#00CFFF";
-                      e.currentTarget.style.transform = "scale(1.02)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#1E90FF";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
+                    className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
                   >
-                    <Search className="mr-3 h-5 w-5" />
-                    Comparar Planos Agora
-                    <ArrowRight className="ml-3 h-5 w-5" />
+                    Comparar Planos
                   </Button>
                 </div>
 
                 {/* Info adicional */}
                 <div className="flex items-center justify-center gap-6 pt-2 flex-wrap text-sm">
                   <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4" style={{ color: "#1E90FF" }} />
-                    <span style={{ color: "#555555" }}>
-                      Resultado em segundos
-                    </span>
+                    <Check className="w-4 h-4 text-blue-600" />
+                    <span className="text-gray-700">Resultado em segundos</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4" style={{ color: "#1E90FF" }} />
-                    <span style={{ color: "#555555" }}>100% Grátis</span>
+                    <Check className="w-4 h-4 text-blue-600" />
+                    <span className="text-gray-700">100% Grátis</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Check className="w-4 h-4" style={{ color: "#1E90FF" }} />
-                    <span style={{ color: "#555555" }}>Sem Compromisso</span>
+                    <Check className="w-4 h-4 text-blue-600" />
+                    <span className="text-gray-700">Sem Compromisso</span>
                   </div>
               </div>
             </div>
@@ -937,52 +690,27 @@ export default function EcommerceHome() {
                   const IconeCategoria = getCategoryIcon(produto.categoria);
                   // Buscar badge dinâmico
                   const badgeDinamico = badgesMap.get(produto.id);
+                  // Buscar cores da operadora
+                  const colors = produto.operadora
+                    ? OPERADORA_COLORS[produto.operadora]
+                    : undefined;
 
                   return (
                     <div
                       key={produto.id}
-                      className="bg-white p-6 relative overflow-hidden group cursor-pointer transition-all duration-500"
-                      style={{
-                        borderRadius: "16px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                        border: "2px solid #E0E0E0",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform =
-                          "scale(1.03) translateY(-8px)";
-                        e.currentTarget.style.boxShadow =
-                          "0 12px 32px rgba(0,0,0,0.12)";
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform =
-                          "scale(1) translateY(0)";
-                        e.currentTarget.style.boxShadow =
-                          "0 2px 8px rgba(0,0,0,0.05)";
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                      }}
+                      className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-md hover:border-blue-400"
                     >
                       {/* Badge Dinâmico ou Destaque */}
                       {badgeDinamico ? (
                         <div className="absolute top-4 right-4">
                           <Badge
-                            className="border-0 shadow-lg"
-                            style={{
-                              backgroundColor:
-                                badgeDinamico.variante === "success"
-                                  ? "#1AD1C1"
-                                  : badgeDinamico.variante === "info"
-                                  ? "#1E90FF"
-                                  : badgeDinamico.variante === "primary"
-                                  ? "#00CFFF"
-                                  : badgeDinamico.variante === "warning"
-                                  ? "#FF6B35"
-                                  : "#555555",
-                              color: "#FFFFFF",
-                              borderRadius: "12px",
-                              fontSize: "11px",
-                              fontWeight: "700",
-                            }}
+                            className={cn(
+                              "text-xs rounded-full border-0 px-3 py-1",
+                              badgeDinamico.variante === "success" && "bg-emerald-500/10 text-emerald-700",
+                              badgeDinamico.variante === "info" && "bg-blue-500/10 text-blue-700",
+                              badgeDinamico.variante === "primary" && "bg-cyan-500/10 text-cyan-700",
+                              badgeDinamico.variante === "warning" && "bg-orange-500/10 text-orange-700"
+                            )}
                           >
                             {badgeDinamico.texto}
                           </Badge>
@@ -990,16 +718,7 @@ export default function EcommerceHome() {
                       ) : (
                         produto.destaque && (
                           <div className="absolute top-4 right-4">
-                            <Badge
-                              className="border-0 shadow-lg"
-                              style={{
-                                backgroundColor: "#FF6B35",
-                                color: "#FFFFFF",
-                                borderRadius: "12px",
-                                fontSize: "11px",
-                                fontWeight: "700",
-                              }}
-                            >
+                            <Badge className="text-xs rounded-full border-0 px-3 py-1 bg-orange-500/10 text-orange-700">
                               🔥 Destaque
                             </Badge>
                           </div>
@@ -1008,70 +727,46 @@ export default function EcommerceHome() {
 
                       {/* Ícone da Categoria */}
                       <div className="mb-6">
-                        <div
-                          className="w-16 h-16 flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
-                          style={{
-                            borderRadius: "12px",
-                            backgroundColor: "rgba(30,144,255,0.1)",
-                          }}
-                        >
-                          <IconeCategoria
-                            className="w-8 h-8"
-                            style={{ color: "#1E90FF" }}
-                          />
+                        <div className="w-16 h-16 rounded-xl bg-blue-100 flex items-center justify-center">
+                          <IconeCategoria className="w-8 h-8 text-blue-600" />
                         </div>
                       </div>
 
+                      {/* Badge Operadora */}
+                      {colors && (
+                        <Badge className="mb-3 text-xs rounded-full bg-blue-50 text-blue-700 border-0">
+                          <Smartphone className="w-3 h-3 mr-1" />
+                          {colors.name}
+                        </Badge>
+                      )}
+
                       {/* Título */}
-                      <h4
-                        className="text-xl font-black mb-2 line-clamp-2 min-h-[56px]"
-                        style={{ color: "#111111" }}
-                      >
+                      <h4 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                         {produto.nome}
                       </h4>
 
                       {/* Categoria */}
-                      <p
-                        className="text-sm font-medium mb-4"
-                        style={{ color: "#555555" }}
-                      >
+                      <p className="text-sm text-gray-600 mb-4">
                         {produto.categoria}
                       </p>
 
                       {/* Preço */}
                       <div className="mb-6">
-                        <div className="flex items-baseline gap-2">
-                          <span
-                            className="text-4xl font-black"
-                            style={{ color: "#1E90FF" }}
-                          >
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-3xl font-bold text-blue-600">
                             {formatPrice(produto.preco)}
                           </span>
-                          <span
-                            className="text-sm"
-                            style={{ color: "#555555" }}
-                          >
-                            /mês
-                          </span>
+                          <span className="text-sm text-gray-500">/mês</span>
                         </div>
                       </div>
 
                       {/* Especificações Principais */}
-                      <div className="space-y-3 mb-6">
+                      <div className="space-y-2 mb-6">
                         {produto.velocidade && (
                           <div className="flex items-center gap-2">
-                            <Check
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "#1E90FF" }}
-                            />
-                            <span
-                              className="text-sm"
-                              style={{ color: "#555555" }}
-                            >
-                              <span
-                                className="font-bold"
-                                style={{ color: "#111111" }}
-                              >
+                            <Check className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+                            <span className="text-sm text-gray-700">
+                              <span className="font-semibold text-gray-900">
                                 Velocidade:
                               </span>{" "}
                               {produto.velocidade}
@@ -1080,18 +775,9 @@ export default function EcommerceHome() {
                         )}
                         {produto.franquia && (
                           <div className="flex items-center gap-2">
-                            <Check
-                              className="w-4 h-4 flex-shrink-0"
-                              style={{ color: "#1E90FF" }}
-                            />
-                            <span
-                              className="text-sm"
-                              style={{ color: "#555555" }}
-                            >
-                              <span
-                                className="font-bold"
-                                style={{ color: "#111111" }}
-                              >
+                            <Check className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+                            <span className="text-sm text-gray-700">
+                              <span className="font-semibold text-gray-900">
                                 Franquia:
                               </span>{" "}
                               {produto.franquia}
@@ -1101,18 +787,9 @@ export default function EcommerceHome() {
                         {produto.fidelidade != null &&
                           produto.fidelidade > 0 && (
                             <div className="flex items-center gap-2">
-                              <Check
-                                className="w-4 h-4 flex-shrink-0"
-                                style={{ color: "#1E90FF" }}
-                              />
-                              <span
-                                className="text-sm"
-                                style={{ color: "#555555" }}
-                              >
-                                <span
-                                  className="font-bold"
-                                  style={{ color: "#111111" }}
-                                >
+                              <Check className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                              <span className="text-sm text-gray-600">
+                                <span className="font-semibold text-gray-700">
                                   Fidelidade:
                                 </span>{" "}
                                 {produto.fidelidade} meses
@@ -1124,20 +801,7 @@ export default function EcommerceHome() {
                       {/* CTA Button */}
                       <button
                         onClick={() => addItem(produto)}
-                        className="w-full py-3 font-bold text-sm transition-all duration-300 mt-6"
-                        style={{
-                          borderRadius: "12px",
-                          backgroundColor: "#1E90FF",
-                          color: "#FFFFFF",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#00CFFF";
-                          e.currentTarget.style.transform = "scale(1.05)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#1E90FF";
-                          e.currentTarget.style.transform = "scale(1)";
-                        }}
+                        className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors mt-6"
                       >
                         Contratar Agora
                       </button>
@@ -1193,25 +857,13 @@ export default function EcommerceHome() {
                 key={i}
                 className="text-center space-y-2 p-4 transition-transform duration-300 hover:scale-110"
               >
-                <div
-                  className="w-12 h-12 mx-auto mb-3 flex items-center justify-center"
-                  style={{
-                    borderRadius: "12px",
-                    backgroundColor: "rgba(30,144,255,0.1)",
-                  }}
-                >
-                  <stat.icon className="w-6 h-6" style={{ color: "#1E90FF" }} />
+                <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center rounded-xl bg-blue-100">
+                  <stat.icon className="w-6 h-6 text-blue-600" />
                 </div>
-                <div
-                  className="text-3xl font-black"
-                  style={{ color: "#1E90FF" }}
-                >
+                <div className="text-3xl font-black text-blue-600">
                   {stat.numero}
                 </div>
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: "#555555" }}
-                >
+                <div className="text-sm font-medium text-gray-600">
                   {stat.label}
                 </div>
               </div>
@@ -1224,24 +876,11 @@ export default function EcommerceHome() {
       <section className="container mx-auto px-6 py-20 md:py-28">
         {/* Card Horizontal com Gradiente Laranja */}
         <div className="mb-16">
-          <div
-            className="p-8 md:p-10 text-center transition-all duration-300 hover:shadow-xl"
-            style={{
-              background: "linear-gradient(135deg, #FF6B35 0%, #FF8C42 100%)",
-              borderRadius: "16px",
-              boxShadow: "0 4px 16px rgba(255,107,53,0.2)",
-            }}
-          >
-            <h2
-              className="text-3xl md:text-4xl font-black mb-3 tracking-tight"
-              style={{ color: "#FFFFFF" }}
-            >
+          <div className="p-8 md:p-10 text-center transition-all duration-300 hover:shadow-xl rounded-2xl shadow-sm bg-gradient-to-br from-orange-500 to-orange-600">
+            <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight text-white">
               O plano certo, na hora certa
             </h2>
-            <p
-              className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.95)" }}
-            >
+            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/95">
               Planos destacados pelo desempenho e relevância para você
             </p>
           </div>
@@ -1260,44 +899,19 @@ export default function EcommerceHome() {
             return (
               <Card
                 key={plano.id}
-                className="group hover:-translate-y-2 transition-all duration-300 relative overflow-hidden flex flex-col cursor-pointer bg-white"
-                style={{
-                  borderRadius: "16px",
-                  border: "1px solid #E0E0E0",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 24px rgba(30,144,255,0.15)";
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.05)";
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                }}
+                className="rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-300 relative overflow-hidden flex flex-col cursor-pointer"
               >
                 {/* Badge Dinâmico tem prioridade sobre badge de destaque */}
                 {badgeDinamico ? (
                   <div className="absolute top-4 right-4 z-10">
                     <Badge
-                      className="border-0 shadow-lg"
-                      style={{
-                        backgroundColor:
-                          badgeDinamico.variante === "success"
-                            ? "#1AD1C1"
-                            : badgeDinamico.variante === "info"
-                            ? "#1E90FF"
-                            : badgeDinamico.variante === "primary"
-                            ? "#00CFFF"
-                            : badgeDinamico.variante === "warning"
-                            ? "#FF6B35"
-                            : "#555555",
-                        color: "#FFFFFF",
-                        borderRadius: "12px",
-                        fontSize: "11px",
-                        fontWeight: "700",
-                      }}
+                      className={cn(
+                        "text-xs rounded-full border-0 px-3 py-1",
+                        badgeDinamico.variante === "success" && "bg-emerald-500/10 text-emerald-700",
+                        badgeDinamico.variante === "info" && "bg-blue-500/10 text-blue-700",
+                        badgeDinamico.variante === "primary" && "bg-cyan-500/10 text-cyan-700",
+                        badgeDinamico.variante === "warning" && "bg-orange-500/10 text-orange-700"
+                      )}
                     >
                       {badgeDinamico.texto}
                     </Badge>
@@ -1305,16 +919,7 @@ export default function EcommerceHome() {
                 ) : (
                   plano.destaque && (
                     <div className="absolute top-4 right-4 z-10">
-                      <Badge
-                        className="border-0 shadow-lg"
-                        style={{
-                          backgroundColor: "#FF6B35",
-                          color: "#FFFFFF",
-                          borderRadius: "12px",
-                          fontSize: "11px",
-                          fontWeight: "700",
-                        }}
-                      >
+                      <Badge className="text-xs rounded-full border-0 px-3 py-1 bg-orange-500/10 text-orange-700">
                         🔥 Destaque
                       </Badge>
                     </div>
@@ -1326,70 +931,32 @@ export default function EcommerceHome() {
                     <div>
                       {/* Badge da Operadora (estilo /planos) */}
                       {colors && (
-                        <Badge className={cn("mb-3", colors.badge)}>
+                        <Badge className="mb-3 text-xs rounded-full bg-blue-50 text-blue-700 border-0">
                           <Smartphone className="w-3 h-3 mr-1" />
                           {colors.name}
                         </Badge>
                       )}
 
-                      {/* Título com ícone */}
-                      <div className="flex items-center gap-2 mb-2">
-                        {(() => {
-                          const Icon = getCategoryIcon(plano.categoria);
-                          return (
-                            <Icon
-                              className="h-5 w-5 stroke-[1.5]"
-                              style={{ color: "#111111" }}
-                            />
-                          );
-                        })()}
-                        <h3
-                          className="text-xl font-bold group-hover:text-blue-600 transition-colors"
-                          style={{ color: "#111111" }}
-                        >
-                          {plano.nome}
-                        </h3>
-                      </div>
+                      {/* Título */}
+                      <h3 className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors mb-2">
+                        {plano.nome}
+                      </h3>
                     </div>
 
                     {/* Specs principais com badges */}
-                    <div className="flex items-center gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {plano.velocidade && (
-                        <div
-                          className="flex items-center gap-1.5 px-3 py-1.5"
-                          style={{
-                            backgroundColor: "rgba(30,144,255,0.1)",
-                            borderRadius: "12px",
-                          }}
-                        >
-                          <Zap
-                            className="w-4 h-4"
-                            style={{ color: "#1E90FF" }}
-                          />
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: "#111111" }}
-                          >
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg">
+                          <Zap className="w-4 h-4 text-gray-700" />
+                          <span className="text-sm font-semibold text-gray-900">
                             {plano.velocidade}
                           </span>
                         </div>
                       )}
                       {plano.franquia && (
-                        <div
-                          className="flex items-center gap-1.5 px-3 py-1.5"
-                          style={{
-                            backgroundColor: "rgba(30,144,255,0.1)",
-                            borderRadius: "12px",
-                          }}
-                        >
-                          <Smartphone
-                            className="w-4 h-4"
-                            style={{ color: "#1E90FF" }}
-                          />
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: "#111111" }}
-                          >
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 rounded-lg">
+                          <Smartphone className="w-4 h-4 text-gray-700" />
+                          <span className="text-sm font-semibold text-gray-900">
                             {plano.franquia}
                           </span>
                         </div>
@@ -1400,54 +967,26 @@ export default function EcommerceHome() {
                     <div className="space-y-2">
                       {plano.beneficios &&
                         plano.beneficios.slice(0, 3).map((beneficio, i) => (
-                          <div
-                            key={i}
-                            className="flex items-start gap-3 text-sm transition-colors"
-                            style={{ color: "#555555" }}
-                          >
-                            <Check
-                              className="w-5 h-5 flex-shrink-0 mt-0.5 font-bold"
-                              style={{ color: "#1E90FF" }}
-                            />
+                          <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                            <Check className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-600" />
                             <span>{beneficio}</span>
                           </div>
                         ))}
                     </div>
 
-                    <div
-                      className="pt-5"
-                      style={{ borderTop: "1px solid #E0E0E0" }}
-                    >
-                      <div
-                        className="text-5xl font-black group-hover:text-blue-600 transition-colors"
-                        style={{ color: "#111111" }}
-                      >
+                    <div className="pt-4 border-t border-gray-200">
+                      <div className="text-3xl font-bold text-blue-600">
                         {formatPrice(plano.preco)}
-                        <span
-                          className="text-base font-normal ml-1"
-                          style={{ color: "#555555" }}
-                        >
-                          /mês
-                        </span>
+                        <span className="text-sm font-normal ml-1 text-gray-500">/mês</span>
                       </div>
                     </div>
                   </div>
 
                   <Button
-                    className="w-full text-white font-bold h-14 shadow-lg transition-all duration-300 mt-6 border-0"
-                    style={{ backgroundColor: "#1E90FF", borderRadius: "12px" }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#00CFFF";
-                      e.currentTarget.style.transform = "scale(1.02)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#1E90FF";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
+                    className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors mt-6 border-0"
                     onClick={() => addItem(plano, 1)}
                   >
                     Contratar Agora
-                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </CardContent>
               </Card>
@@ -1460,20 +999,7 @@ export default function EcommerceHome() {
             <Button
               size="lg"
               variant="outline"
-              className="font-semibold transition-all duration-300 border-0"
-              style={{
-                border: "2px solid #1E90FF",
-                color: "#1E90FF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.color = "#FFFFFF";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "#1E90FF";
-              }}
+              className="font-semibold transition-all h-12 rounded-xl border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
             >
               Ver Todos os Planos
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -1677,69 +1203,39 @@ export default function EcommerceHome() {
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <Badge
-              className="mb-6 border-0 px-6 py-2.5 font-black text-sm"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-            >
+            <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
               ❓ Dúvidas Frequentes
             </Badge>
-            <h2
-              className="text-4xl md:text-5xl font-black mb-5 tracking-tight"
-              style={{ color: "#111111" }}
-            >
+            <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
               Perguntas Frequentes
             </h2>
-            <p className="text-xl leading-relaxed" style={{ color: "#555555" }}>
+            <p className="text-xl leading-relaxed text-gray-600">
               Tire suas dúvidas sobre nossos planos
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqItems.map((item, i) => (
               <Card
                 key={i}
-                className="transition-colors"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "14px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                }}
+                className="bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md hover:border-blue-400"
               >
                 <CardContent className="p-0">
                   <button
-                    className="w-full p-6 flex items-center justify-between text-left"
+                    className="w-full p-5 flex items-center justify-between text-left"
                     onClick={() => setFaqOpen(faqOpen === i ? null : i)}
                   >
-                    <span
-                      className="font-bold text-lg"
-                      style={{ color: "#111111" }}
-                    >
+                    <span className="font-semibold text-base text-gray-900">
                       {item.pergunta}
                     </span>
                     {faqOpen === i ? (
-                      <ChevronUp
-                        className="w-5 h-5"
-                        style={{ color: "#1E90FF" }}
-                      />
+                      <ChevronUp className="w-5 h-5 text-blue-600" />
                     ) : (
-                      <ChevronDown
-                        className="w-5 h-5"
-                        style={{ color: "#555555" }}
-                      />
+                      <ChevronDown className="w-5 h-5 text-gray-500" />
                     )}
                   </button>
                   {faqOpen === i && (
-                    <div className="px-6 pb-6" style={{ color: "#555555" }}>
+                    <div className="px-5 pb-5 text-sm text-gray-700">
                       {item.resposta}
                     </div>
                   )}
@@ -1758,20 +1254,10 @@ export default function EcommerceHome() {
       >
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge
-              className="mb-6 border-0 px-6 py-2.5 font-black text-sm"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-            >
+            <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
               ⭐ Avaliações
             </Badge>
-            <h2
-              className="text-4xl md:text-5xl font-black mb-5 tracking-tight"
-              style={{ color: "#111111" }}
-            >
+            <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
               O que nossos clientes dizem
             </h2>
           </div>
@@ -1797,27 +1283,21 @@ export default function EcommerceHome() {
             ].map((dep, i) => (
               <Card
                 key={i}
-                className="shadow-lg hover:shadow-xl transition-shadow"
-                style={{
-                  backgroundColor: "#FAFAFA",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "16px",
-                }}
+                className="bg-gray-50 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all hover:border-blue-400"
               >
                 <CardContent className="p-6 space-y-4">
                   <div className="flex gap-1">
                     {[...Array(dep.nota)].map((_, j) => (
                       <Star
                         key={j}
-                        className="w-5 h-5"
-                        style={{ fill: "#FF6B35", color: "#FF6B35" }}
+                        className="w-5 h-5 fill-orange-500 text-orange-500"
                       />
                     ))}
                   </div>
-                  <p className="italic" style={{ color: "#111111" }}>
+                  <p className="italic text-gray-900 text-sm">
                     "{dep.texto}"
                   </p>
-                  <div className="font-semibold" style={{ color: "#555555" }}>
+                  <div className="font-semibold text-gray-700 text-sm">
                     {dep.nome}
                   </div>
                 </CardContent>
@@ -1833,42 +1313,20 @@ export default function EcommerceHome() {
         style={{ backgroundColor: "#FFFFFF" }}
       >
         <div className="container mx-auto px-4 text-center">
-          <Badge
-            className="mb-8 border-0 px-6 py-2.5 font-black text-sm"
-            style={{
-              backgroundColor: "#FF6B35",
-              color: "#FFFFFF",
-              borderRadius: "12px",
-            }}
-          >
+          <Badge className="mb-8 border-0 px-6 py-2.5 font-bold text-sm bg-orange-500 text-white rounded-badge">
             🚀 Comece Agora
           </Badge>
-          <h2
-            className="text-4xl md:text-6xl font-black mb-6 tracking-tight"
-            style={{ color: "#111111" }}
-          >
+          <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight text-gray-900">
             Pronto para escolher seu plano?
           </h2>
-          <p
-            className="text-xl mb-10 max-w-3xl mx-auto leading-relaxed"
-            style={{ color: "#555555" }}
-          >
+          <p className="text-xl mb-10 max-w-3xl mx-auto leading-relaxed text-gray-600">
             Compare planos, economize e contrate online em poucos minutos
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/ecommerce/comparador">
               <Button
                 size="lg"
-                className="text-white font-bold text-lg px-10 h-16 shadow-xl transition-all duration-300 border-0"
-                style={{ backgroundColor: "#1E90FF", borderRadius: "12px" }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#00CFFF";
-                  e.currentTarget.style.transform = "scale(1.02)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1E90FF";
-                  e.currentTarget.style.transform = "scale(1)";
-                }}
+                className="h-12 px-10 rounded-xl bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200 border-0"
               >
                 Comparar Planos Agora
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -1878,20 +1336,7 @@ export default function EcommerceHome() {
               <Button
                 size="lg"
                 variant="outline"
-                className="font-bold text-lg px-10 h-16 transition-all duration-300 border-0"
-                style={{
-                  border: "2px solid #1E90FF",
-                  color: "#1E90FF",
-                  borderRadius: "12px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1E90FF";
-                  e.currentTarget.style.color = "#FFFFFF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.color = "#1E90FF";
-                }}
+                className="h-12 px-10 rounded-xl border-2 border-blue-600 text-blue-600 font-semibold text-base hover:bg-blue-600 hover:text-white transition-all duration-200"
               >
                 Ver Todos os Planos
               </Button>
@@ -1909,136 +1354,51 @@ export default function EcommerceHome() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <Badge
-                className="mb-6 border-0 px-6 py-2.5 font-black text-sm"
-                style={{
-                  backgroundColor: "#1E90FF",
-                  color: "#FFFFFF",
-                  borderRadius: "12px",
-                }}
-              >
+              <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
                 📞 Fale Conosco
               </Badge>
-              <h2
-                className="text-4xl md:text-5xl font-black mb-5 tracking-tight"
-                style={{ color: "#111111" }}
-              >
+              <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
                 Entre em Contato
               </h2>
-              <p
-                className="text-xl leading-relaxed"
-                style={{ color: "#555555" }}
-              >
+              <p className="text-xl leading-relaxed text-gray-600">
                 Estamos aqui para ajudar você
               </p>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card
-                className="text-center transition-all duration-300"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "16px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
+            <div className="grid md:grid-cols-3 gap-6">
+              <Card className="text-center bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md hover:border-blue-400 hover:-translate-y-1">
                 <CardContent className="p-6 space-y-3">
-                  <div
-                    className="w-12 h-12 mx-auto flex items-center justify-center"
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor: "#1E90FF",
-                    }}
-                  >
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-blue-600 flex items-center justify-center">
                     <PhoneCall className="w-6 h-6 text-white" />
                   </div>
-                  <h3
-                    className="font-bold text-lg"
-                    style={{ color: "#111111" }}
-                  >
+                  <h3 className="font-semibold text-base text-gray-900">
                     Telefone
                   </h3>
-                  <p style={{ color: "#555555" }}>0800 123 4567</p>
+                  <p className="text-sm text-gray-600">0800 123 4567</p>
                 </CardContent>
               </Card>
 
-              <Card
-                className="text-center transition-all duration-300"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "16px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
+              <Card className="text-center bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md hover:border-blue-400 hover:-translate-y-1">
                 <CardContent className="p-6 space-y-3">
-                  <div
-                    className="w-12 h-12 mx-auto flex items-center justify-center"
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor: "#1E90FF",
-                    }}
-                  >
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-blue-600 flex items-center justify-center">
                     <Mail className="w-6 h-6 text-white" />
                   </div>
-                  <h3
-                    className="font-bold text-lg"
-                    style={{ color: "#111111" }}
-                  >
+                  <h3 className="font-semibold text-base text-gray-900">
                     Email
                   </h3>
-                  <p style={{ color: "#555555" }}>contato@teleplanos.com</p>
+                  <p className="text-sm text-gray-600">contato@teleplanos.com</p>
                 </CardContent>
               </Card>
 
-              <Card
-                className="text-center transition-all duration-300"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "16px",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                  e.currentTarget.style.transform = "translateY(-4px)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                  e.currentTarget.style.transform = "translateY(0)";
-                }}
-              >
+              <Card className="text-center bg-white rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md hover:border-blue-400 hover:-translate-y-1">
                 <CardContent className="p-6 space-y-3">
-                  <div
-                    className="w-12 h-12 mx-auto flex items-center justify-center"
-                    style={{
-                      borderRadius: "12px",
-                      backgroundColor: "#1E90FF",
-                    }}
-                  >
+                  <div className="w-12 h-12 mx-auto rounded-xl bg-blue-600 flex items-center justify-center">
                     <MapPin className="w-6 h-6 text-white" />
                   </div>
-                  <h3
-                    className="font-bold text-lg"
-                    style={{ color: "#111111" }}
-                  >
+                  <h3 className="font-semibold text-base text-gray-900">
                     Endereço
                   </h3>
-                  <p style={{ color: "#555555" }}>São Paulo, SP</p>
+                  <p className="text-sm text-gray-600">São Paulo, SP</p>
                 </CardContent>
               </Card>
             </div>

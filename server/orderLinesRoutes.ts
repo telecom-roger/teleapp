@@ -94,17 +94,6 @@ router.get("/:orderId/summary", requireRole(["customer", "admin"]), async (req: 
     const produtosDisponiveis: any[] = [];
     const svasDisponiveis: any[] = [];
 
-    console.log('🔍 CALCULANDO LINHAS CONTRATADAS:');
-    console.log('   OrderID:', orderId);
-    console.log('   Order Code:', order.orderCode);
-    console.log('   Order Etapa:', order.etapa);
-    console.log('   Total de items no pedido:', orderItems.length);
-    
-    if (orderItems.length === 0) {
-      console.log('   ⚠️ AVISO: Nenhum item encontrado para este pedido!');
-      console.log('   Isso pode indicar que os items foram deletados ou o pedido está vazio');
-    }
-
     orderItems.forEach(({ item, product }) => {
       const categoria = product?.categoria?.toLowerCase() || "";
       const isSVA = categoria.includes("sva");

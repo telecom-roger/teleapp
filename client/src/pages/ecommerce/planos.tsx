@@ -40,6 +40,7 @@ import { toast } from "@/hooks/use-toast";
 
 // 🆕 SISTEMA DE INTELIGÊNCIA CONTEXTUAL
 import { useContextoInteligenteStore } from "@/stores/contextoInteligenteStore";
+import { FiltrosHierarquicos } from "@/components/ecommerce/FiltrosHierarquicos";
 import {
   useCompatibilidade,
   getCriteriosBloqueadores,
@@ -488,37 +489,6 @@ export default function EcommercePlanos() {
       <EcommerceHeader />
 
       <main className="container max-w-7xl mx-auto px-4 py-8 md:py-12">
-        {/* Banner se estiver logado */}
-        {customerData?.client && (
-          <div
-            className="mb-8 text-white p-6 flex items-center justify-between shadow-lg"
-            style={{
-              background: "linear-gradient(to right, #1E90FF, #00CFFF)",
-              borderRadius: "16px",
-            }}
-          >
-            <div>
-              <p className="text-sm opacity-90 mb-1 flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Bem-vindo de volta!
-              </p>
-              <h2 className="text-2xl font-bold">{customerData.client.nome}</h2>
-              <p className="text-sm opacity-90 mt-1">
-                Seus dados já estão salvos, contrate em 2 minutos
-              </p>
-            </div>
-            <Link href="/ecommerce/painel">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="shadow-lg hover:scale-105 transition-transform"
-              >
-                Meu Painel
-              </Button>
-            </Link>
-          </div>
-        )}
-
         {/* Hero Section com Gradiente Full Width */}
         <div
           className="text-center py-12 md:py-16 space-y-4 mb-10 -mx-4 md:-mx-6"
@@ -543,25 +513,15 @@ export default function EcommercePlanos() {
 
         {/* Removido: Badge de múltiplas linhas */}
 
-        {/* Filtros Card - Sticky otimizado */}
+        {/* Filtros Card - Sticky no mobile */}
         <div className="mb-8">
-          <Card
-            className="shadow-lg border-0 sticky top-16 z-40"
-            style={{ backgroundColor: "#FFFFFF", borderRadius: "16px" }}
-          >
-            <CardContent className="p-6">
+          <Card className="rounded-xl border border-gray-200 shadow-sm sticky top-0 z-40 md:relative md:top-auto bg-white">
+            <CardContent className="p-5">
               {/* Mobile: Botão toggle filtros */}
               <div className="md:hidden mb-4">
                 <Button
                   variant="outline"
-                  className="w-full justify-between border-0 transition-all"
-                  style={{ border: "2px solid #E0E0E0", borderRadius: "12px" }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.borderColor = "#1E90FF")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.borderColor = "#E0E0E0")
-                  }
+                  className="w-full justify-between h-12 rounded-xl border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-all font-medium"
                   onClick={() => setMostrarFiltros(!mostrarFiltros)}
                 >
                   <span className="flex items-center gap-2">
@@ -584,542 +544,38 @@ export default function EcommercePlanos() {
             <div
               className={cn("space-y-6", !mostrarFiltros && "hidden md:block")}
             >
-              {/* Tipo de Pessoa - SEM OPÇÃO TODOS */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <label
-                    className="text-sm font-bold"
-                    style={{ color: "#111111" }}
-                  >
-                    Para quem é o plano?
-                  </label>
-                  <Badge
-                    className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                    style={{
-                      backgroundColor: "#1E90FF",
-                      color: "#FFFFFF",
-                      borderRadius: "6px",
-                    }}
-                  >
-                    OBRIGATÓRIO
-                  </Badge>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  {[
-                    {
-                      value: "PF" as TipoPessoa,
-                      label: "Pessoa Física",
-                      icon: User,
-                    },
-                    {
-                      value: "PJ" as TipoPessoa,
-                      label: "Empresas",
-                      icon: Briefcase,
-                    },
-                  ].map((tipo) => (
-                    <button
-                      key={tipo.value}
-                      onClick={() => handleChangeTipoPessoa(tipo.value)}
-                      className={cn(
-                        "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2",
-                        tipoPessoaFiltro === tipo.value
-                          ? "shadow-lg"
-                          : "hover:shadow-md"
-                      )}
-                      style={{
-                        borderRadius: "12px",
-                        backgroundColor:
-                          tipoPessoaFiltro === tipo.value
-                            ? "#1E90FF"
-                            : "#FFFFFF",
-                        color:
-                          tipoPessoaFiltro === tipo.value
-                            ? "#FFFFFF"
-                            : "#555555",
-                        border:
-                          tipoPessoaFiltro === tipo.value
-                            ? "none"
-                            : "1px solid #E0E0E0",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (tipoPessoaFiltro !== tipo.value) {
-                          e.currentTarget.style.borderColor = "#1E90FF";
-                          e.currentTarget.style.color = "#1E90FF";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (tipoPessoaFiltro !== tipo.value) {
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                          e.currentTarget.style.color = "#555555";
-                        }
-                      }}
-                    >
-                      {tipo.icon && <tipo.icon className="w-4 h-4" />}
-                      {tipo.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Tipo de Contratação */}
-              <div>
-                <label
-                  className="block text-sm font-bold mb-3"
-                  style={{ color: "#111111" }}
-                >
-                  Como você quer contratar?
-                </label>
-                <div className="flex gap-3 flex-wrap">
-                  {[
-                    {
-                      value: "linha_nova" as const,
-                      label: "Linha Nova",
-                      description: "Novos números",
-                    },
-                    {
-                      value: "portabilidade" as const,
-                      label: "Portabilidade",
-                      description: "Manter números atuais",
-                    },
-                  ].map((tipo) => (
-                    <button
-                      key={tipo.value}
-                      onClick={() => setTipoContratacao(tipo.value)}
-                      className={cn(
-                        "flex-1 min-w-[160px] h-auto px-4 py-3 font-semibold border-0 transition-all duration-300 text-left",
-                        tipoContratacao === tipo.value
-                          ? "shadow-lg"
-                          : "hover:shadow-md"
-                      )}
-                      style={{
-                        borderRadius: "12px",
-                        backgroundColor:
-                          tipoContratacao === tipo.value
-                            ? "#1E90FF"
-                            : "#FFFFFF",
-                        color:
-                          tipoContratacao === tipo.value
-                            ? "#FFFFFF"
-                            : "#555555",
-                        border:
-                          tipoContratacao === tipo.value
-                            ? "none"
-                            : "1px solid #E0E0E0",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (tipoContratacao !== tipo.value) {
-                          e.currentTarget.style.borderColor = "#1E90FF";
-                          e.currentTarget.style.color = "#1E90FF";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (tipoContratacao !== tipo.value) {
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                          e.currentTarget.style.color = "#555555";
-                        }
-                      }}
-                    >
-                      <div className="font-bold text-sm">{tipo.label}</div>
-                      <div 
-                        className="text-xs mt-1" 
-                        style={{ 
-                          color: tipoContratacao === tipo.value 
-                            ? "rgba(255,255,255,0.9)" 
-                            : "#999999" 
-                        }}
-                      >
-                        {tipo.description}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Quantidade de Linhas + Operadora (lado a lado no desktop) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Quantidade de Linhas */}
-                <div>
-                  <label
-                    className="block text-sm font-bold mb-3"
-                    style={{ color: "#111111" }}
-                  >
-                    Quantas linhas você precisa?
-                  </label>
-                  {!mostrarCampoPersonalizado ? (
-                    <select
-                      value={contextoAtivo.linhas || 1}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        if (val === 10) {
-                          setMostrarCampoPersonalizado(true);
-                          setLinhasPersonalizado("10");
-                          setLinhas(10);
-                          // Focar no campo após um pequeno delay para renderizar
-                          setTimeout(() => {
-                            document.getElementById("linhas-personalizado")?.focus();
-                          }, 100);
-                        } else {
-                          setLinhas(val);
-                        }
-                      }}
-                      className="w-full h-10 px-4 font-semibold transition-all duration-300 text-sm"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#555555",
-                        outline: "none",
-                      }}
-                      onFocus={(e) => {
-                        e.currentTarget.style.borderColor = "#1E90FF";
-                        e.currentTarget.style.backgroundColor =
-                          "rgba(30,144,255,0.05)";
-                      }}
-                      onBlur={(e) => {
-                        e.currentTarget.style.borderColor = "#E0E0E0";
-                        e.currentTarget.style.backgroundColor = "#FFFFFF";
-                      }}
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? "linha" : "linhas"}
-                        </option>
-                      ))}
-                      <option value={10}>10+ linhas (personalizado)</option>
-                    </select>
-                  ) : (
-                    <div className="flex gap-2">
-                      <input
-                        id="linhas-personalizado"
-                        type="number"
-                        min="10"
-                        max="999"
-                        value={linhasPersonalizado}
-                        onChange={(e) => {
-                          setLinhasPersonalizado(e.target.value);
-                          const val = Number(e.target.value);
-                          if (val >= 10) {
-                            setLinhas(val);
-                          }
-                        }}
-                        className="flex-1 h-10 px-4 font-semibold transition-all duration-300 text-sm"
-                        placeholder="Digite a quantidade de linhas..."
-                        style={{
-                          borderRadius: "12px",
-                          border: "2px solid #1E90FF",
-                          backgroundColor: "rgba(30,144,255,0.05)",
-                          color: "#111111",
-                          outline: "none",
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={() => {
-                          setMostrarCampoPersonalizado(false);
-                          setLinhas(1);
-                        }}
-                        className="h-10 px-4 font-semibold transition-all duration-300"
-                        style={{
-                          borderRadius: "12px",
-                          border: "1px solid #E0E0E0",
-                          backgroundColor: "#FAFAFA",
-                          color: "#555555",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FF6B35";
-                          e.currentTarget.style.color = "#FFFFFF";
-                          e.currentTarget.style.borderColor = "#FF6B35";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "#FAFAFA";
-                          e.currentTarget.style.color = "#555555";
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Operadora - MULTI SELECT */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label
-                      className="text-sm font-bold"
-                      style={{ color: "#111111" }}
-                    >
-                      Operadora
-                    </label>
-                    <Badge
-                      className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                      style={{
-                        backgroundColor: "#FF6B35",
-                        color: "#FFFFFF",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      MULTI
-                    </Badge>
-                    <TooltipProvider>
-                      <Tooltip open={tooltipOperadoraOpen} onOpenChange={setTooltipOperadoraOpen}>
-                        <TooltipTrigger asChild>
-                          <button 
-                            className="focus:outline-none"
-                            onClick={() => {
-                              setTooltipOperadoraOpen(true);
-                              setTimeout(() => setTooltipOperadoraOpen(false), 3000);
-                            }}
-                          >
-                            <HelpCircle
-                              className="w-3.5 h-3.5"
-                              style={{ color: "#999999" }}
-                            />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Você pode escolher mais de uma opção</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <div className="flex gap-3 flex-wrap">
-                    <button
-                      onClick={() => setOperadora([])}
-                      className={cn(
-                        "h-10 px-6 font-semibold border-0 transition-all duration-300",
-                        operadorasFiltro.length === 0
-                          ? "shadow-lg"
-                          : "hover:shadow-md"
-                      )}
-                      style={{
-                        borderRadius: "12px",
-                        backgroundColor:
-                          operadorasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
-                        color:
-                          operadorasFiltro.length === 0 ? "#FFFFFF" : "#555555",
-                        border:
-                          operadorasFiltro.length === 0
-                            ? "none"
-                            : "1px solid #E0E0E0",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (operadorasFiltro.length > 0) {
-                          e.currentTarget.style.borderColor = "#1E90FF";
-                          e.currentTarget.style.color = "#1E90FF";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (operadorasFiltro.length > 0) {
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                          e.currentTarget.style.color = "#555555";
-                        }
-                      }}
-                    >
-                      Todas
-                    </button>
-                    {Object.entries(OPERADORA_COLORS).map(([key, config]) => {
-                      const isSelected = operadorasFiltro.includes(key);
-                      return (
-                        <button
-                          key={key}
-                          onClick={() => toggleOperadora(key)}
-                          className={cn(
-                            "h-10 px-6 font-bold border-0 transition-all duration-300 relative",
-                          isSelected ? "shadow-lg" : "hover:shadow-md"
-                        )}
-                        style={{
-                          borderRadius: "12px",
-                          backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
-                          color: isSelected ? "#FFFFFF" : "#555555",
-                          border: isSelected ? "none" : "1px solid #E0E0E0",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#1E90FF";
-                            e.currentTarget.style.color = "#1E90FF";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isSelected) {
-                            e.currentTarget.style.borderColor = "#E0E0E0";
-                            e.currentTarget.style.color = "#555555";
-                          }
-                        }}
-                      >
-                        {isSelected && (
-                          <div
-                            className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                            style={{ backgroundColor: "#00CFFF" }}
-                          >
-                            <Check
-                              className="w-3 h-3"
-                              style={{ color: "#FFFFFF" }}
-                            />
-                          </div>
-                        )}
-                        {config.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Categoria - MULTI SELECT */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <label
-                  className="text-sm font-bold"
-                  style={{ color: "#111111" }}
-                >
-                  Tipo de serviço
-                </label>
-                <Badge
-                  className="border-0 px-2 py-0.5 text-[10px] font-bold"
-                  style={{
-                    backgroundColor: "#FF6B35",
-                    color: "#FFFFFF",
-                    borderRadius: "6px",
-                  }}
-                >
-                  MULTI
-                </Badge>
-                <TooltipProvider>
-                  <Tooltip open={tooltipCategoriaOpen} onOpenChange={setTooltipCategoriaOpen}>
-                    <TooltipTrigger asChild>
-                      <button 
-                        className="focus:outline-none"
-                        onClick={() => {
-                          setTooltipCategoriaOpen(true);
-                          setTimeout(() => setTooltipCategoriaOpen(false), 3000);
-                        }}
-                      >
-                        <HelpCircle
-                          className="w-3.5 h-3.5"
-                          style={{ color: "#999999" }}
-                        />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Você pode escolher mais de uma opção</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-              <div className="flex gap-3 flex-wrap">
-                <button
-                  onClick={() => setCategoria([])}
-                  className={cn(
-                    "h-10 px-6 font-semibold border-0 transition-all duration-300",
-                    categoriasFiltro.length === 0
-                      ? "shadow-lg"
-                      : "hover:shadow-md"
-                  )}
-                  style={{
-                    borderRadius: "12px",
-                    backgroundColor:
-                      categoriasFiltro.length === 0 ? "#1E90FF" : "#FFFFFF",
-                    color:
-                      categoriasFiltro.length === 0 ? "#FFFFFF" : "#555555",
-                    border:
-                      categoriasFiltro.length === 0
-                        ? "none"
-                        : "1px solid #E0E0E0",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (categoriasFiltro.length > 0) {
-                      e.currentTarget.style.borderColor = "#1E90FF";
-                      e.currentTarget.style.color = "#1E90FF";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (categoriasFiltro.length > 0) {
-                      e.currentTarget.style.borderColor = "#E0E0E0";
-                      e.currentTarget.style.color = "#555555";
-                    }
-                  }}
-                >
-                  Todos
-                </button>
-                {categorias.map((cat) => {
-                  const Icon = getIconeCategoria(cat.slug);
-                  const isSelected = categoriasFiltro.includes(cat.slug);
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => toggleCategoria(cat.slug)}
-                      className={cn(
-                        "h-10 px-6 font-semibold border-0 transition-all duration-300 flex items-center gap-2 relative",
-                        isSelected ? "shadow-lg" : "hover:shadow-md"
-                      )}
-                      style={{
-                        borderRadius: "12px",
-                        backgroundColor: isSelected ? "#1E90FF" : "#FFFFFF",
-                        color: isSelected ? "#FFFFFF" : "#555555",
-                        border: isSelected ? "none" : "1px solid #E0E0E0",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "#1E90FF";
-                          e.currentTarget.style.color = "#1E90FF";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) {
-                          e.currentTarget.style.borderColor = "#E0E0E0";
-                          e.currentTarget.style.color = "#555555";
-                        }
-                      }}
-                    >
-                      {isSelected && (
-                        <div
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: "#00CFFF" }}
-                        >
-                          <Check
-                            className="w-3 h-3"
-                            style={{ color: "#FFFFFF" }}
-                          />
-                        </div>
-                      )}
-                      <Icon className="w-4 h-4" />
-                      {cat.nome}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Botões de ação dos filtros */}
-              <div className="flex gap-2 mt-6">
-                {filtrosAtivos > 0 && (
-                  <Button
-                    onClick={limparFiltros}
-                    variant="outline"
-                    className="flex-1 md:flex-none text-xs sm:text-sm px-3 md:px-4"
-                    style={{ borderColor: "#E0E0E0", color: "#555555" }}
-                  >
-                    <X className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                    Limpar
-                  </Button>
-                )}
+              <FiltrosHierarquicos
+                // Nível 1
+                tipoPessoaFiltro={tipoPessoaFiltro}
+                setTipoPessoa={handleChangeTipoPessoa}
+                tipoContratacao={tipoContratacao}
+                setTipoContratacao={setTipoContratacao}
+                linhas={contextoAtivo.linhas}
+                setLinhas={setLinhas}
                 
-                {/* Botão Aplicar Filtros - APENAS MOBILE */}
-                <Button
-                  onClick={() => {
-                    setMostrarFiltros(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="flex-1 md:hidden text-xs sm:text-sm px-2 sm:px-4"
-                  style={{ backgroundColor: "#1E90FF", color: "#FFFFFF" }}
-                  disabled={tipoPessoaFiltro === "ambos"}
-                >
-                  <Filter className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                  Aplicar
-                  {filtrosAtivos > 0 && ` (${filtrosAtivos})`}
-                </Button>
-              </div>
+                // Nível 2
+                operadorasFiltro={operadorasFiltro}
+                setOperadora={setOperadora}
+                toggleOperadora={toggleOperadora}
+                categoriasFiltro={categoriasFiltro}
+                setCategoria={setCategoria}
+                toggleCategoria={toggleCategoria}
+                categorias={categorias}
+                
+                // Ações
+                limparFiltros={limparFiltros}
+                filtrosAtivos={filtrosAtivos}
+                
+                // UI States
+                mostrarCampoPersonalizado={mostrarCampoPersonalizado}
+                setMostrarCampoPersonalizado={setMostrarCampoPersonalizado}
+                linhasPersonalizado={linhasPersonalizado}
+                setLinhasPersonalizado={setLinhasPersonalizado}
+                tooltipOperadoraOpen={tooltipOperadoraOpen}
+                setTooltipOperadoraOpen={setTooltipOperadoraOpen}
+                tooltipCategoriaOpen={tooltipCategoriaOpen}
+                setTooltipCategoriaOpen={setTooltipCategoriaOpen}
+              />
             </div>
           </CardContent>
         </Card>
@@ -1129,11 +585,10 @@ export default function EcommercePlanos() {
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
             <Badge
-              className="border-0 font-semibold px-4 py-2"
+              className="border-0 font-semibold px-4 py-2 rounded-badge"
               style={{
                 backgroundColor: "#FAFAFA",
                 color: "#111111",
-                borderRadius: "12px",
               }}
             >
               {isLoading ? (
@@ -1149,11 +604,10 @@ export default function EcommercePlanos() {
               categoriasFiltro.map((cat) => (
                 <Badge
                   key={cat}
-                  className="border-0 font-semibold"
+                  className="border-0 font-semibold rounded-badge"
                   style={{
                     backgroundColor: "rgba(30,144,255,0.1)",
                     color: "#1E90FF",
-                    borderRadius: "12px",
                   }}
                 >
                   {categorias.find((c) => c.slug === cat)?.nome || cat}
@@ -1163,22 +617,20 @@ export default function EcommercePlanos() {
               operadorasFiltro.map((op) => (
                 <Badge
                   key={op}
-                  className="border-0 font-semibold"
+                  className="border-0 font-semibold rounded-badge"
                   style={{
                     backgroundColor: "rgba(30,144,255,0.1)",
                     color: "#1E90FF",
-                    borderRadius: "12px",
                   }}
                 >
                   {OPERADORA_COLORS[op]?.name || op}
                 </Badge>
               ))}
             <Badge
-              className="border-0 font-semibold"
+              className="border-0 font-semibold rounded-badge"
               style={{
                 backgroundColor: "rgba(30,144,255,0.1)",
                 color: "#1E90FF",
-                borderRadius: "12px",
               }}
             >
               {tipoPessoaFiltro === "PF" ? "Pessoa Física" : "Empresas"}
@@ -1208,9 +660,8 @@ export default function EcommercePlanos() {
             <select
               value={ordenacao}
               onChange={(e) => setOrdenacao(e.target.value)}
-              className="h-10 px-4 font-semibold outline-none transition-all"
+              className="h-10 px-4 font-semibold outline-none transition-all rounded-base"
               style={{
-                borderRadius: "12px",
                 border: "1px solid #E0E0E0",
                 backgroundColor: "#FFFFFF",
                 color: "#111111",
@@ -1322,53 +773,21 @@ export default function EcommercePlanos() {
                         <Card
                           key={product.id}
                           className={cn(
-                            "group relative overflow-hidden transition-all duration-300 flex flex-col",
-                            product.destaque ? "shadow-xl" : "shadow-md"
+                            "rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-all duration-300 flex flex-col relative overflow-hidden",
+                            product.destaque && "border-blue-500 shadow-md"
                           )}
-                          style={{
-                            border: product.destaque
-                              ? "2px solid #1E90FF"
-                              : "1px solid #E0E0E0",
-                            borderRadius: "16px",
-                            backgroundColor: "#FFFFFF",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = "scale(1.02)";
-                            e.currentTarget.style.boxShadow =
-                              "0 8px 24px rgba(30,144,255,0.15)";
-                            if (!product.destaque)
-                              e.currentTarget.style.borderColor = "#1E90FF";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = "scale(1)";
-                            e.currentTarget.style.boxShadow = product.destaque
-                              ? "0 8px 16px rgba(0,0,0,0.1)"
-                              : "0 2px 8px rgba(0,0,0,0.05)";
-                            if (!product.destaque)
-                              e.currentTarget.style.borderColor = "#E0E0E0";
-                          }}
                         >
                           {/* 🆕 BADGE DINÂMICO (prioridade sobre destaque) */}
                           {badgeDinamico ? (
                             <div className="absolute top-4 right-4 z-10">
                               <Badge
-                                className="border-0 shadow-lg"
-                                style={{
-                                  backgroundColor:
-                                    badgeDinamico.variante === "success"
-                                      ? "#1AD1C1"
-                                      : badgeDinamico.variante === "info"
-                                      ? "#1E90FF"
-                                      : badgeDinamico.variante === "primary"
-                                      ? "#00CFFF"
-                                      : badgeDinamico.variante === "warning"
-                                      ? "#FF6B35"
-                                      : "#555555",
-                                  color: "#FFFFFF",
-                                  borderRadius: "12px",
-                                  fontSize: "11px",
-                                  fontWeight: "700",
-                                }}
+                                className={cn(
+                                  "text-xs rounded-full border-0 px-3 py-1",
+                                  badgeDinamico.variante === "success" && "bg-emerald-500/10 text-emerald-700",
+                                  badgeDinamico.variante === "info" && "bg-blue-500/10 text-blue-700",
+                                  badgeDinamico.variante === "primary" && "bg-cyan-500/10 text-cyan-700",
+                                  badgeDinamico.variante === "warning" && "bg-orange-500/10 text-orange-700"
+                                )}
                               >
                                 {badgeDinamico.texto}
                               </Badge>
@@ -1376,14 +795,7 @@ export default function EcommercePlanos() {
                           ) : (
                             product.destaque && (
                               <div className="absolute top-4 right-4 z-10">
-                                <Badge
-                                  className="border-0 shadow-lg"
-                                  style={{
-                                    backgroundColor: "#FF6B35",
-                                    color: "#FFFFFF",
-                                    borderRadius: "12px",
-                                  }}
-                                >
+                                <Badge className="text-xs rounded-full border-0 px-3 py-1 bg-orange-500/10 text-orange-700">
                                   🔥 Destaque
                                 </Badge>
                               </div>
@@ -1395,94 +807,33 @@ export default function EcommercePlanos() {
                               {/* Header */}
                               <div>
                                 {colors && (
-                                  <Badge className={cn("mb-3", colors.badge)}>
+                                  <Badge className="mb-3 text-xs rounded-full bg-blue-50 text-blue-700 border-0">
                                     <Smartphone className="w-3 h-3 mr-1" />
                                     {colors.name}
                                   </Badge>
                                 )}
-                                <div className="flex items-center gap-2 mb-2">
-                                  {(() => {
-                                    const getCategoryIcon = (
-                                      categoria: string
-                                    ) => {
-                                      const cat = categoria.toLowerCase();
-                                      if (
-                                        cat.includes("fibra") ||
-                                        cat.includes("link dedicado")
-                                      )
-                                        return Wifi;
-                                      if (
-                                        cat.includes("móvel") ||
-                                        cat.includes("movel")
-                                      )
-                                        return Smartphone;
-                                      if (
-                                        cat.includes("office") ||
-                                        cat.includes("365")
-                                      )
-                                        return Briefcase;
-                                      return Smartphone;
-                                    };
-                                    const CategoryIcon = getCategoryIcon(
-                                      product.categoria
-                                    );
-                                    return (
-                                      <CategoryIcon className="h-5 w-5 text-slate-900 stroke-[1.5]" />
-                                    );
-                                  })()}
-                                  <h3
-                                    className="text-xl font-bold line-clamp-2 transition-colors"
-                                    style={{ color: "#111111" }}
-                                  >
-                                    {product.nome}
-                                  </h3>
-                                </div>
-                                <p
-                                  className="text-sm line-clamp-2"
-                                  style={{ color: "#555555" }}
-                                >
+                                <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2">
+                                  {product.nome}
+                                </h3>
+                                <p className="text-sm text-gray-600 line-clamp-2">
                                   {product.descricao}
                                 </p>
                               </div>
 
                               {/* Specs principais */}
-                              <div className="flex items-center gap-3 flex-wrap">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 {product.velocidade && (
-                                  <div
-                                    className="flex items-center gap-1.5 px-3 py-1.5"
-                                    style={{
-                                      backgroundColor: "rgba(30,144,255,0.1)",
-                                      borderRadius: "12px",
-                                    }}
-                                  >
-                                    <Zap
-                                      className="w-4 h-4"
-                                      style={{ color: "#1E90FF" }}
-                                    />
-                                    <span
-                                      className="text-sm font-bold"
-                                      style={{ color: "#111111" }}
-                                    >
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100">
+                                    <Zap className="w-4 h-4 text-gray-700" />
+                                    <span className="text-sm font-semibold text-gray-900">
                                       {product.velocidade}
                                     </span>
                                   </div>
                                 )}
                                 {product.franquia && (
-                                  <div
-                                    className="flex items-center gap-1.5 px-3 py-1.5"
-                                    style={{
-                                      backgroundColor: "rgba(30,144,255,0.1)",
-                                      borderRadius: "12px",
-                                    }}
-                                  >
-                                    <Smartphone
-                                      className="w-4 h-4"
-                                      style={{ color: "#1E90FF" }}
-                                    />
-                                    <span
-                                      className="text-sm font-bold"
-                                      style={{ color: "#111111" }}
-                                    >
+                                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100">
+                                    <Smartphone className="w-4 h-4 text-gray-700" />
+                                    <span className="text-sm font-semibold text-gray-900">
                                       {product.franquia}
                                     </span>
                                   </div>
@@ -1491,13 +842,13 @@ export default function EcommercePlanos() {
 
                               {/* Fidelidade */}
                               {product.fidelidade > 0 ? (
-                                <p className="text-xs text-[#666666] flex items-center gap-1.5">
-                                  <Shield className="h-3.5 w-3.5" />
+                                <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                                  <Shield className="h-4 w-4 text-gray-500" />
                                   Fidelidade de {product.fidelidade} meses
                                 </p>
                               ) : (
-                                <p className="text-xs text-[#1AD1C1] font-medium flex items-center gap-1.5">
-                                  <Check className="h-3.5 w-3.5" />
+                                <p className="text-sm text-emerald-600 font-medium flex items-center gap-1.5">
+                                  <Check className="h-4 w-4 text-emerald-600" />
                                   Sem fidelidade
                                 </p>
                               )}
@@ -1511,9 +862,9 @@ export default function EcommercePlanos() {
                                       .map((beneficio: string, i: number) => (
                                         <li
                                           key={i}
-                                          className="flex items-start gap-2 text-sm text-[#666666]"
+                                          className="flex items-start gap-2 text-sm text-gray-700"
                                         >
-                                          <Check className="w-4 h-4 text-[#1AD1C1] flex-shrink-0 mt-0.5" />
+                                          <Check className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
                                           <span>{beneficio}</span>
                                         </li>
                                       ))}
@@ -1531,39 +882,21 @@ export default function EcommercePlanos() {
                               )}
 
                               {/* Preço */}
-                              <div
-                                className="pt-4"
-                                style={{ borderTop: "1px solid #E0E0E0" }}
-                              >
+                              <div className="pt-4 border-t border-gray-200">
                                 <div className="flex items-baseline gap-1 mb-2">
-                                  <span
-                                    className="text-4xl font-bold"
-                                    style={{ color: "#1E90FF" }}
-                                  >
+                                  <span className="text-3xl font-bold text-blue-600">
                                     {formatPrice(product.preco)}
                                   </span>
-                                  <span
-                                    className="text-sm"
-                                    style={{ color: "#555555" }}
-                                  >
-                                    /mês
-                                  </span>
+                                  <span className="text-sm text-gray-500">/mês</span>
                                 </div>
                                 <div className="space-y-1">
                                   {product.precoInstalacao > 0 && (
-                                    <p
-                                      className="text-xs"
-                                      style={{ color: "#555555" }}
-                                    >
-                                      + {formatPrice(product.precoInstalacao)}{" "}
-                                      instalação
+                                    <p className="text-xs text-gray-600">
+                                      + {formatPrice(product.precoInstalacao)} instalação
                                     </p>
                                   )}
                                   {product.linhasInclusas > 1 && (
-                                    <p
-                                      className="text-xs font-medium"
-                                      style={{ color: "#1E90FF" }}
-                                    >
+                                    <p className="text-xs font-medium text-blue-600">
                                       ✓ {product.linhasInclusas} linhas inclusas
                                     </p>
                                   )}
@@ -1574,13 +907,9 @@ export default function EcommercePlanos() {
                             {/* Diferenciais Colapsáveis */}
                             {product.diferenciais &&
                               product.diferenciais.length > 0 && (
-                                <div
-                                  className="border-t pt-4"
-                                  style={{ borderColor: "#E0E0E0" }}
-                                >
+                                <div className="border-t border-gray-200 pt-4">
                                   <button
-                                    className="w-full flex items-center justify-between text-left font-semibold text-sm transition-colors"
-                                    style={{ color: "#111111" }}
+                                    className="w-full flex items-center justify-between text-left font-semibold text-sm text-gray-900 hover:text-blue-600 transition-colors"
                                     onClick={() =>
                                       setDiferencialAberto(
                                         diferencialAberto === product.id
@@ -1591,15 +920,9 @@ export default function EcommercePlanos() {
                                   >
                                     <span>📋 Diferenciais</span>
                                     {diferencialAberto === product.id ? (
-                                      <ChevronUp
-                                        className="w-4 h-4"
-                                        style={{ color: "#1E90FF" }}
-                                      />
+                                      <ChevronUp className="w-4 h-4 text-blue-600" />
                                     ) : (
-                                      <ChevronDown
-                                        className="w-4 h-4"
-                                        style={{ color: "#555555" }}
-                                      />
+                                      <ChevronDown className="w-4 h-4 text-gray-500" />
                                     )}
                                   </button>
                                   {diferencialAberto === product.id && (
@@ -1608,13 +931,9 @@ export default function EcommercePlanos() {
                                         (diferencial: string, i: number) => (
                                           <li
                                             key={i}
-                                            className="flex items-start gap-2 text-sm"
-                                            style={{ color: "#555555" }}
+                                            className="flex items-start gap-2 text-sm text-gray-700"
                                           >
-                                            <Check
-                                              className="w-4 h-4 flex-shrink-0 mt-0.5"
-                                              style={{ color: "#1E90FF" }}
-                                            />
+                                            <Check className="w-4 h-4 flex-shrink-0 mt-0.5 text-blue-600" />
                                             <span>{diferencial}</span>
                                           </li>
                                         )
@@ -1628,12 +947,7 @@ export default function EcommercePlanos() {
                             <div className="space-y-2 mt-auto pt-4">
                               {planosSelecionados.has(product.id) ? (
                                 <Button
-                                  className="w-full gap-2 h-12 transition-all duration-300 font-bold shadow-lg border-0"
-                                  style={{
-                                    backgroundColor: "#1AD1C1",
-                                    color: "#FFFFFF",
-                                    borderRadius: "12px",
-                                  }}
+                                  className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors gap-2"
                                   onClick={() => toggleSelecaoPlano(product)}
                                 >
                                   <Check className="w-5 h-5" />
@@ -1641,26 +955,10 @@ export default function EcommercePlanos() {
                                 </Button>
                               ) : (
                                 <Button
-                                  className="w-full gap-2 h-12 transition-all duration-300 font-bold shadow-lg border-0"
-                                  style={{
-                                    backgroundColor: "#1E90FF",
-                                    color: "#FFFFFF",
-                                    borderRadius: "12px",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                      "#00CFFF";
-                                    e.currentTarget.style.transform =
-                                      "scale(1.02)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor =
-                                      "#1E90FF";
-                                    e.currentTarget.style.transform =
-                                      "scale(1)";
-                                  }}
+                                  className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors gap-2"
                                   onClick={() => toggleSelecaoPlano(product)}
                                 >
+                                  <Plus className="w-5 h-5" />
                                   Selecionar Plano
                                 </Button>
                               )}
@@ -1668,24 +966,7 @@ export default function EcommercePlanos() {
                               {product.permiteCalculadoraLinhas && (
                                 <Button
                                   variant="outline"
-                                  className="w-full gap-2 h-11 font-semibold border-0 transition-all"
-                                  style={{
-                                    border: "1px solid #E0E0E0",
-                                    backgroundColor: "#FFFFFF",
-                                    borderRadius: "12px",
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.borderColor =
-                                      "#1E90FF";
-                                    e.currentTarget.style.backgroundColor =
-                                      "rgba(30,144,255,0.05)";
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.borderColor =
-                                      "#E0E0E0";
-                                    e.currentTarget.style.backgroundColor =
-                                      "#FFFFFF";
-                                  }}
+                                  className="w-full h-11 rounded-xl border-gray-300 hover:border-blue-600 hover:bg-blue-50 font-semibold transition-all gap-2"
                                   onClick={() => abrirCalculadora(product)}
                                 >
                                   <Calculator className="w-4 h-4" />

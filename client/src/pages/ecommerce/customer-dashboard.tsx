@@ -386,16 +386,16 @@ export default function CustomerDashboard() {
                           key={order.id}
                           href={`/ecommerce/painel/pedidos/${order.id}`}
                         >
-                          <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent cursor-pointer transition-colors">
+                          <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                             <div className="flex items-center gap-4">
                               <div className={`p-2 rounded-lg ${info.bg}`}>
                                 <Icon className={`h-5 w-5 ${info.color}`} />
                               </div>
                               <div>
-                                <p className="font-medium">
+                                <p className="font-semibold text-gray-900">
                                   Pedido #{order.orderCode || order.id.slice(0, 8)}
                                 </p>
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-gray-600">
                                   {new Date(order.createdAt).toLocaleDateString(
                                     "pt-BR"
                                   )}
@@ -403,7 +403,7 @@ export default function CustomerDashboard() {
                               </div>
                             </div>
                             <div className="text-right">
-                              <p className="font-medium">
+                              <p className="font-semibold text-gray-900">
                                 R$ {(order.total / 100).toFixed(2)}
                               </p>
                               <p className={`text-sm ${info.color}`}>

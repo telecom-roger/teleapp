@@ -154,29 +154,19 @@ export default function CustomerLogin() {
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: "#FAFAFA" }}
     >
-      <Card
-        className="w-full max-w-md shadow-xl"
-        style={{
-          backgroundColor: "#FFFFFF",
-          borderRadius: "16px",
-          border: "1px solid #E0E0E0",
-        }}
-      >
+      <Card className="w-full max-w-md rounded-2xl border-gray-200 shadow-sm hover:shadow-md hover:border-blue-400 transition-all">
         <CardHeader className="space-y-1">
-          <CardTitle
-            className="text-2xl font-bold text-center"
-            style={{ color: "#111111" }}
-          >
+          <CardTitle className="text-3xl font-bold text-center text-gray-900">
             Portal do Cliente
           </CardTitle>
-          <CardDescription className="text-center" style={{ color: "#555555" }}>
+          <CardDescription className="text-center text-gray-600">
             Acesse seu painel para acompanhar pedidos e serviços
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="identifier">CPF / CNPJ / Email</Label>
+              <Label htmlFor="identifier" className="font-bold text-gray-900">CPF / CNPJ / Email</Label>
               <Input
                 id="identifier"
                 type="text"
@@ -185,11 +175,12 @@ export default function CustomerLogin() {
                 onChange={handleIdentifierChange}
                 disabled={loginMutation.isPending}
                 autoComplete="username"
+                className="!h-12 !rounded-xl !border-gray-300 focus:!border-blue-500 focus:!ring-blue-500"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="font-bold text-gray-900">Senha</Label>
               <Input
                 id="password"
                 type="password"
@@ -198,38 +189,24 @@ export default function CustomerLogin() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loginMutation.isPending}
                 autoComplete="current-password"
+                className="!h-12 !rounded-xl !border-gray-300 focus:!border-blue-500 focus:!ring-blue-500"
               />
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full font-bold shadow-lg border-0 transition-all"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e: any) => {
-                if (!loginMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#00CFFF";
-                  e.currentTarget.style.transform = "scale(1.02)";
-                }
-              }}
-              onMouseLeave={(e: any) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
               disabled={loginMutation.isPending}
+              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-semibold transition-colors shadow-sm flex items-center justify-center gap-2"
             >
               {loginMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Entrando...
                 </>
               ) : (
                 "Entrar no Painel"
               )}
-            </Button>
+            </button>
 
             <div className="text-center text-sm text-muted-foreground">
               <p>

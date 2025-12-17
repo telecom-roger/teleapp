@@ -413,14 +413,14 @@ export default function CustomerOrders() {
 
           <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
             <div className="max-w-4xl mx-auto space-y-6">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <Link href="/ecommerce/painel/pedidos">
-                  <Button variant="ghost" size="sm">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Voltar
+                  <Button variant="ghost" size="sm" className="flex-shrink-0">
+                    <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Voltar</span>
                   </Button>
                 </Link>
-                <h1 className="text-xl font-semibold">Detalhes do Pedido</h1>
+                <h1 className="text-lg sm:text-xl font-semibold truncate">Detalhes do Pedido</h1>
               </div>
 
               {loadingDetail ? (
@@ -436,18 +436,18 @@ export default function CustomerOrders() {
 
                   <Card>
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <CardTitle>
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <CardTitle className="text-base sm:text-lg">
                             Pedido #{orderDetail.orderCode || orderDetail.id.slice(0, 8)}
                           </CardTitle>
-                          <p className="text-sm text-gray-700 mt-1">
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">
                             Realizado em{" "}
                             {new Date(orderDetail.createdAt).toLocaleDateString(
                               "pt-BR",
                               {
                                 day: "2-digit",
-                                month: "long",
+                                month: "short",
                                 year: "numeric",
                               }
                             )}
@@ -456,9 +456,9 @@ export default function CustomerOrders() {
                         {StatusIcon && (
                           <Badge
                             variant={statusInfo?.badge as any}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 text-xs self-start flex-shrink-0"
                           >
-                            <StatusIcon className="h-4 w-4" />
+                            <StatusIcon className="h-3 w-3 sm:h-4 sm:w-4" />
                             {statusInfo?.label}
                           </Badge>
                         )}
@@ -581,24 +581,24 @@ export default function CustomerOrders() {
                         {orderDetail.items.map((item) => (
                           <div
                             key={item.id}
-                            className="border rounded-lg p-4 space-y-2"
+                            className="border rounded-lg p-3 sm:p-4 space-y-2"
                           >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className="font-semibold">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h3 className="font-semibold text-sm sm:text-base">
                                   {item.productNome}
                                 </h3>
                                 {item.productDescricao && (
-                                  <p className="text-sm text-gray-700">
+                                  <p className="text-xs sm:text-sm text-gray-700 line-clamp-2">
                                     {item.productDescricao}
                                   </p>
                                 )}
                               </div>
-                              <p className="font-semibold">
+                              <p className="font-semibold text-sm sm:text-base flex-shrink-0">
                                 R$ {(item.subtotal / 100).toFixed(2)}
                               </p>
                             </div>
-                            <div className="flex flex-wrap gap-4 text-sm text-gray-700">
+                            <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-gray-700">
                               <span>Quantidade: {item.quantidade}</span>
                               {item.linhasAdicionais > 0 && (
                                 <span>
@@ -721,16 +721,16 @@ export default function CustomerOrders() {
                               return (
                                 <div
                                   key={doc.id}
-                                  className={`p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bg} transition-all duration-300`}
+                                  className={`p-3 sm:p-4 rounded-lg border ${statusInfo.borderColor} ${statusInfo.bg} transition-all duration-300`}
                                 >
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex items-start gap-3 flex-1">
+                                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
                                       <StatusIcon
-                                        className={`h-5 w-5 ${statusInfo.color} mt-0.5`}
+                                        className={`h-4 w-4 sm:h-5 sm:w-5 ${statusInfo.color} mt-0.5 flex-shrink-0`}
                                       />
-                                      <div className="flex-1">
+                                      <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="font-medium">
+                                          <span className="font-medium text-sm sm:text-base">
                                             {doc.nome}
                                           </span>
                                           {doc.obrigatorio && (
@@ -744,7 +744,7 @@ export default function CustomerOrders() {
                                         </div>
                                       </div>
                                     </div>
-                                    <Badge variant={statusInfo.badgeVariant}>
+                                    <Badge variant={statusInfo.badgeVariant} className="text-xs self-start sm:self-auto flex-shrink-0">
                                       {statusInfo.label}
                                     </Badge>
                                   </div>
@@ -757,15 +757,15 @@ export default function CustomerOrders() {
                                       {doc.uploads.map((upload: any) => (
                                         <div
                                           key={upload.id}
-                                          className="flex items-center justify-between p-2 bg-slate-50 rounded mb-2"
+                                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2 bg-slate-50 rounded mb-2"
                                         >
                                           <div className="flex items-center gap-2 flex-1 min-w-0">
                                             <FileText className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                                            <span className="text-sm truncate">
+                                            <span className="text-xs sm:text-sm truncate">
                                               {upload.fileName}
                                             </span>
                                           </div>
-                                          <div className="flex items-center gap-1">
+                                          <div className="flex items-center gap-1 self-start sm:self-auto">
                                             <Button
                                               size="sm"
                                               variant="ghost"
@@ -992,48 +992,39 @@ export default function CustomerOrders() {
                       href={`/ecommerce/painel/pedidos/${order.id}`}
                     >
                       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-4 flex-1">
-                              <div
-                                className={`p-3 rounded-lg ${statusInfo.bg}`}
-                              >
-                                <StatusIcon
-                                  className={`h-6 w-6 ${statusInfo.color}`}
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                  <h3 className="font-semibold">
+                        <CardContent className="p-4 sm:p-6">
+                          <div className="flex items-start gap-3 sm:gap-4">
+                            <div className={`p-2.5 sm:p-3 rounded-lg ${statusInfo.bg} flex-shrink-0`}>
+                              <StatusIcon className={`h-5 w-5 sm:h-6 sm:w-6 ${statusInfo.color}`} />
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2 mb-2">
+                                <div className="flex-1 min-w-0">
+                                  <h3 className="font-semibold text-sm sm:text-base mb-1.5">
                                     Pedido #{order.orderCode || order.id.slice(0, 8)}
                                   </h3>
-                                  <Badge variant={statusInfo.badge as any}>
+                                  <Badge variant={statusInfo.badge as any} className="text-xs">
                                     {statusInfo.label}
                                   </Badge>
                                 </div>
-                                <p className="text-sm text-gray-700 mt-1">
-                                  {new Date(order.createdAt).toLocaleDateString(
-                                    "pt-BR",
-                                    {
-                                      day: "2-digit",
-                                      month: "long",
-                                      year: "numeric",
-                                    }
-                                  )}
+                                <p className="text-sm sm:text-base font-semibold text-gray-900 whitespace-nowrap">
+                                  R$ {(order.total / 100).toFixed(2)}
                                 </p>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-base font-semibold">
-                                R$ {(order.total / 100).toFixed(2)}
-                              </p>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="mt-2"
-                              >
-                                Ver Detalhes
-                              </Button>
+                              
+                              <div className="flex items-center justify-between gap-2 mt-3">
+                                <p className="text-xs sm:text-sm text-gray-600">
+                                  {new Date(order.createdAt).toLocaleDateString("pt-BR", {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                                <Button variant="ghost" size="sm" className="h-8 text-xs sm:text-sm">
+                                  Ver Detalhes
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </CardContent>

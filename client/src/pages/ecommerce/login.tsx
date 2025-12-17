@@ -11,6 +11,7 @@ import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 
 export default function EcommerceLogin() {
+  // Premium layout styles applied - v2024.12.17
   const [_, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [identifier, setIdentifier] = useState("");
@@ -119,38 +120,19 @@ export default function EcommerceLogin() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor: "#FAFAFA" }}
-    >
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <EcommerceHeader />
 
       <main className="flex-1 container max-w-md mx-auto px-4 py-12 flex items-center justify-center">
-        <Card
-          className="w-full p-8 shadow-xl"
-          style={{
-            backgroundColor: "#FFFFFF",
-            border: "1px solid #E0E0E0",
-            borderRadius: "16px",
-          }}
-        >
+        <Card className="w-full p-8 rounded-2xl border border-gray-200 bg-white shadow-sm">
           <div className="text-center mb-8">
-            <div
-              className="inline-flex items-center justify-center w-16 h-16 mb-4"
-              style={{
-                borderRadius: "50%",
-                backgroundColor: "rgba(30,144,255,0.1)",
-              }}
-            >
-              <ShoppingBag className="w-8 h-8" style={{ color: "#1E90FF" }} />
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-100 mb-4">
+              <ShoppingBag className="w-6 h-6 text-blue-600" />
             </div>
-            <h1
-              className="text-3xl font-bold mb-2"
-              style={{ color: "#111111" }}
-            >
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
               Área do Cliente
             </h1>
-            <p style={{ color: "#555555" }}>
+            <p className="text-gray-600">
               Acompanhe seus pedidos e gerencie sua conta
             </p>
           </div>
@@ -163,80 +145,64 @@ export default function EcommerceLogin() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="identifier">CPF, CNPJ ou E-mail</Label>
+              <Label htmlFor="identifier" className="text-sm font-bold text-gray-900">CPF, CNPJ ou E-mail</Label>
               <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="identifier"
                   type="text"
                   placeholder="Digite seu CPF, CNPJ ou e-mail"
                   value={identifier}
                   onChange={handleIdentifierChange}
-                  className="pl-10"
+                  className="!h-12 pl-12 pr-4 !rounded-xl !border-gray-300 focus:!border-blue-500"
                   autoComplete="username"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-gray-500">
                 Você pode usar CPF (11 dígitos), CNPJ (14 dígitos) ou seu e-mail
                 cadastrado
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
+              <Label htmlFor="password" className="text-sm font-bold text-gray-900">Senha</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Digite sua senha"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="!h-12 pl-12 pr-12 !rounded-xl !border-gray-300 focus:!border-blue-500"
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </button>
               </div>
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full font-bold shadow-lg border-0 transition-all"
-              size="lg"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e: any) => {
-                if (!loginMutation.isPending) {
-                  e.currentTarget.style.backgroundColor = "#00CFFF";
-                  e.currentTarget.style.transform = "scale(1.02)";
-                }
-              }}
-              onMouseLeave={(e: any) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
               disabled={loginMutation.isPending}
+              className="w-full h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loginMutation.isPending ? "Entrando..." : "Entrar"}
-            </Button>
+            </button>
 
             <div className="text-center">
               <button
                 type="button"
-                className="text-sm text-primary hover:underline"
+                className="text-sm text-blue-600 hover:text-blue-700 hover:underline font-medium"
                 onClick={() =>
                   alert("Em breve: recuperação de senha por email")
                 }
@@ -246,12 +212,12 @@ export default function EcommerceLogin() {
             </div>
           </form>
 
-          <div className="mt-8 pt-6 border-t text-center text-sm text-muted-foreground">
+          <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
             <p>
               Ainda não tem conta?{" "}
               <button
                 onClick={() => navigate("/ecommerce/planos")}
-                className="text-primary hover:underline font-medium"
+                className="text-blue-600 hover:text-blue-700 hover:underline font-semibold"
               >
                 Contrate agora
               </button>

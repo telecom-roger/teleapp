@@ -132,19 +132,19 @@ export default function CustomerLinhasPortabilidade() {
       <CustomerHeader />
       <div className="flex">
         <CustomerSidebar />
-        <main className="flex-1 p-6 max-w-7xl mx-auto">
-          <div className="space-y-6">
+        <main className="flex-1 p-4 sm:p-6 max-w-7xl mx-auto pb-20 md:pb-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Header */}
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 bg-primary/10 rounded-lg">
                   <Phone className="h-6 w-6 text-primary" />
                 </div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Linhas de Portabilidade
                 </h1>
               </div>
-              <p className="text-gray-700">
+              <p className="text-sm sm:text-base text-gray-700">
                 Preencha as informações de cada linha para continuar com seu pedido
               </p>
             </div>
@@ -169,69 +169,73 @@ export default function CustomerLinhasPortabilidade() {
               <div className="space-y-4">
                 {/* Seletor de Pedido - aparece apenas se houver mais de um */}
                 {pedidosPortabilidade.length > 1 && (
-                  <Card>
-                    <CardContent className="pt-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">
-                          Selecione o pedido para preencher as linhas:
-                        </label>
-                        <Select
-                          value={selectedOrderId || ""}
-                          onValueChange={setSelectedOrderId}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione um pedido" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {pedidosPortabilidade.map((order) => (
-                              <SelectItem key={order.id} value={order.id}>
-                                Pedido #{order.orderCode} - {formatOrderStatus(order.etapa)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="md:static md:top-auto">
+                    <div className="md:relative sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-gray-50/95 backdrop-blur-sm md:bg-transparent md:px-0 md:py-0 border-b md:border-0 border-gray-200">
+                      <Card className="shadow-md md:shadow-sm border md:border">
+                        <CardContent className="p-3 sm:pt-6 sm:pb-4">
+                          <div className="space-y-2">
+                            <label className="text-xs sm:text-sm font-medium text-gray-900">
+                              Selecione o pedido:
+                            </label>
+                            <Select
+                              value={selectedOrderId || ""}
+                              onValueChange={setSelectedOrderId}
+                            >
+                              <SelectTrigger className="bg-white h-10 sm:h-11">
+                                <SelectValue placeholder="Selecione um pedido" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {pedidosPortabilidade.map((order) => (
+                                  <SelectItem key={order.id} value={order.id}>
+                                    Pedido #{order.orderCode} - {formatOrderStatus(order.etapa)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
                 )}
 
                 {/* Info do Pedido */}
                 {pedidoPortabilidade && (
                   <>
                   <Card>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">
+                    <CardHeader className="pb-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <CardTitle className="text-base sm:text-lg">
                           Pedido #{pedidoPortabilidade.orderCode}
                         </CardTitle>
-                        <Badge variant="secondary">
+                        <Badge variant="secondary" className="text-xs self-start sm:self-auto">
                           {formatOrderStatus(pedidoPortabilidade.etapa)}
                         </Badge>
                       </div>
                     </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-700 mb-1">Total do Pedido</p>
-                        <p className="text-lg font-bold">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-sm">
+                      <div className="bg-gray-50 p-3 rounded-lg">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-1.5">Total do Pedido</p>
+                        <p className="text-base sm:text-lg font-bold text-gray-900">
                           R$ {(pedidoPortabilidade.total / 100).toFixed(2)}
                         </p>
                       </div>
                       {linesSummary && (
                         <>
-                          <div>
-                            <p className="text-gray-700 mb-1">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <p className="text-xs sm:text-sm text-blue-600 mb-1.5">
                               Linhas Contratadas
                             </p>
-                            <p className="text-lg font-bold">
+                            <p className="text-base sm:text-lg font-bold text-blue-700">
                               {linesSummary.totalLinhasContratadas}
                             </p>
                           </div>
-                          <div>
-                            <p className="text-gray-700 mb-1">
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <p className="text-xs sm:text-sm text-green-600 mb-1.5">
                               Linhas Preenchidas
                             </p>
-                            <p className="text-lg font-bold text-green-600">
+                            <p className="text-base sm:text-lg font-bold text-green-700">
                               {linesSummary.totalLinhasPreenchidas}
                             </p>
                           </div>
@@ -241,17 +245,17 @@ export default function CustomerLinhasPortabilidade() {
 
                     {orderDetail?.items && orderDetail.items.length > 0 && (
                       <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm font-medium mb-2">Itens do Pedido:</p>
-                        <ul className="space-y-1">
+                        <p className="text-xs sm:text-sm font-medium mb-2.5 text-gray-700">Itens do Pedido:</p>
+                        <ul className="space-y-2">
                           {orderDetail.items.map((item: any) => (
                             <li
                               key={item.id}
-                              className="text-sm text-gray-700 flex justify-between"
+                              className="text-xs sm:text-sm text-gray-700 flex justify-between gap-2 bg-gray-50 p-2 rounded"
                             >
-                              <span>
+                              <span className="flex-1 min-w-0 truncate">
                                 {item.quantidade}x {item.productNome}
                               </span>
-                              <span>
+                              <span className="font-semibold whitespace-nowrap">
                                 R$ {(item.subtotal / 100).toFixed(2)}
                               </span>
                             </li>

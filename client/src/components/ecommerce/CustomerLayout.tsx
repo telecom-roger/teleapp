@@ -74,38 +74,46 @@ export function CustomerHeader() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm text-gray-700">
+            <span className="text-sm text-gray-600">
               Olá,{" "}
-              <span className="font-medium text-foreground">
+              <span className="font-semibold text-gray-900">
                 {data?.client?.nome || data?.user?.email}
               </span>
             </span>
             <CustomerOrderNotifications />
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="hover:bg-red-50 hover:text-red-600 transition-colors"
+            >
               <LogOut className="h-4 w-4 mr-2" />
               Sair
             </Button>
           </div>
 
           <button
-            className="md:hidden"
+            className="md:hidden p-2 rounded-lg hover:bg-blue-50 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? <X /> : <Menu />}
+            {mobileMenuOpen ? <X className="h-6 w-6 text-gray-600" /> : <Menu className="h-6 w-6 text-gray-600" />}
           </button>
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-gray-200">
             <div className="flex flex-col gap-2">
-              <span className="text-sm text-gray-700 px-3 py-2">
-                {data?.client?.nome || data?.user?.email}
-              </span>
+              <div className="px-3 py-2 bg-blue-50 rounded-lg mx-2">
+                <span className="text-xs text-gray-600">Logado como</span>
+                <p className="text-sm font-semibold text-gray-900 truncate">
+                  {data?.client?.nome || data?.user?.email}
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleLogout}
-                className="justify-start"
+                className="justify-start mx-2 hover:bg-red-50 hover:text-red-600 transition-colors"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
@@ -190,8 +198,8 @@ export function CustomerSidebar() {
   }
 
   return (
-    <aside className="hidden md:block w-64 bg-white border-r min-h-[calc(100vh-4rem)]">
-      <nav className="p-4 space-y-1">
+    <aside className="hidden md:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)]">
+      <nav className="p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -203,10 +211,7 @@ export function CustomerSidebar() {
                 href={item.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  "text-gray-700 hover:bg-accent hover:text-accent-foreground"
-                )}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-600"
               >
                 <Icon className="h-5 w-5" />
                 {item.label}
@@ -218,10 +223,10 @@ export function CustomerSidebar() {
             <Link key={item.href} href={item.href}>
               <a
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-gray-700 hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-gray-600 hover:bg-blue-50 hover:text-blue-600"
                 )}
               >
                 <Icon className="h-5 w-5" />
@@ -267,8 +272,8 @@ export function CustomerMobileNav() {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t z-50">
-      <div className="flex justify-around items-center h-16">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 shadow-lg">
+      <div className="flex justify-around items-center h-16 px-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location === item.href;
@@ -277,8 +282,10 @@ export function CustomerMobileNav() {
             <Link key={item.href} href={item.href}>
               <a
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 px-3 py-2 text-xs font-medium transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  "flex flex-col items-center justify-center gap-1 px-3 py-2 text-xs font-semibold transition-all rounded-lg",
+                  isActive 
+                    ? "text-blue-600 bg-blue-50" 
+                    : "text-gray-600 hover:text-blue-600 hover:bg-blue-50"
                 )}
               >
                 <Icon className="h-5 w-5" />

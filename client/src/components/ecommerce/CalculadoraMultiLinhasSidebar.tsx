@@ -73,18 +73,12 @@ export function CalculadoraMultiLinhasSidebar({
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div
-            className="flex items-center justify-between p-4"
-            style={{
-              borderBottom: "1px solid #E0E0E0",
-              backgroundColor: "#FFFFFF",
-            }}
-          >
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
             <div>
-              <h2 className="text-lg font-black" style={{ color: "#111111" }}>
+              <h2 className="text-lg font-black text-gray-900">
                 Calculadora Múltiplas Linhas
               </h2>
-              <p className="text-sm" style={{ color: "#555555" }}>
+              <p className="text-sm text-gray-600">
                 Configure seu plano
               </p>
             </div>
@@ -92,10 +86,7 @@ export function CalculadoraMultiLinhasSidebar({
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="transition-colors"
-              style={{ color: "#555555" }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#111111")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#555555")}
+              className="transition-colors text-gray-600 hover:text-gray-900"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -104,41 +95,21 @@ export function CalculadoraMultiLinhasSidebar({
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             {/* Produto Info */}
-            <div
-              className="p-4"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E0E0E0",
-                borderRadius: "12px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-              }}
-            >
+            <div className="p-4 bg-white border border-gray-200 rounded-2xl shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 {(() => {
                   const Icon = getCategoryIcon(null);
-                  return (
-                    <Icon
-                      className="h-5 w-5 stroke-[1.5]"
-                      style={{ color: "#1E90FF" }}
-                    />
-                  );
+                  return <Icon className="h-5 w-5 stroke-[1.5] text-blue-600" />;
                 })()}
-                <h3 className="font-bold" style={{ color: "#111111" }}>
-                  {produto.nome}
-                </h3>
+                <h3 className="font-bold text-gray-900">{produto.nome}</h3>
               </div>
-              <p className="text-sm" style={{ color: "#555555" }}>
-                {produto.descricao}
-              </p>
+              <p className="text-sm text-gray-600">{produto.descricao}</p>
             </div>
 
             {/* Quantidade de Linhas */}
             <div className="space-y-3">
-              <label
-                className="text-sm font-bold flex items-center gap-2"
-                style={{ color: "#111111" }}
-              >
-                <Smartphone className="h-4 w-4" style={{ color: "#1E90FF" }} />
+              <label className="text-sm font-bold flex items-center gap-2 text-gray-900">
+                <Smartphone className="h-4 w-4 text-blue-600" />
                 Quantidade de Linhas
               </label>
               <div className="flex items-center gap-3">
@@ -149,18 +120,7 @@ export function CalculadoraMultiLinhasSidebar({
                     onQuantidadeChange(Math.max(1, quantidade - 1))
                   }
                   disabled={quantidade <= 1}
-                  className="h-10 w-10 border-0 transition-all"
-                  style={{ backgroundColor: "#FAFAFA", borderRadius: "8px" }}
-                  onMouseEnter={(e) => {
-                    if (quantidade > 1) {
-                      e.currentTarget.style.backgroundColor = "#1E90FF";
-                      e.currentTarget.style.color = "#FFFFFF";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#FAFAFA";
-                    e.currentTarget.style.color = "";
-                  }}
+                  className="h-10 w-10 border-0 transition-all rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white"
                 >
                   -
                 </Button>
@@ -171,12 +131,7 @@ export function CalculadoraMultiLinhasSidebar({
                     const val = parseInt(e.target.value) || 1;
                     onQuantidadeChange(Math.max(1, Math.min(50, val)));
                   }}
-                  className="w-20 text-center text-xl font-bold py-2 outline-none"
-                  style={{
-                    border: "1px solid #E0E0E0",
-                    borderRadius: "8px",
-                    color: "#111111",
-                  }}
+                  className="w-20 text-center text-xl font-bold py-2 outline-none border border-gray-300 rounded-xl text-gray-900"
                   min="1"
                   max="50"
                 />
@@ -187,18 +142,7 @@ export function CalculadoraMultiLinhasSidebar({
                     onQuantidadeChange(Math.min(50, quantidade + 1))
                   }
                   disabled={quantidade >= 50}
-                  className="h-10 w-10 border-0 transition-all"
-                  style={{ backgroundColor: "#FAFAFA", borderRadius: "8px" }}
-                  onMouseEnter={(e) => {
-                    if (quantidade < 50) {
-                      e.currentTarget.style.backgroundColor = "#1E90FF";
-                      e.currentTarget.style.color = "#FFFFFF";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#FAFAFA";
-                    e.currentTarget.style.color = "";
-                  }}
+                  className="h-10 w-10 border-0 transition-all rounded-lg bg-gray-100 hover:bg-blue-600 hover:text-white"
                 >
                   +
                 </Button>
@@ -206,151 +150,75 @@ export function CalculadoraMultiLinhasSidebar({
             </div>
 
             {/* GB Calculation */}
-            <div
-              className="p-4 space-y-2"
-              style={{
-                backgroundColor: "#FAFAFA",
-                border: "1px solid #1E90FF",
-                borderRadius: "12px",
-              }}
-            >
-              <div
-                className="flex items-center gap-2 mb-3"
-                style={{ color: "#1E90FF" }}
-              >
+            <div className="p-4 space-y-2 bg-blue-50 border border-blue-500 rounded-xl">
+              <div className="flex items-center gap-2 mb-3 text-blue-600">
                 <Wifi className="h-5 w-5" />
                 <h4 className="font-bold">Internet Total</h4>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span style={{ color: "#555555" }}>Por linha:</span>
-                  <span className="font-bold" style={{ color: "#111111" }}>
-                    {formatarGB(gbPorLinha)}
-                  </span>
+                  <span className="text-gray-600">Por linha:</span>
+                  <span className="font-bold text-gray-900">{formatarGB(gbPorLinha)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span style={{ color: "#555555" }}>Quantidade:</span>
-                  <span className="font-bold" style={{ color: "#111111" }}>
+                  <span className="text-gray-600">Quantidade:</span>
+                  <span className="font-bold text-gray-900">
                     {quantidade} {quantidade === 1 ? "linha" : "linhas"}
                   </span>
                 </div>
-                <div
-                  className="pt-2"
-                  style={{ borderTop: "1px solid #E0E0E0" }}
-                >
+                <div className="pt-2 border-t border-blue-300">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold" style={{ color: "#111111" }}>
-                      Total:
-                    </span>
-                    <span
-                      className="text-2xl font-bold"
-                      style={{ color: "#1E90FF" }}
-                    >
-                      {formatarGB(gbTotal)}
-                    </span>
+                    <span className="font-bold text-gray-900">Total:</span>
+                    <span className="text-2xl font-bold text-blue-600">{formatarGB(gbTotal)}</span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Preço Calculation */}
-            <div
-              className="p-4 space-y-2"
-              style={{
-                backgroundColor: "#FFFFFF",
-                border: "1px solid #E0E0E0",
-                borderRadius: "12px",
-              }}
-            >
-              <h4 className="font-bold mb-3" style={{ color: "#111111" }}>
-                Valor Total
-              </h4>
+            <div className="p-4 space-y-2 bg-white border border-gray-200 rounded-2xl shadow-sm">
+              <h4 className="font-bold mb-3 text-gray-900">Valor Total</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span style={{ color: "#555555" }}>Valor por linha:</span>
-                  <span className="font-bold" style={{ color: "#111111" }}>
+                  <span className="text-gray-600">Valor por linha:</span>
+                  <span className="font-bold text-gray-900">
                     R$ {(produto.preco / 100).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span style={{ color: "#555555" }}>Quantidade:</span>
-                  <span className="font-bold" style={{ color: "#111111" }}>
-                    {quantidade}x
-                  </span>
+                  <span className="text-gray-600">Quantidade:</span>
+                  <span className="font-bold text-gray-900">{quantidade}x</span>
                 </div>
-                <div
-                  className="pt-2"
-                  style={{ borderTop: "1px solid #E0E0E0" }}
-                >
+                <div className="pt-2 border-t border-gray-200">
                   <div className="flex justify-between items-center">
-                    <span className="font-bold" style={{ color: "#111111" }}>
-                      Total:
-                    </span>
-                    <span
-                      className="text-3xl font-bold"
-                      style={{ color: "#1E90FF" }}
-                    >
+                    <span className="font-bold text-gray-900">Total:</span>
+                    <span className="text-3xl font-bold text-blue-600">
                       R$ {(precoTotal / 100).toFixed(2)}
                     </span>
                   </div>
-                  <p
-                    className="text-xs mt-1 text-right"
-                    style={{ color: "#555555" }}
-                  >
-                    /mês
-                  </p>
+                  <p className="text-xs mt-1 text-right text-gray-500">/mês</p>
                 </div>
               </div>
             </div>
 
             {/* Info adicional */}
-            <div
-              className="p-3"
-              style={{
-                backgroundColor: "rgba(30,144,255,0.1)",
-                border: "1px solid #1E90FF",
-                borderRadius: "12px",
-              }}
-            >
-              <p className="text-xs" style={{ color: "#1E90FF" }}>
-                💡 <strong>Economia:</strong> Contratando {quantidade} linhas
-                você economiza na gestão e tem melhor controle dos gastos.
+            <div className="p-3 bg-blue-50 border border-blue-500 rounded-xl">
+              <p className="text-xs text-blue-700">
+                💡 <strong>Mais linhas, menos complicação:</strong> Centralize {quantidade} linhas em uma única contratação e simplifique o dia a dia.
               </p>
             </div>
           </div>
 
           {/* Footer - Botão Contratar */}
-          <div
-            className="p-4"
-            style={{
-              borderTop: "1px solid #E0E0E0",
-              backgroundColor: "#FAFAFA",
-            }}
-          >
+          <div className="p-4 border-t border-gray-200 bg-gray-50">
             <Button
               onClick={onContratar}
-              className="w-full h-12 font-bold shadow-lg transition-all duration-300 flex items-center justify-center gap-2 border-0"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#00CFFF";
-                e.currentTarget.style.transform = "scale(1.02)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#1E90FF";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
+              className="w-full h-12 font-semibold shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-2 border-0 rounded-xl bg-blue-600 hover:bg-blue-700 text-white"
             >
               <ShoppingCart className="h-5 w-5" />
               Contratar Agora
             </Button>
-            <p
-              className="text-xs text-center mt-2"
-              style={{ color: "#555555" }}
-            >
+            <p className="text-xs text-center mt-2 text-gray-600">
               {quantidade} {quantidade === 1 ? "linha" : "linhas"} •{" "}
               {formatarGB(gbTotal)} • R$ {(precoTotal / 100).toFixed(2)}/mês
             </p>

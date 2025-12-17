@@ -6,15 +6,17 @@ export default {
   theme: {
     extend: {
       borderRadius: {
+        base: "10px", /* Design System: botões secundários, filtros, inputs, selects */
+        primary: "12px", /* Design System: botões principais (CTA) */
         DEFAULT: "0.25rem", /* 4px - cartões */
         sm: "0.25rem", /* 4px - cartões */
         md: "0.25rem", /* 4px - cartões */
         lg: "0.25rem", /* 4px - cartões */
         xl: "0.25rem", /* 4px - cartões */
         "2xl": "0.25rem", /* 4px - cartões */
-        button: "1rem", /* 16px - botões */
-        input: "0.375rem", /* 6px - inputs */
-        badge: "1.5rem", /* 24px - badges (pílula) */
+        button: "1rem", /* 16px - botões (deprecated - usar base/primary) */
+        input: "0.375rem", /* 6px - inputs (deprecated - usar base) */
+        badge: "1.5rem", /* 24px - badges/pills */
         container: "0", /* 0px - containers principais */
       },
       colors: {

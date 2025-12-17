@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { z } from "zod";
-import { eq, and, desc, sql, ilike } from "drizzle-orm";
+import { eq, and, or, desc, sql, ilike } from "drizzle-orm";
 import {
   ecommerceProducts,
   ecommerceOrders,
@@ -409,7 +409,12 @@ export function registerEcommerceRoutes(app: Express): void {
         .select()
         .from(clients)
         .where(
-          sql`(${clients.cnpj} = ${documento} OR ${clients.email} = ${emailCliente})`
+          documento 
+            ? or(
+                eq(clients.cnpj, documento),
+                eq(clients.email, emailCliente)
+              )
+            : eq(clients.email, emailCliente)
         )
         .limit(1);
 

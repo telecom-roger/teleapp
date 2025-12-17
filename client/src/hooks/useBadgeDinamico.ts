@@ -210,10 +210,6 @@ export function calcularBadgeDinamico(
 
   const badgeSelecionado = badges[0];
 
-  console.log(
-    `🏷️ Badge para "${produto.nome}": "${badgeSelecionado.texto}" (${badgeSelecionado.motivo})`
-  );
-
   return badgeSelecionado;
 }
 

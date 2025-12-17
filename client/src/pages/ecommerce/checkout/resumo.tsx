@@ -105,40 +105,27 @@ export default function CheckoutResumo() {
   const total = getTotal();
 
   return (
-    <div
-      className="min-h-screen py-8 px-4"
-      style={{ backgroundColor: "#FAFAFA" }}
-    >
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: "#111111" }}>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Resumo da Contratação
           </h1>
-          <p className="text-sm" style={{ color: "#555555" }}>
+          <p className="text-sm text-gray-600">
             Confira os planos selecionados
           </p>
         </div>
 
         {/* Se cliente está logado, mostrar mensagem */}
         {customerData?.client && (
-          <Card
-            className="mb-6"
-            style={{
-              border: "2px solid #1AD1C1",
-              backgroundColor: "rgba(26,209,193,0.05)",
-              borderRadius: "12px",
-            }}
-          >
+          <Card className="mb-6 rounded-2xl border-2 border-emerald-500 bg-emerald-500/5">
             <CardContent className="p-4 flex items-center gap-3">
-              <CheckCircle
-                className="h-5 w-5 flex-shrink-0"
-                style={{ color: "#1AD1C1" }}
-              />
+              <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-500" />
               <div>
-                <p className="font-semibold" style={{ color: "#111111" }}>
+                <p className="font-semibold text-gray-900">
                   Bem-vindo de volta, {customerData.client.nome}!
                 </p>
-                <p className="text-sm" style={{ color: "#555555" }}>
+                <p className="text-sm text-gray-600">
                   Você está logado. Prossiga para finalizar seu pedido.
                 </p>
               </div>
@@ -147,20 +134,10 @@ export default function CheckoutResumo() {
         )}
 
         {/* Itens do Carrinho */}
-        <Card
-          className="mb-6"
-          style={{
-            border: "1px solid #E0E0E0",
-            borderRadius: "16px",
-            backgroundColor: "#FFFFFF",
-          }}
-        >
+        <Card className="mb-6 rounded-2xl border border-gray-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle
-              className="flex items-center gap-2"
-              style={{ color: "#111111" }}
-            >
-              <ShoppingCart className="h-5 w-5" style={{ color: "#1E90FF" }} />
+            <CardTitle className="flex items-center gap-2 text-gray-900">
+              <ShoppingCart className="h-5 w-5 text-blue-600" />
               Planos Selecionados ({items.length}{" "}
               {items.length === 1 ? "plano" : "planos"})
             </CardTitle>
@@ -169,24 +146,12 @@ export default function CheckoutResumo() {
             {items.map((item, index) => (
               <div
                 key={`${item.product.id}-${index}`}
-                className="p-5 transition-shadow"
-                style={{
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "12px",
-                  backgroundColor: "#FFFFFF",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
+                className="p-5 rounded-xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow"
               >
                 {/* Cabeçalho do Item */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
-                    <div
-                      className="flex items-center justify-center w-8 h-8 rounded-full font-bold"
-                      style={{
-                        backgroundColor: "rgba(30,144,255,0.1)",
-                        color: "#1E90FF",
-                      }}
-                    >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold">
                       {index + 1}
                     </div>
                     <div>
@@ -220,13 +185,10 @@ export default function CheckoutResumo() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs mb-1" style={{ color: "#555555" }}>
+                    <p className="text-xs text-gray-600 mb-1">
                       Subtotal
                     </p>
-                    <p
-                      className="text-2xl font-bold"
-                      style={{ color: "#111111" }}
-                    >
+                    <p className="text-2xl font-bold text-gray-900">
                       {formatPreco(item.product.preco * item.quantidade)}
                     </p>
                   </div>
@@ -318,10 +280,7 @@ export default function CheckoutResumo() {
                     {item.quantidade} × {formatPreco(item.product.preco)}
                   </span>
                   <span>=</span>
-                  <span
-                    className="font-bold text-base"
-                    style={{ color: "#1E90FF" }}
-                  >
+                  <span className="font-bold text-base text-blue-600">
                     {formatPreco(item.product.preco * item.quantidade)}
                   </span>
                 </div>
@@ -359,28 +318,16 @@ export default function CheckoutResumo() {
             )}
 
             {/* Total */}
-            <div
-              className="pt-4 mt-4"
-              style={{ borderTop: "2px solid #E0E0E0" }}
-            >
+            <div className="pt-4 mt-4 border-t-2 border-gray-200">
               <div className="flex justify-between items-center">
-                <span
-                  className="text-xl font-bold"
-                  style={{ color: "#111111" }}
-                >
+                <span className="text-xl font-bold text-gray-900">
                   Total
                 </span>
-                <span
-                  className="text-3xl font-bold"
-                  style={{ color: "#1E90FF" }}
-                >
+                <span className="text-3xl font-bold text-blue-600">
                   {formatPreco(total)}
                 </span>
               </div>
-              <p
-                className="text-sm text-right mt-1"
-                style={{ color: "#555555" }}
-              >
+              <p className="text-sm text-gray-600 text-right mt-1">
                 Valor mensal do plano
               </p>
             </div>
@@ -389,16 +336,9 @@ export default function CheckoutResumo() {
 
         {/* Informação sobre próximos passos */}
         {!customerData?.client && (
-          <Card
-            className="mb-6"
-            style={{
-              border: "2px solid #1E90FF",
-              backgroundColor: "rgba(30,144,255,0.05)",
-              borderRadius: "12px",
-            }}
-          >
+          <Card className="mb-6 rounded-2xl border-2 border-blue-600 bg-blue-600/5">
             <CardContent className="p-4">
-              <p className="text-sm" style={{ color: "#111111" }}>
+              <p className="text-sm text-gray-900">
                 <strong>Próxima etapa:</strong> Você será direcionado para
                 informar se é Pessoa Física ou Jurídica e preencher seus dados
                 cadastrais.
@@ -408,43 +348,17 @@ export default function CheckoutResumo() {
         )}
 
         {/* Botões de Ação */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Button
             variant="outline"
             onClick={handleVoltar}
-            className="flex-1 h-12 font-semibold transition-all"
-            style={{
-              border: "1px solid #E0E0E0",
-              backgroundColor: "#FFFFFF",
-              borderRadius: "12px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = "#1E90FF";
-              e.currentTarget.style.backgroundColor = "rgba(30,144,255,0.05)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = "#E0E0E0";
-              e.currentTarget.style.backgroundColor = "#FFFFFF";
-            }}
+            className="w-full sm:flex-1 h-12 rounded-xl border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-blue-600 font-semibold transition-colors"
           >
             Adicionar Mais Produtos
           </Button>
           <Button
             onClick={handleContinuar}
-            className="flex-1 h-12 font-bold shadow-lg border-0 transition-all"
-            style={{
-              backgroundColor: "#1E90FF",
-              color: "#FFFFFF",
-              borderRadius: "12px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#00CFFF";
-              e.currentTarget.style.transform = "scale(1.02)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#1E90FF";
-              e.currentTarget.style.transform = "scale(1)";
-            }}
+            className="w-full sm:flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
           >
             Confirmar e Continuar
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -454,10 +368,10 @@ export default function CheckoutResumo() {
         {/* Link para Login */}
         {!customerData?.client && (
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-600 mb-2">Já é nosso cliente?</p>
+            <p className="text-sm text-gray-600 mb-2">Já é nosso cliente?</p>
             <a
               href="/ecommerce/login?returnTo=checkout"
-              className="inline-flex items-center justify-center px-6 py-2 border-2 border-slate-300 rounded-lg hover:bg-slate-50 transition-colors gap-2 font-medium text-sm"
+              className="inline-flex items-center justify-center px-6 py-3 h-12 rounded-xl border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-blue-600 transition-colors gap-2 font-semibold text-sm"
             >
               <User className="h-4 w-4" />
               Fazer Login

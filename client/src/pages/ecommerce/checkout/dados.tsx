@@ -63,53 +63,33 @@ export default function CheckoutDados() {
   };
 
   return (
-    <div
-      className="min-h-screen flex flex-col"
-      style={{ backgroundColor: "#FAFAFA" }}
-    >
+    <div className="min-h-screen flex flex-col bg-gray-50">
       <EcommerceHeader />
 
       <div className="flex-1 py-12 px-4">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1
-              className="text-4xl font-bold mb-3"
-              style={{ color: "#111111" }}
-            >
+            <h1 className="text-4xl font-bold mb-3 text-gray-900">
               Seus Dados
             </h1>
-            <p className="text-lg" style={{ color: "#555555" }}>
+            <p className="text-lg text-gray-600">
               Etapa 2 de 5 • Dados Cadastrais
             </p>
           </div>
 
           {/* Card do Formulário */}
-          <div
-            className="p-8"
-            style={{
-              backgroundColor: "#FFFFFF",
-              borderRadius: "16px",
-              border: "1px solid #E0E0E0",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-            }}
-          >
+          <div className="p-8 rounded-2xl bg-white border border-gray-200 shadow-sm">
             {/* Título com ícone */}
-            <div
-              className="flex items-center gap-3 mb-6 pb-6"
-              style={{ borderBottom: "2px solid #F0F0F0" }}
-            >
-              <div
-                className="p-3 rounded-full"
-                style={{ backgroundColor: "rgba(30,144,255,0.1)" }}
-              >
+            <div className="flex items-center gap-3 mb-6 pb-6 border-b-2 border-gray-100">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
                 {tipoPessoa === "PF" ? (
-                  <User className="h-6 w-6" style={{ color: "#1E90FF" }} />
+                  <User className="h-6 w-6 text-blue-600" />
                 ) : (
-                  <Building2 className="h-6 w-6" style={{ color: "#1E90FF" }} />
+                  <Building2 className="h-6 w-6 text-blue-600" />
                 )}
               </div>
-              <h2 className="text-2xl font-bold" style={{ color: "#111111" }}>
+              <h2 className="text-2xl font-bold text-gray-900">
                 Informações de{" "}
                 {tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
               </h2>
@@ -121,8 +101,7 @@ export default function CheckoutDados() {
                   <div>
                     <Label
                       htmlFor="nome"
-                      className="text-sm font-bold mb-2 block"
-                      style={{ color: "#111111" }}
+                      className="text-sm font-bold mb-2 block text-gray-900"
                     >
                       Nome Completo
                     </Label>
@@ -134,20 +113,13 @@ export default function CheckoutDados() {
                         setFormData({ ...formData, nome: e.target.value })
                       }
                       placeholder="João Silva"
-                      className="h-12 px-4 font-semibold"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#111111",
-                      }}
+                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                     />
                   </div>
                   <div>
                     <Label
                       htmlFor="documento"
-                      className="text-sm font-bold mb-2 block"
-                      style={{ color: "#111111" }}
+                      className="text-sm font-bold mb-2 block text-gray-900"
                     >
                       CPF
                     </Label>
@@ -163,13 +135,7 @@ export default function CheckoutDados() {
                       }
                       placeholder="000.000.000-00"
                       maxLength={14}
-                      className="h-12 px-4 font-semibold"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#111111",
-                      }}
+                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                     />
                   </div>
                 </>
@@ -178,8 +144,7 @@ export default function CheckoutDados() {
                   <div>
                     <Label
                       htmlFor="razaoSocial"
-                      className="text-sm font-bold mb-2 block"
-                      style={{ color: "#111111" }}
+                      className="text-sm font-bold mb-2 block text-gray-900"
                     >
                       Razão Social
                     </Label>
@@ -194,20 +159,13 @@ export default function CheckoutDados() {
                         })
                       }
                       placeholder="Empresa LTDA"
-                      className="h-12 px-4 font-semibold"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#111111",
-                      }}
+                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                     />
                   </div>
                   <div>
                     <Label
                       htmlFor="cnpj"
-                      className="text-sm font-bold mb-2 block"
-                      style={{ color: "#111111" }}
+                      className="text-sm font-bold mb-2 block text-gray-900"
                     >
                       CNPJ
                     </Label>
@@ -223,13 +181,7 @@ export default function CheckoutDados() {
                       }
                       placeholder="00.000.000/0000-00"
                       maxLength={18}
-                      className="h-12 px-4 font-semibold"
-                      style={{
-                        borderRadius: "12px",
-                        border: "2px solid #E0E0E0",
-                        backgroundColor: "#FFFFFF",
-                        color: "#111111",
-                      }}
+                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                     />
                   </div>
                 </>
@@ -238,8 +190,7 @@ export default function CheckoutDados() {
               <div>
                 <Label
                   htmlFor="email"
-                  className="text-sm font-bold mb-2 block"
-                  style={{ color: "#111111" }}
+                  className="text-sm font-bold mb-2 block text-gray-900"
                 >
                   E-mail
                 </Label>
@@ -252,21 +203,14 @@ export default function CheckoutDados() {
                     setFormData({ ...formData, email: e.target.value })
                   }
                   placeholder="contato@exemplo.com"
-                  className="h-12 px-4 font-semibold"
-                  style={{
-                    borderRadius: "12px",
-                    border: "2px solid #E0E0E0",
-                    backgroundColor: "#FFFFFF",
-                    color: "#111111",
-                  }}
+                  className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                 />
               </div>
 
               <div>
                 <Label
                   htmlFor="telefone"
-                  className="text-sm font-bold mb-2 block"
-                  style={{ color: "#111111" }}
+                  className="text-sm font-bold mb-2 block text-gray-900"
                 >
                   Telefone
                 </Label>
@@ -282,13 +226,7 @@ export default function CheckoutDados() {
                   }
                   placeholder="(00) 00000-0000"
                   maxLength={15}
-                  className="h-12 px-4 font-semibold"
-                  style={{
-                    borderRadius: "12px",
-                    border: "2px solid #E0E0E0",
-                    backgroundColor: "#FFFFFF",
-                    color: "#111111",
-                  }}
+                  className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                 />
               </div>
 
@@ -296,38 +234,14 @@ export default function CheckoutDados() {
                 <button
                   type="button"
                   onClick={voltar}
-                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                  style={{
-                    backgroundColor: "#FFFFFF",
-                    border: "2px solid #E0E0E0",
-                    color: "#555555",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "#1E90FF";
-                    e.currentTarget.style.color = "#1E90FF";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#E0E0E0";
-                    e.currentTarget.style.color = "#555555";
-                  }}
+                  className="flex-1 h-12 px-6 font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors bg-white border-2 border-gray-300 text-gray-600 hover:border-blue-600 hover:text-blue-600"
                 >
                   <ArrowLeft className="h-5 w-5" />
                   Voltar
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 h-14 px-6 font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                  style={{
-                    backgroundColor: "#1E90FF",
-                    color: "#FFFFFF",
-                    border: "none",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#1570D6";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#1E90FF";
-                  }}
+                  className="flex-1 h-12 px-6 font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Continuar
                   <ArrowRight className="h-5 w-5" />

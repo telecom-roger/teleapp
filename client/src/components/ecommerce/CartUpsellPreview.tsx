@@ -15,25 +15,46 @@ interface CartUpsellPreviewProps {
  * Mostra o primeiro SVA disponível dos produtos no carrinho
  */
 export function CartUpsellPreview({ onAccept }: CartUpsellPreviewProps) {
-  const { items, addItem, todosOsProdutos } = useCartStore();
+  const { items, addItem } = useCartStore();
   const [svaToShow, setSvaToShow] = useState<any>(null);
   const [textoAleatorio, setTextoAleatorio] = useState<string>("");
   const [dismissed, setDismissed] = useState(false);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
+
+  // Buscar todos os produtos disponíveis
+  useEffect(() => {
+    fetch("/api/ecommerce/public/products")
+      .then((res) => res.json())
+      .then((products) => {
+        setAllProducts(products);
+      })
+      .catch((err) => {
+        console.error("❌ [CART UPSELL] Erro ao carregar produtos:", err);
+      });
+  }, []);
 
   useEffect(() => {
+    if (allProducts.length === 0 || items.length === 0) {
+      return;
+    }
+    
     // Coletar todos os SVAs dos produtos no carrinho
     const allSvasIds = new Set<string>();
     
     items.forEach((item) => {
-      if (item.svasUpsell && Array.isArray(item.svasUpsell) && item.svasUpsell.length > 0) {
-        item.svasUpsell.forEach((svaId: string) => allSvasIds.add(svaId));
+      const svasArray = item.svasUpsell || item.product.svasUpsell;
+      
+      if (svasArray && Array.isArray(svasArray) && svasArray.length > 0) {
+        svasArray.forEach((svaId: string) => {
+          allSvasIds.add(svaId);
+        });
       }
     });
 
     // Remover SVAs que JÁ estão no carrinho
     const svasJaNoCarrinho = new Set(
       items
-        .filter((item) => item.categoria === "sva")
+        .filter((item) => item.product.categoria === "sva")
         .map((item) => item.product.id)
     );
 
@@ -43,10 +64,13 @@ export function CartUpsellPreview({ onAccept }: CartUpsellPreviewProps) {
       }
     });
 
-    // Pegar o primeiro SVA disponível
+    // RANDOMIZAR e pegar um SVA disponível
     if (allSvasIds.size > 0) {
-      const firstSvaId = Array.from(allSvasIds)[0];
-      const svaProduct = todosOsProdutos.find((p) => p.id === firstSvaId);
+      const svasArray = Array.from(allSvasIds);
+      const randomizedSvas = svasArray.sort(() => Math.random() - 0.5);
+      const selectedSvaId = randomizedSvas[0];
+      
+      const svaProduct = allProducts.find((p) => p.id === selectedSvaId);
       
       if (svaProduct) {
         setSvaToShow(svaProduct);
@@ -55,9 +79,14 @@ export function CartUpsellPreview({ onAccept }: CartUpsellPreviewProps) {
           formatUpsellPrice(svaProduct.preco)
         );
         setTextoAleatorio(texto);
+        
+        // Salvar no localStorage que este SVA foi mostrado no checkout
+        localStorage.setItem('lastShownUpsellCheckout', selectedSvaId);
       }
+    } else {
+      setSvaToShow(null);
     }
-  }, [items, todosOsProdutos]);
+  }, [items, allProducts]);
 
   const handleAccept = () => {
     if (svaToShow) {
@@ -84,79 +113,67 @@ export function CartUpsellPreview({ onAccept }: CartUpsellPreviewProps) {
   }
 
   return (
-    <Card className="relative overflow-hidden border-2 border-blue-200 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50 shadow-lg mb-6">
-      
-      <CardHeader className="pb-4 relative z-10">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <Sparkles className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle className="text-lg text-slate-800 font-semibold">
-                Serviço adicional disponível
-              </CardTitle>
-              <p className="text-slate-600 text-sm mt-1">
-                Opcional para complementar seu pedido
-              </p>
-            </div>
+    <Card className="border-2 border-blue-200 bg-blue-50/50">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-base text-slate-800 font-semibold">
+              Serviço adicional disponível
+            </CardTitle>
           </div>
-          <Badge variant="outline" className="border-blue-300 text-blue-700 font-medium">
+          <Badge variant="outline" className="border-blue-300 text-blue-700 text-xs">
             Opcional
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4 relative z-10">
-        {/* Card interno branco */}
-        <div className="bg-white rounded-xl p-6 shadow-inner">
-          {/* Texto contextual RANDOMIZADO */}
-          <p className="text-base text-slate-700 leading-relaxed mb-4">
-            {textoAleatorio}
-          </p>
+      <CardContent className="pt-0 pb-4">
+        {/* Texto contextual compacto */}
+        <p className="text-sm text-slate-600 mb-3">
+          {textoAleatorio}
+        </p>
 
-          {/* Detalhes do serviço */}
-          <div className="bg-white rounded-lg p-5 border border-slate-200 mb-4">
-            <div className="flex justify-between items-start">
-              <div className="flex-1">
-                <h4 className="font-semibold text-lg text-slate-900 mb-2">{svaToShow.nome}</h4>
-                {svaToShow.descricao && (
-                  <p className="text-sm text-slate-600 leading-relaxed">{svaToShow.descricao}</p>
-                )}
-              </div>
-              <div className="text-right ml-4">
-                <p className="text-xs text-slate-500 mb-1">Valor</p>
-                <p className="text-2xl font-semibold text-blue-700">
-                  {formatPreco(svaToShow.preco)}
-                </p>
-                <p className="text-xs text-slate-500 mt-1">por mês</p>
-              </div>
+        {/* Detalhes do serviço compactos */}
+        <div className="bg-white rounded-lg p-3 border border-slate-200 mb-3">
+          <div className="flex justify-between items-center">
+            <div className="flex-1">
+              <h4 className="font-semibold text-sm text-slate-900">{svaToShow.nome}</h4>
+              {svaToShow.descricao && (
+                <p className="text-xs text-slate-500 mt-1 line-clamp-1">{svaToShow.descricao}</p>
+              )}
+            </div>
+            <div className="text-right ml-3">
+              <p className="text-lg font-semibold text-blue-700">
+                {formatPreco(svaToShow.preco)}
+              </p>
+              <p className="text-xs text-slate-500">por mês</p>
             </div>
           </div>
-
-          {/* Benefícios visuais */}
-          <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg p-3 mb-4">
-            <CheckCircle className="h-4 w-4 flex-shrink-0 text-blue-600" />
-            <span>Pode ser adicionado agora ou removido depois, sem custo adicional</span>
-          </div>
-
-          {/* Botões de ação */}
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="flex-1 border border-slate-300 hover:bg-slate-50 text-slate-600"
-              onClick={handleDecline}
-            >
-              Agora não
-            </Button>
-            <Button
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors"
-              onClick={handleAccept}
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Adicionar ao pedido
-            </Button>
-          </div>
         </div>
+
+        {/* Botões de ação compactos */}
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 text-slate-600"
+            onClick={handleDecline}
+          >
+            Agora não
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleAccept}
+          >
+            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+            Adicionar
+          </Button>
+        </div>
+        
+        <p className="text-xs text-slate-500 text-center mt-2">
+          Pode ser removido depois sem custo
+        </p>
       </CardContent>
     </Card>
   );

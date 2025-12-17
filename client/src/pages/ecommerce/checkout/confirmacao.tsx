@@ -203,12 +203,67 @@ export default function CheckoutConfirmacao() {
       return response.json();
     },
     onSuccess: async (data) => {
-      // Fazer upload dos documentos se houver
+      const orderId = data.orderId;
+      
+      // 1️⃣ PRIMEIRO: Marcar SVA do checkout como "visualizado" ou "aceito" e AGUARDAR
+      const svaCheckout = localStorage.getItem('lastShownUpsellCheckout');
+      if (svaCheckout && orderId) {
+        try {
+          // Verificar se o SVA foi adicionado ao carrinho (aceito)
+          const svaFoiAceito = items.some(item => item.product.id === svaCheckout);
+          
+          console.log(`🔍 [CHECKOUT] Verificando SVA ${svaCheckout}`);
+          console.log(`   Items no carrinho:`, items.map(i => ({ id: i.product.id, nome: i.product.nome })));
+          console.log(`   Foi aceito?`, svaFoiAceito);
+          
+          if (svaFoiAceito) {
+            console.log(`✅ [CHECKOUT] SVA ${svaCheckout} foi ACEITO - marcando como aceito`);
+            const response = await fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-response`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ svaId: svaCheckout, accepted: true }),
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log(`✅ [CHECKOUT] Resposta do backend:`, result);
+            
+            // AGUARDAR um pouco para garantir que salvou no banco
+            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log(`✅ [CHECKOUT] SVA marcado como aceito - confirmado`);
+          } else {
+            console.log(`👁️ [CHECKOUT] SVA ${svaCheckout} foi apenas visualizado - marcando como oferecido`);
+            const response = await fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-viewed`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ svaId: svaCheckout }),
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Erro HTTP: ${response.status}`);
+            }
+            
+            console.log(`✅ [CHECKOUT] SVA marcado como visualizado - confirmado`);
+          }
+          
+          // Limpar do localStorage
+          localStorage.removeItem('lastShownUpsellCheckout');
+        } catch (error) {
+          console.error(`❌ [CHECKOUT] Erro ao marcar SVA:`, error);
+          // Continuar mesmo com erro - não bloquear o fluxo
+        }
+      }
+      
+      // 2️⃣ SEGUNDO: Fazer upload dos documentos se houver
       const documentosStr = localStorage.getItem("checkout-documentos");
       if (documentosStr) {
         try {
           const documentos = JSON.parse(documentosStr);
-          const orderId = data.orderId;
           
           // Mapear tipos de documentos
           const tiposDocumento: { [key: string]: string } = {
@@ -250,10 +305,13 @@ export default function CheckoutConfirmacao() {
         }
       }
       
+      // 3️⃣ TERCEIRO: Limpar dados e redirecionar
       clearCart();
       localStorage.removeItem("checkout-dados");
       localStorage.removeItem("checkout-endereco");
       localStorage.removeItem("checkout-documentos");
+      
+      console.log(`🎯 [CHECKOUT] Redirecionando para página obrigado...`);
       setLocation(`/ecommerce/checkout/obrigado?pedido=${data.orderId}`);
     },
     onError: (error: Error) => {
@@ -289,55 +347,48 @@ export default function CheckoutConfirmacao() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Confirmar Pedido</h1>
-          <p className="text-slate-600">Etapa 5 de 5 • Revisão Final</p>
+          <h1 className="text-4xl font-bold mb-3 text-gray-900">Confirmar Pedido</h1>
+          <p className="text-gray-600 text-lg">Etapa 5 de 5 • Revisão Final</p>
         </div>
-        
-        {/* 🆕 UPSELL NO CHECKOUT - Antes de finalizar */}
-        <CartUpsellPreview 
-          onAccept={(svaId) => {
-            console.log(`✅ [CHECKOUT] SVA ${svaId} adicionado ao carrinho pelo upsell`);
-          }}
-        />
         
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Seus Dados</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
+            <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-900">Seus Dados</h2>
+              </div>
+              <div className="p-6 space-y-3">
                 <div>
-                  <span className="text-sm text-slate-600">Tipo:</span>
-                  <p className="font-semibold">{tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}</p>
+                  <span className="text-sm text-gray-600">Tipo:</span>
+                  <p className="font-semibold text-gray-900">{tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-600">Nome:</span>
-                  <p className="font-semibold">{dados.nome || dados.razaoSocial}</p>
+                  <span className="text-sm text-gray-600">Nome:</span>
+                  <p className="font-semibold text-gray-900">{dados.nome || dados.razaoSocial}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-600">Documento:</span>
-                  <p className="font-semibold">{dados.documento || dados.cnpj}</p>
+                  <span className="text-sm text-gray-600">Documento:</span>
+                  <p className="font-semibold text-gray-900">{dados.documento || dados.cnpj}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-600">E-mail:</span>
-                  <p className="font-semibold">{dados.email}</p>
+                  <span className="text-sm text-gray-600">E-mail:</span>
+                  <p className="font-semibold text-gray-900">{dados.email}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-slate-600">Telefone:</span>
-                  <p className="font-semibold">{dados.telefone}</p>
+                  <span className="text-sm text-gray-600">Telefone:</span>
+                  <p className="font-semibold text-gray-900">{dados.telefone}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Endereço de Instalação</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-900">Endereço de Instalação</h2>
+              </div>
+              <div className="p-6">
                 {customerData?.client && (
                   <div className="mb-4">
                     <div className="flex items-center space-x-2">
@@ -383,7 +434,7 @@ export default function CheckoutConfirmacao() {
                         value={endereco.cep || ""}
                         onChange={(e) => setEndereco({ ...endereco, cep: formatCEP(e.target.value) })}
                         maxLength={9}
-                        className="border rounded px-3 py-2 text-sm flex-1"
+                        className="border rounded-xl px-3 py-2 text-sm flex-1 border-gray-300 focus:border-blue-500"
                       />
                       <Button
                         type="button"
@@ -404,7 +455,7 @@ export default function CheckoutConfirmacao() {
                       placeholder="Logradouro"
                       value={endereco.logradouro || ""}
                       onChange={(e) => setEndereco({ ...endereco, logradouro: e.target.value })}
-                      className="border rounded px-3 py-2 text-sm w-full"
+                      className="border rounded-xl px-3 py-2 text-sm w-full border-gray-300 focus:border-blue-500"
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <input
@@ -412,14 +463,14 @@ export default function CheckoutConfirmacao() {
                         placeholder="Número"
                         value={endereco.numero || ""}
                         onChange={(e) => setEndereco({ ...endereco, numero: e.target.value })}
-                        className="border rounded px-3 py-2 text-sm"
+                        className="border rounded-xl px-3 py-2 text-sm border-gray-300 focus:border-blue-500"
                       />
                       <input
                         type="text"
                         placeholder="Complemento (opcional)"
                         value={endereco.complemento || ""}
                         onChange={(e) => setEndereco({ ...endereco, complemento: e.target.value })}
-                        className="border rounded px-3 py-2 text-sm"
+                        className="border rounded-xl px-3 py-2 text-sm border-gray-300 focus:border-blue-500"
                       />
                     </div>
                     <input
@@ -427,7 +478,7 @@ export default function CheckoutConfirmacao() {
                       placeholder="Bairro"
                       value={endereco.bairro || ""}
                       onChange={(e) => setEndereco({ ...endereco, bairro: e.target.value })}
-                      className="border rounded px-3 py-2 text-sm w-full"
+                      className="border rounded-xl px-3 py-2 text-sm w-full border-gray-300 focus:border-blue-500"
                     />
                     <div className="grid grid-cols-2 gap-3">
                       <input
@@ -435,7 +486,7 @@ export default function CheckoutConfirmacao() {
                         placeholder="Cidade"
                         value={endereco.cidade || ""}
                         onChange={(e) => setEndereco({ ...endereco, cidade: e.target.value })}
-                        className="border rounded px-3 py-2 text-sm"
+                        className="border rounded-xl px-3 py-2 text-sm border-gray-300 focus:border-blue-500"
                       />
                       <input
                         type="text"
@@ -443,93 +494,102 @@ export default function CheckoutConfirmacao() {
                         value={endereco.estado || ""}
                         onChange={(e) => setEndereco({ ...endereco, estado: e.target.value.toUpperCase() })}
                         maxLength={2}
-                        className="border rounded px-3 py-2 text-sm"
+                        className="border rounded-xl px-3 py-2 text-sm border-gray-300 focus:border-blue-500"
                       />
                     </div>
                     {customerData?.client && (
-                      <Button
-                        variant="outline"
-                        size="sm"
+                      <button
                         onClick={() => {
                           setEditandoEndereco(false);
                         }}
-                        className="w-full"
+                        className="w-full h-10 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors"
                       >
                         Confirmar Endereço
-                      </Button>
+                      </button>
                     )}
                   </div>
                 ) : (
                   <div>
-                    <p className="font-semibold">
+                    <p className="font-semibold text-gray-900">
                       {endereco.logradouro}, {endereco.numero}
                       {endereco.complemento && ` - ${endereco.complemento}`}
                     </p>
-                    <p>{endereco.bairro}</p>
-                    <p>{endereco.cidade} - {endereco.estado}</p>
-                    <p>CEP: {endereco.cep}</p>
+                    <p className="text-gray-600">{endereco.bairro}</p>
+                    <p className="text-gray-600">{endereco.cidade} - {endereco.estado}</p>
+                    <p className="text-gray-600">CEP: {endereco.cep}</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
           
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Produtos</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
+            <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-lg font-semibold text-gray-900">Produtos</h2>
+              </div>
+              <div className="p-6 space-y-4">
                 {items.map((item) => (
                   <div key={item.product.id} className="flex justify-between items-start">
                     <div className="flex-1">
-                      <p className="font-semibold text-sm">{item.product.nome}</p>
-                      <p className="text-xs text-slate-600">
+                      <p className="font-semibold text-sm text-gray-900">{item.product.nome}</p>
+                      <p className="text-xs text-gray-600">
                         Qtd: {item.quantidade} • Op. {item.product.operadora}
                       </p>
                       {item.linhasAdicionais && item.linhasAdicionais > 0 && (
-                        <Badge variant="secondary" className="text-xs mt-1">
+                        <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-700 font-medium mt-1">
                           +{item.linhasAdicionais} linhas
-                        </Badge>
+                        </span>
                       )}
                     </div>
-                    <div className="font-bold text-sm">
+                    <div className="font-bold text-sm text-gray-900">
                       {formatPreco(item.product.preco * item.quantidade)}
                     </div>
                   </div>
                 ))}
                 
-                <div className="border-t pt-3 mt-3">
-                  <div className="flex justify-between items-center text-xl font-bold">
-                    <span>Total</span>
-                    <span>{formatPreco(total)}</span>
+                <div className="border-t pt-4 mt-4 border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xl font-bold text-gray-900">Total</span>
+                    <span className="text-3xl font-bold text-blue-600">{formatPreco(total)}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
             
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={voltar} className="flex-1" disabled={criarPedidoMutation.isPending}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Voltar
-              </Button>
-              <Button
-                onClick={confirmar}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700"
+            {/* 🆕 UPSELL NO CHECKOUT - Após produtos, antes de confirmar */}
+            <CartUpsellPreview 
+              onAccept={(svaId) => {
+                console.log(`✅ [CHECKOUT] SVA ${svaId} adicionado ao carrinho pelo upsell`);
+              }}
+            />
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={voltar}
                 disabled={criarPedidoMutation.isPending}
+                className="w-full sm:flex-1 h-12 rounded-xl border-2 border-gray-300 text-gray-600 font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </button>
+              <button
+                onClick={confirmar}
+                disabled={criarPedidoMutation.isPending}
+                className="w-full sm:flex-1 h-12 rounded-xl bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {criarPedidoMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Processando...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="mr-2 h-4 w-4" />
+                    <CheckCircle className="h-4 w-4" />
                     Confirmar Pedido
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

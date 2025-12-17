@@ -76,35 +76,37 @@ export default function CheckoutDocumentos() {
   };
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold mb-2">Documentos</h1>
-          <p className="text-slate-600">Etapa 4 de 5 • Upload de Documentos</p>
+          <h1 className="text-4xl font-bold mb-3 text-gray-900">Documentos</h1>
+          <p className="text-gray-600 text-lg">Etapa 4 de 5 • Upload de Documentos</p>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Envie seus documentos</CardTitle>
-            <p className="text-sm text-muted-foreground mt-2">
+        <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">Envie seus documentos</h2>
+            <p className="text-sm text-gray-600 mt-2">
               ℹ️ O envio de documentos não é obrigatório agora, mas poderá ser solicitado posteriormente pela nossa equipe.
             </p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+          </div>
+          <div className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <Label htmlFor="documento">{tipoPessoa === "PF" ? "CNH ou CPF/RG" : "CNH ou CPF/RG do Responsável"}</Label>
+                <label className="text-sm font-semibold text-gray-900 block mb-2">
+                  {tipoPessoa === "PF" ? "CNH ou CPF/RG" : "CNH ou CPF/RG do Responsável"}
+                </label>
                 <div className="mt-2">
-                  <label htmlFor="documento" className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
+                  <label htmlFor="documento" className="flex items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-500 transition-colors">
                     {files.documento ? (
                       <div className="flex items-center">
                         <FileText className="h-5 w-5 mr-2 text-green-600" />
-                        <span className="text-sm">{files.documento.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{files.documento.name}</span>
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <Upload className="h-5 w-5 mr-2 text-slate-400" />
-                        <span className="text-sm text-slate-600">Clique para selecionar</span>
+                        <Upload className="h-5 w-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-600">Clique para selecionar</span>
                       </div>
                     )}
                   </label>
@@ -120,18 +122,18 @@ export default function CheckoutDocumentos() {
               
               {tipoPessoa === "PJ" && (
               <div>
-                <Label htmlFor="contrato">Contrato Social</Label>
+                <label className="text-sm font-semibold text-gray-900 block mb-2">Contrato Social</label>
                 <div className="mt-2">
-                  <label htmlFor="contrato" className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
+                  <label htmlFor="contrato" className="flex items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-500 transition-colors">
                     {files.contrato ? (
                       <div className="flex items-center">
                         <FileText className="h-5 w-5 mr-2 text-green-600" />
-                        <span className="text-sm">{files.contrato.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{files.contrato.name}</span>
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <Upload className="h-5 w-5 mr-2 text-slate-400" />
-                        <span className="text-sm text-slate-600">Clique para selecionar</span>
+                        <Upload className="h-5 w-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-600">Clique para selecionar</span>
                       </div>
                     )}
                   </label>
@@ -147,18 +149,18 @@ export default function CheckoutDocumentos() {
               )}
               
               <div>
-                <Label htmlFor="comprovante">Comprovante de Endereço</Label>
+                <label className="text-sm font-semibold text-gray-900 block mb-2">Comprovante de Endereço</label>
                 <div className="mt-2">
-                  <label htmlFor="comprovante" className="flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:bg-slate-50">
+                  <label htmlFor="comprovante" className="flex items-center justify-center w-full p-6 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-500 transition-colors">
                     {files.comprovante ? (
                       <div className="flex items-center">
                         <FileText className="h-5 w-5 mr-2 text-green-600" />
-                        <span className="text-sm">{files.comprovante.name}</span>
+                        <span className="text-sm font-medium text-gray-900">{files.comprovante.name}</span>
                       </div>
                     ) : (
                       <div className="flex items-center">
-                        <Upload className="h-5 w-5 mr-2 text-slate-400" />
-                        <span className="text-sm text-slate-600">Clique para selecionar</span>
+                        <Upload className="h-5 w-5 mr-2 text-gray-400" />
+                        <span className="text-sm text-gray-600">Clique para selecionar</span>
                       </div>
                     )}
                   </label>
@@ -173,18 +175,25 @@ export default function CheckoutDocumentos() {
               </div>
               
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={voltar} className="flex-1">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                <button
+                  type="button"
+                  onClick={voltar}
+                  className="flex-1 h-12 rounded-xl border-2 border-gray-300 text-gray-600 font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
                   Voltar
-                </Button>
-                <Button type="submit" className="flex-1 bg-gradient-to-r from-purple-600 to-blue-500">
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors flex items-center justify-center gap-2"
+                >
                   Continuar
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                  <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
