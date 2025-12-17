@@ -587,6 +587,7 @@ router.get("/order-updates", requireRole(["customer"]), async (req: Request, res
         
         return {
           id: order.id,
+          orderCode: order.orderCode,
           etapa: order.etapa,
           total: order.total,
           updatedAt: order.updatedAt,

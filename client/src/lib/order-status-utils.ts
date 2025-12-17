@@ -7,6 +7,7 @@ export function formatOrderStatus(etapa: string): string {
     novo_pedido: "Pedido Recebido",
     aguardando_dados_linhas: "Aguardando Dados das Linhas",
     em_analise: "Em Análise",
+    ajuste_solicitado: "Ajuste Solicitado",
     aguardando_documentos: "Aguardando Documentos",
     validando_documentos: "Validando Documentos",
     contrato_enviado: "Contrato Enviado",

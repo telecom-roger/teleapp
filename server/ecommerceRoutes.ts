@@ -736,11 +736,21 @@ export function registerEcommerceRoutes(app: Express): void {
     isAuthenticated,
     async (req, res) => {
       try {
-        const { status } = req.body;
+        const { status, motivoAlteracao } = req.body;
+
+        const updateData: any = { 
+          etapa: status, 
+          updatedAt: new Date() 
+        };
+        
+        // Se houver motivo de alteração, salvar
+        if (motivoAlteracao !== undefined) {
+          updateData.motivoAlteracao = motivoAlteracao;
+        }
 
         const [order] = await db
           .update(ecommerceOrders)
-          .set({ etapa: status, updatedAt: new Date() })
+          .set(updateData)
           .where(eq(ecommerceOrders.id, req.params.id))
           .returning();
 

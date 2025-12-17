@@ -12,9 +12,11 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { formatOrderStatus } from "@/lib/order-status-utils";
 
 interface OrderUpdate {
   id: string;
+  orderCode?: string;
   etapa: string;
   total: number;
   updatedAt: string;
@@ -240,7 +242,7 @@ export function CustomerOrderNotifications() {
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-sm">
-                            Pedido #{order.orderCode}
+                            Pedido #{order.orderCode || order.id.slice(0, 8)}
                           </p>
                           <p className="text-xs text-gray-700">
                             {order.itemsCount}{" "}
@@ -264,7 +266,7 @@ export function CustomerOrderNotifications() {
                             order.etapa
                           )}`}
                         >
-                          {getStatusLabel(order.etapa)}
+                          {formatOrderStatus(order.etapa)}
                         </span>
                       </div>
                     </div>

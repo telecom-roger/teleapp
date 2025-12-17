@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect } from "react";
+import { formatOrderStatus } from "@/lib/order-status-utils";
 
 interface CustomerData {
   user: {
@@ -406,7 +407,7 @@ export default function CustomerDashboard() {
                                 R$ {(order.total / 100).toFixed(2)}
                               </p>
                               <p className={`text-sm ${info.color}`}>
-                                {info.label}
+                                {formatOrderStatus(order.etapa)}
                               </p>
                             </div>
                           </div>

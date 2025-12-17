@@ -93,6 +93,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
   const [slotBackup, setSlotBackup] = useState<any>(null); // Backup para reverter em caso de erro
   const [showResumo, setShowResumo] = useState(false);
   const [resumoFinalShown, setResumoFinalShown] = useState(false);
+  const [showMotivoDialog, setShowMotivoDialog] = useState(false);
+  const [motivoAlteracao, setMotivoAlteracao] = useState("");
 
   // Buscar dados do pedido para verificar status
   const { data: orderData } = useQuery({
@@ -824,36 +826,11 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 </div>
               </div>
               <Button 
-                onClick={async () => {
-                  try {
-                    // Solicitar alteração - muda status para ajuste_solicitado
-                    const res = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
-                      method: "PUT",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ status: "ajuste_solicitado" }),
-                    });
-                    
-                    if (!res.ok) {
-                      throw new Error("Erro ao solicitar alteração");
-                    }
-                    
-                    toast({
-                      title: "Solicitação enviada!",
-                      description: "Sua solicitação de alteração foi enviada para análise.",
-                    });
-                    
-                    // Refetch orders para atualizar status
-                    queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/orders`] });
-                  } catch (error: any) {
-                    toast({
-                      title: "Erro ao solicitar alteração",
-                      description: error.message,
-                      variant: "destructive",
-                    });
-                  }
+                onClick={() => {
+                  // Abrir modal para digitar motivo
+                  setShowMotivoDialog(true);
                 }}
-                className="bg-orange-600 hover:bg-orange-700 flex-shrink-0"
+                className="bg-orange-600 hover:bg-orange-700 border-0 flex-shrink-0"
                 size="sm"
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
@@ -1696,6 +1673,94 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 
                 return "Confirmar e Finalizar";
               })()}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Modal de Motivo da Solicitação de Alteração */}
+      <Dialog open={showMotivoDialog} onOpenChange={setShowMotivoDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader className="border-b pb-3">
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+              <AlertCircle className="h-5 w-5 text-orange-600" />
+              Solicitar Alteração
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-500 mt-1">
+              Descreva o motivo da solicitação para ajudar nossa equipe
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4 space-y-3">
+            <div>
+              <Label htmlFor="motivo" className="text-sm font-medium text-gray-700">
+                Motivo da alteração <span className="text-gray-400 font-normal">(opcional)</span>
+              </Label>
+              <textarea
+                id="motivo"
+                value={motivoAlteracao}
+                onChange={(e) => setMotivoAlteracao(e.target.value)}
+                placeholder="Ex: Preciso alterar o número da linha 2, pois digitei errado..."
+                className="w-full mt-2 min-h-[120px] p-3 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              />
+            </div>
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <p className="text-xs text-gray-600">
+                💡 Este campo é opcional. Você pode enviar a solicitação mesmo sem preencher, mas adicionar um motivo ajuda nossa equipe a atender mais rapidamente.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="border-t pt-4 gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowMotivoDialog(false);
+                setMotivoAlteracao("");
+              }}
+              className="text-sm"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  // Solicitar alteração - muda status para ajuste_solicitado
+                  const res = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({ 
+                      status: "ajuste_solicitado",
+                      motivoAlteracao: motivoAlteracao || null
+                    }),
+                  });
+                  
+                  if (!res.ok) {
+                    throw new Error("Erro ao solicitar alteração");
+                  }
+                  
+                  setShowMotivoDialog(false);
+                  setMotivoAlteracao("");
+                  
+                  toast({
+                    title: "Solicitação enviada!",
+                    description: "Sua solicitação de alteração foi enviada para análise.",
+                  });
+                  
+                  // Refetch orders para atualizar status
+                  queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/orders`] });
+                } catch (error: any) {
+                  toast({
+                    title: "Erro ao solicitar alteração",
+                    description: error.message,
+                    variant: "destructive",
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-sm"
+            >
+              Enviar Solicitação
             </Button>
           </DialogFooter>
         </DialogContent>
