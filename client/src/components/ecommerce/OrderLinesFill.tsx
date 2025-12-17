@@ -108,9 +108,14 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
     return currentOrder?.etapa === "em_analise" || currentOrder?.etapa === "ajuste_solicitado";
   }, [currentOrder?.etapa]);
   
+  const isAjusteSolicitado = useMemo(() => {
+    return currentOrder?.etapa === "ajuste_solicitado";
+  }, [currentOrder?.etapa]);
+  
   const canEdit = useMemo(() => {
-    return !isEmAnalise;
-  }, [isEmAnalise]);
+    // Pode editar se NÃO estiver em análise OU se for ajuste solicitado (liberado para edição)
+    return currentOrder?.etapa !== "em_analise";
+  }, [currentOrder?.etapa]);
   
   // Log para debug
   console.log('🔍 DEBUG STATUS:', {
@@ -401,12 +406,31 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
         updateSlot(slotIndex, "isEditing", false);
       }
       
-      // Se já havia mostrado o resumo final e o cliente editou, mostrar novamente
-      if (resumoFinalShown) {
-        const allSaved = slots.every(s => s.saved || !s.filled);
-        if (allSaved) {
-          setTimeout(() => setShowResumo(true), 500);
-        }
+      // Verificar se todas as linhas estão salvas
+      const allSaved = slots.every(s => s.saved || !s.filled);
+      
+      // Debug: verificar condições
+      console.log('🔍 Update Success - Verificando se deve mostrar popup:', {
+        resumoFinalShown,
+        isAjusteSolicitado,
+        etapa: currentOrder?.etapa,
+        allSaved,
+        slots: slots.map(s => ({ saved: s.saved, filled: s.filled }))
+      });
+      
+      // Mostrar popup se:
+      // 1. Estava em ajuste_solicitado (edição após análise) OU
+      // 2. Já havia mostrado o resumo antes (edição após finalização) OU
+      // 3. SEMPRE que atualizar e todas as linhas estiverem preenchidas
+      const shouldShowResumo = isAjusteSolicitado || resumoFinalShown || allSaved;
+      
+      console.log('✅ Vai mostrar resumo?', { shouldShowResumo, allSaved });
+      
+      if (shouldShowResumo && allSaved) {
+        setTimeout(() => {
+          console.log('🎯 Abrindo popup de resumo');
+          setShowResumo(true);
+        }, 500);
       }
       
       toast({
@@ -788,7 +812,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
   return (
     <div className="space-y-4">
       {/* Aviso quando pedido está em análise com botão Solicitar Alteração */}
-      {isEmAnalise && (
+      {currentOrder?.etapa === "em_analise" && (
         <Card className="border-blue-200 bg-blue-50">
           <CardContent className="p-4">
             <div className="flex items-center justify-between gap-3">
@@ -834,6 +858,34 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
               >
                 <AlertCircle className="h-4 w-4 mr-2" />
                 Solicitar Alteração
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Aviso quando ajuste foi solicitado e liberado para edição */}
+      {isAjusteSolicitado && (
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 flex-1">
+                <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-green-900">Pedido Liberado para Ajustes</p>
+                  <p className="text-xs text-green-700">Faça as alterações necessárias e clique em "Finalizar Alterações" quando terminar.</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => {
+                  // Abrir popup de resumo para reenviar
+                  setShowResumo(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                size="sm"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Finalizar Alterações
               </Button>
             </div>
           </CardContent>
@@ -1375,7 +1427,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       </div>
 
       {/* Footer com ações */}
-      {onClose && !isEmAnalise && (
+      {onClose && currentOrder?.etapa !== "em_analise" && !isAjusteSolicitado && (
         <div className="flex justify-end gap-3 pt-4">
           <Button 
             variant="outline" 
@@ -1636,6 +1688,12 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 if (svasNaoUsados > 0) {
                   return `Adicione os ${svasNaoUsados} SVA(s) restante(s)`;
                 }
+                
+                // Texto diferente se for reenvio após ajuste
+                if (isAjusteSolicitado) {
+                  return "Reenviar para Análise";
+                }
+                
                 return "Confirmar e Finalizar";
               })()}
             </Button>
