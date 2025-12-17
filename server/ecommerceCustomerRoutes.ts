@@ -628,4 +628,219 @@ router.get("/documents/download/:filename", async (req: Request, res: Response) 
   }
 });
 
-export default router;
+/**
+ * GET /api/ecommerce/customer/orders/:orderId/next-upsell
+ * Retorna próximo SVA elegível para oferecer ao cliente
+ * Regra: lista ordenada, consome próximo não oferecido, limite máximo de ofertas
+ */
+router.get("/orders/:orderId/next-upsell", requireRole(["customer"]), async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    const { orderId } = req.params;
+    const LIMITE_OFERTAS = 3; // Máximo de ofertas por pedido
+
+    // Buscar pedido do cliente
+    const [order] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(
+        and(
+          eq(ecommerceOrders.id, orderId),
+          eq(ecommerceOrders.clientId, user.clientId)
+        )
+      );
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Verificar limite de ofertas
+    const totalOfertas = order.upsellsOffered?.length || 0;
+    if (totalOfertas >= LIMITE_OFERTAS) {
+      return res.json({ upsell: null, reason: "limit_reached" });
+    }
+
+    // Buscar itens do pedido
+    const items = await db
+      .select()
+      .from(ecommerceOrderItems)
+      .where(eq(ecommerceOrderItems.orderId, orderId));
+
+    // Coletar todos os SVAs disponíveis dos produtos (manter ordem)
+    const allSvasAvailable: string[] = [];
+    const svasData = new Map(); // Armazena dados do SVA (textos, nome, preço)
+
+    for (const item of items) {
+      const [product] = await db
+        .select()
+        .from(ecommerceProducts)
+        .where(eq(ecommerceProducts.id, item.productId));
+
+      if (product?.svasUpsell && product.svasUpsell.length > 0) {
+        // Adicionar SVAs na ordem definida no produto
+        for (const svaId of product.svasUpsell) {
+          if (!allSvasAvailable.includes(svaId)) {
+            allSvasAvailable.push(svaId);
+            // Buscar dados do SVA
+            const [sva] = await db
+              .select()
+              .from(ecommerceProducts)
+              .where(eq(ecommerceProducts.id, svaId));
+            
+            if (sva) {
+              svasData.set(svaId, {
+                id: sva.id,
+                nome: sva.nome,
+                descricao: sva.descricao,
+                preco: sva.preco,
+                textosUpsell: product.textosUpsell || [],
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Filtrar SVAs já oferecidos
+    const offered = order.upsellsOffered || [];
+    const svasElegiveis = allSvasAvailable.filter(svaId => !offered.includes(svaId));
+
+    // Retornar primeiro elegível
+    if (svasElegiveis.length === 0) {
+      return res.json({ upsell: null, reason: "no_more_svas" });
+    }
+
+    const nextSvaId = svasElegiveis[0];
+    const nextSvaData = svasData.get(nextSvaId);
+
+    if (!nextSvaData) {
+      return res.json({ upsell: null, reason: "sva_not_found" });
+    }
+
+    // Determinar momento (qual texto usar)
+    const momento = totalOfertas; // 0 = checkout, 1 = pós-checkout, 2 = painel
+    const textos = nextSvaData.textosUpsell;
+    const textoMomento = textos[momento] || textos[0] || `Aproveite: ${nextSvaData.nome}`;
+
+    res.json({
+      upsell: {
+        id: nextSvaData.id,
+        nome: nextSvaData.nome,
+        descricao: nextSvaData.descricao,
+        preco: nextSvaData.preco,
+        texto: textoMomento,
+        momento: momento === 0 ? 'checkout' : momento === 1 ? 'pos-checkout' : 'painel',
+      },
+    });
+  } catch (error: any) {
+    console.error("Erro ao buscar próximo upsell:", error);
+    res.status(500).json({ error: "Erro ao buscar upsell" });
+  }
+});
+
+/**
+ * POST /api/ecommerce/customer/orders/:orderId/upsell-response
+ * Registra resposta do cliente ao upsell (aceitar/recusar)
+ */
+router.post("/orders/:orderId/upsell-response", requireRole(["customer"]), async (req: Request, res: Response) => {
+  try {
+    const user = req.user as any;
+    const { orderId } = req.params;
+    const { svaId, accepted } = req.body;
+
+    if (!svaId || typeof accepted !== "boolean") {
+      return res.status(400).json({ error: "svaId e accepted são obrigatórios" });
+    }
+
+    // Buscar pedido
+    const [order] = await db
+      .select()
+      .from(ecommerceOrders)
+      .where(
+        and(
+          eq(ecommerceOrders.id, orderId),
+          eq(ecommerceOrders.clientId, user.clientId)
+        )
+      );
+
+    if (!order) {
+      return res.status(404).json({ error: "Pedido não encontrado" });
+    }
+
+    // Atualizar arrays de tracking
+    const offered = order.upsellsOffered || [];
+    const acceptedList = order.upsellsAccepted || [];
+    const refusedList = order.upsellsRefused || [];
+
+    // Adicionar aos oferecidos se ainda não está
+    if (!offered.includes(svaId)) {
+      offered.push(svaId);
+    }
+
+    // Adicionar à lista apropriada
+    if (accepted) {
+      if (!acceptedList.includes(svaId)) {
+        acceptedList.push(svaId);
+      }
+      
+      // Se aceito, adicionar ao pedido
+      const [sva] = await db
+        .select()
+        .from(ecommerceProducts)
+        .where(eq(ecommerceProducts.id, svaId));
+
+      if (sva) {
+        await db.insert(ecommerceOrderItems).values({
+          orderId,
+          productId: sva.id,
+          quantity: 1,
+          preco: sva.preco,
+        });
+
+        // Atualizar total do pedido
+        const newTotal = order.total + sva.preco;
+        await db
+          .update(ecommerceOrders)
+          .set({
+            total: newTotal,
+            upsellsOffered: offered,
+            upsellsAccepted: acceptedList,
+            upsellsRefused: refusedList,
+            updatedAt: new Date(),
+          })
+          .where(eq(ecommerceOrders.id, orderId));
+
+        return res.json({ 
+          success: true, 
+          message: "Upsell aceito e adicionado ao pedido",
+          newTotal,
+        });
+      }
+    } else {
+      if (!refusedList.includes(svaId)) {
+        refusedList.push(svaId);
+      }
+
+      await db
+        .update(ecommerceOrders)
+        .set({
+          upsellsOffered: offered,
+          upsellsAccepted: acceptedList,
+          upsellsRefused: refusedList,
+          updatedAt: new Date(),
+        })
+        .where(eq(ecommerceOrders.id, orderId));
+
+      return res.json({ 
+        success: true, 
+        message: "Resposta registrada",
+      });
+    }
+
+    res.json({ success: true });
+  } catch (error: any) {
+    console.error("Erro ao processar resposta de upsell:", error);
+    res.status(500).json({ error: "Erro ao processar resposta" });
+  }
+});
+

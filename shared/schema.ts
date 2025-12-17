@@ -1243,6 +1243,9 @@ export const ecommerceOrders = pgTable(
     tipoContratacao: varchar("tipo_contratacao", { length: 50 }), // linha_nova, portabilidade, migracao, upgrade
     execucaoTipo: varchar("execucao_tipo", { length: 50 }), // instalacao, entrega, ativacao_remota, provisionamento, outro
     motivoAlteracao: text("motivo_alteracao"), // Motivo quando cliente solicita alteração
+    upsellsOffered: text("upsells_offered").array().default(sql`ARRAY[]::text[]`), // SVAs já oferecidos neste pedido
+    upsellsAccepted: text("upsells_accepted").array().default(sql`ARRAY[]::text[]`), // SVAs aceitos pelo cliente
+    upsellsRefused: text("upsells_refused").array().default(sql`ARRAY[]::text[]`), // SVAs recusados pelo cliente
     subtotal: integer("subtotal").notNull().default(0), // em centavos
     total: integer("total").notNull().default(0), // em centavos
     taxaInstalacao: integer("taxa_instalacao").notNull().default(0), // em centavos

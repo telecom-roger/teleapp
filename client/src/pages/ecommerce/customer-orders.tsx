@@ -25,6 +25,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { UpsellCard } from "@/components/ecommerce/UpsellCard";
 
 interface Order {
   id: string;
@@ -430,6 +431,9 @@ export default function CustomerOrders() {
                 </Card>
               ) : orderDetail ? (
                 <>
+                  {/* Card de Upsell - Mostrar primeiro para chamar atenção */}
+                  <UpsellCard orderId={orderDetail.id} momento="painel" />
+
                   <Card>
                     <CardHeader>
                       <div className="flex items-start justify-between">

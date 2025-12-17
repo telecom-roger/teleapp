@@ -71,48 +71,10 @@ export function CartSidebar() {
     });
   };
 
-  // Função para abrir modal de upsell
+  // Função para abrir modal de upsell (versão inteligente - mostra apenas 1 SVA)
   const handleIrParaCheckout = () => {
-    // Coletar todos os SVAs únicos dos produtos no carrinho (baseado nos produtos principais)
-    const svasIds = new Set<string>();
-    let textosColetados: string[] = [];
-
-    items.forEach((item) => {
-      // SÓ oferece SVA se o produto tem svasUpsell definido
-      if (item.svasUpsell && Array.isArray(item.svasUpsell) && item.svasUpsell.length > 0) {
-        item.svasUpsell.forEach((svaId: string) => svasIds.add(svaId));
-        // Coletar todos os textos encontrados
-        if (item.textosUpsell && item.textosUpsell.length > 0) {
-          textosColetados = [...textosColetados, ...item.textosUpsell];
-        }
-      }
-    });
-
-    // Remover SVAs que já estão no carrinho
-    const svasJaNoCarrinho = new Set(
-      items
-        .filter((item) => item.categoria === "sva")
-        .map((item) => item.product.id)
-    );
-    svasIds.forEach((id) => {
-      if (svasJaNoCarrinho.has(id)) {
-        svasIds.delete(id);
-      }
-    });
-
-    // Buscar produtos dos SVAs (excluindo os que já estão no carrinho)
-    const svasProdutos = todosOsProdutos.filter((p) => svasIds.has(p.id));
-
-    if (svasProdutos.length > 0) {
-      setSvasParaOferecer(svasProdutos);
-      setTextosUpsellAtuais(
-        textosColetados.length > 0 ? textosColetados : null
-      );
-      setUpsellModalAberto(true);
-    } else {
-      // Ir direto para checkout se não houver SVAs para oferecer
-      window.location.href = "/ecommerce/checkout";
-    }
+    // Ir direto para checkout - o upsell será carregado lá via API
+    window.location.href = "/ecommerce/checkout";
   };
 
   const handleAdicionarSvas = (svaIds: string[]) => {

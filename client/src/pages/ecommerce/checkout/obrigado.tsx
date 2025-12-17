@@ -5,6 +5,7 @@ import { Link, useLocation } from "wouter";
 import { CheckCircle, Package, Mail, ArrowRight } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { UpsellCard } from "@/components/ecommerce/UpsellCard";
 
 export default function CheckoutObrigado() {
   const [pedidoId, setPedidoId] = useState<string>("");
@@ -32,7 +33,8 @@ export default function CheckoutObrigado() {
 
   return (
     <div className="min-h-screen py-8 px-4" style={{ background: "#FAFAFA" }}>
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Card de confirmação */}
         <Card
           className="overflow-hidden"
           style={{
@@ -170,6 +172,9 @@ export default function CheckoutObrigado() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Card de upsell pós-checkout */}
+        {pedidoId && <UpsellCard orderId={pedidoId} momento="pos-checkout" />}
       </div>
     </div>
   );
