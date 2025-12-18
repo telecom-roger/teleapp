@@ -66,7 +66,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Desabilitado até configurar HTTPS
       maxAge: sessionTtl,
     },
   });
@@ -100,7 +100,7 @@ export async function setupAuth(app: Express) {
         saveUninitialized: false,
         cookie: {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: false, // Desabilitado até configurar HTTPS
           maxAge: sessionTtl,
         },
       });
@@ -113,7 +113,7 @@ export async function setupAuth(app: Express) {
         saveUninitialized: false,
         cookie: {
           httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
+          secure: false, // Desabilitado até configurar HTTPS
           maxAge: sessionTtl,
         },
       });
