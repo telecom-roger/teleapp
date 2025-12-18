@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { sql, relations } from "drizzle-orm";
 import {
   index,
   jsonb,
@@ -1108,6 +1108,30 @@ export type InsertEcommerceCategory = z.infer<
   typeof insertEcommerceCategorySchema
 >;
 
+// E-commerce Product Categories (Many-to-Many Relationship)
+export const ecommerceProductCategories = pgTable(
+  "ecommerce_product_categories",
+  {
+    productId: varchar("product_id")
+      .notNull()
+      .references(() => ecommerceProducts.id, { onDelete: "cascade" }),
+    categorySlug: varchar("category_slug", { length: 50 })
+      .notNull()
+      .references(() => ecommerceCategories.slug, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow(),
+  },
+  (table) => [
+    // Chave primária composta
+    {
+      primaryKey: { columns: [table.productId, table.categorySlug] },
+    },
+    index("idx_product_categories_product").on(table.productId),
+    index("idx_product_categories_category").on(table.categorySlug),
+  ]
+);
+
+export type EcommerceProductCategory = typeof ecommerceProductCategories.$inferSelect;
+
 // ==================== E-COMMERCE ADICIONAIS (Produtos complementares) ====================
 export const ecommerceAdicionais = pgTable(
   "ecommerce_adicionais",
@@ -1476,3 +1500,29 @@ export type EcommerceOrderLine = typeof ecommerceOrderLines.$inferSelect;
 export type InsertEcommerceOrderLine = z.infer<
   typeof insertEcommerceOrderLineSchema
 >;
+
+// ==================== RELATIONS ====================
+// Relations para ecommerceProducts
+export const ecommerceProductsRelations = relations(ecommerceProducts, ({ many }) => ({
+  productCategories: many(ecommerceProductCategories),
+}));
+
+// Relations para ecommerceCategories
+export const ecommerceCategoriesRelations = relations(ecommerceCategories, ({ many }) => ({
+  productCategories: many(ecommerceProductCategories),
+}));
+
+// Relations para ecommerceProductCategories
+export const ecommerceProductCategoriesRelations = relations(
+  ecommerceProductCategories,
+  ({ one }) => ({
+    product: one(ecommerceProducts, {
+      fields: [ecommerceProductCategories.productId],
+      references: [ecommerceProducts.id],
+    }),
+    category: one(ecommerceCategories, {
+      fields: [ecommerceProductCategories.categorySlug],
+      references: [ecommerceCategories.slug],
+    }),
+  })
+);

@@ -185,7 +185,8 @@ export default function EcommercePlanos() {
         categoriasUrl.length > 0 ||
         operadorasUrl.length > 0 ||
         pessoaUrl ||
-        linhasUrl;
+        linhasUrl ||
+        modalidadeUrl;
 
       if (temFiltrosNaUrl) {
         // Atualizar contexto ativo com valores da URL
@@ -197,6 +198,13 @@ export default function EcommercePlanos() {
           fibra: categoriasUrl.includes("fibra"),
           combo: categoriasUrl.includes("combo"),
         });
+
+        // Aplicar modalidade da URL ao tipo de contratação
+        if (modalidadeUrl === "portabilidade") {
+          setTipoContratacao("portabilidade");
+        } else if (modalidadeUrl === "novo") {
+          setTipoContratacao("linha_nova");
+        }
 
         // Se linhas >= 10, ativar campo personalizado
         const linhasNumero = linhasUrl ? Number(linhasUrl) : 0;
@@ -216,6 +224,7 @@ export default function EcommercePlanos() {
     pessoaUrl,
     operadorasUrl.join(","),
     linhasUrl,
+    modalidadeUrl,
     filtrosCarregadosDaUrl,
   ]);
 

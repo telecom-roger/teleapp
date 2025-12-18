@@ -58,6 +58,7 @@ export default function AdminProdutos() {
   const [editando, setEditando] = useState<EcommerceProduct | null>(null);
   const [svasSelecionados, setSvasSelecionados] = useState<string[]>([]);
   const [textosUpsell, setTextosUpsell] = useState<string[]>([""]);
+  const [categoriasSelecionadas, setCategoriasSelecionadas] = useState<string[]>([]);
 
   // Filtros
   const [busca, setBusca] = useState("");
@@ -157,10 +158,21 @@ export default function AdminProdutos() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
+    // Validar categorias
+    if (categoriasSelecionadas.length === 0) {
+      toast({ 
+        title: "Erro", 
+        description: "Selecione pelo menos uma categoria",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const data = {
       nome: formData.get("nome") as string,
       descricao: formData.get("descricao") as string,
-      categoria: formData.get("categoria") as string,
+      categoria: categoriasSelecionadas[0], // Primeira categoria como principal (para retrocompatibilidade)
+      categorias: categoriasSelecionadas, // Array de todas as categorias
       operadora: formData.get("operadora") as string,
       velocidade: (formData.get("velocidade") as string) || null,
       franquia: (formData.get("franquia") as string) || null,
@@ -204,6 +216,7 @@ export default function AdminProdutos() {
     // DEBUG: Mostrar dados antes de enviar
     console.log("📤 Enviando dados:", {
       ...data,
+      categorias: data.categorias,
       textosUpsell: data.textosUpsell,
       svasUpsell: data.svasUpsell,
       permiteCalculadoraLinhas: data.permiteCalculadoraLinhas,
@@ -332,6 +345,7 @@ export default function AdminProdutos() {
             onClick={() => {
               setEditando(null);
               setSvasSelecionados([]);
+              setCategoriasSelecionadas([]);
               setTextosUpsell([""]);
               setDialogOpen(true);
             }}
@@ -783,6 +797,8 @@ export default function AdminProdutos() {
                           onClick={() => {
                             setEditando(produto);
                             setSvasSelecionados(produto.svasUpsell || []);
+                            // @ts-ignore - categorias pode não existir em produtos antigos
+                            setCategoriasSelecionadas(produto.categorias || [produto.categoria]);
                             // @ts-ignore - textosUpsell pode não existir em produtos antigos
                             setTextosUpsell(
                               produto.textosUpsell &&
@@ -928,23 +944,40 @@ export default function AdminProdutos() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Categoria</Label>
-                <Select
-                  name="categoria"
-                  defaultValue={editando?.categoria || ""}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categorias.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.slug}>
+              <div className="space-y-3">
+                <Label>Categorias (selecione uma ou mais)</Label>
+                <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
+                  {categorias.map((cat) => (
+                    <div key={cat.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`cat-${cat.slug}`}
+                        checked={categoriasSelecionadas.includes(cat.slug)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCategoriasSelecionadas([...categoriasSelecionadas, cat.slug]);
+                          } else {
+                            setCategoriasSelecionadas(
+                              categoriasSelecionadas.filter((c) => c !== cat.slug)
+                            );
+                          }
+                        }}
+                        className="rounded border-gray-300"
+                      />
+                      <label
+                        htmlFor={`cat-${cat.slug}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                      >
                         {cat.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {categoriasSelecionadas.length === 0 && (
+                  <p className="text-sm text-red-500">
+                    Selecione pelo menos uma categoria
+                  </p>
+                )}
               </div>
 
               <div>

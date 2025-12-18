@@ -3,6 +3,7 @@ import { db } from "./db";
 import {
   ecommerceCategories,
   ecommerceProducts,
+  ecommerceProductCategories,
   ecommerceAdicionais,
   ecommerceBanners,
 } from "@shared/schema";
@@ -50,7 +51,24 @@ router.get("/products", async (req: Request, res: Response) => {
       .where(and(...conditions))
       .orderBy(asc(ecommerceProducts.ordem), asc(ecommerceProducts.nome));
 
-    res.json(products);
+    // Buscar categorias para cada produto
+    const productsWithCategories = await Promise.all(
+      products.map(async (product) => {
+        const categories = await db
+          .select({
+            slug: ecommerceProductCategories.categorySlug,
+          })
+          .from(ecommerceProductCategories)
+          .where(eq(ecommerceProductCategories.productId, product.id));
+
+        return {
+          ...product,
+          categorias: categories.map((c) => c.slug),
+        };
+      })
+    );
+
+    res.json(productsWithCategories);
   } catch (error: any) {
     console.error("Erro ao buscar produtos públicos:", error);
     res.status(500).json({ error: "Erro ao buscar produtos" });

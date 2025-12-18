@@ -3,6 +3,7 @@ import { z } from "zod";
 import { eq, and, or, desc, sql, ilike } from "drizzle-orm";
 import {
   ecommerceProducts,
+  ecommerceProductCategories,
   ecommerceOrders,
   ecommerceOrderItems,
   ecommerceStages,
@@ -125,7 +126,24 @@ export function registerEcommerceRoutes(app: Express): void {
           : ecommerceProducts.ordem
       );
 
-      res.json(produtos);
+      // Buscar categorias para cada produto
+      const produtosComCategorias = await Promise.all(
+        produtos.map(async (produto) => {
+          const categorias = await db
+            .select({
+              slug: ecommerceProductCategories.categorySlug,
+            })
+            .from(ecommerceProductCategories)
+            .where(eq(ecommerceProductCategories.productId, produto.id));
+
+          return {
+            ...produto,
+            categorias: categorias.map((c) => c.slug),
+          };
+        })
+      );
+
+      res.json(produtosComCategorias);
     } catch (error) {
       console.error("Erro ao listar produtos:", error);
       res.status(500).json({ error: "Erro ao listar produtos" });
@@ -145,7 +163,18 @@ export function registerEcommerceRoutes(app: Express): void {
         return res.status(404).json({ error: "Produto não encontrado" });
       }
 
-      res.json(produto);
+      // Buscar categorias do produto
+      const categorias = await db
+        .select({
+          slug: ecommerceProductCategories.categorySlug,
+        })
+        .from(ecommerceProductCategories)
+        .where(eq(ecommerceProductCategories.productId, produto.id));
+
+      res.json({
+        ...produto,
+        categorias: categorias.map((c) => c.slug),
+      });
     } catch (error) {
       console.error("Erro ao buscar produto:", error);
       res.status(500).json({ error: "Erro ao buscar produto" });
@@ -155,12 +184,23 @@ export function registerEcommerceRoutes(app: Express): void {
   // POST /api/ecommerce/products - Criar produto (admin)
   app.post("/api/ecommerce/products", isAuthenticated, async (req, res) => {
     try {
-      const data = insertEcommerceProductSchema.parse(req.body);
+      const { categorias, ...data } = req.body;
+      const parsedData = insertEcommerceProductSchema.parse(data);
 
       const [produto] = await db
         .insert(ecommerceProducts)
-        .values(data)
+        .values(parsedData)
         .returning();
+
+      // Salvar categorias na tabela de relacionamento
+      if (categorias && Array.isArray(categorias) && categorias.length > 0) {
+        await db.insert(ecommerceProductCategories).values(
+          categorias.map((categorySlug: string) => ({
+            productId: produto.id,
+            categorySlug,
+          }))
+        );
+      }
 
       res.json(produto);
     } catch (error: any) {
@@ -172,16 +212,35 @@ export function registerEcommerceRoutes(app: Express): void {
   // PUT /api/ecommerce/products/:id - Atualizar produto (admin)
   app.put("/api/ecommerce/products/:id", isAuthenticated, async (req, res) => {
     try {
-      const data = insertEcommerceProductSchema.partial().parse(req.body);
+      const { categorias, ...data } = req.body;
+      const parsedData = insertEcommerceProductSchema.partial().parse(data);
 
       const [produto] = await db
         .update(ecommerceProducts)
-        .set({ ...data, updatedAt: new Date() })
+        .set({ ...parsedData, updatedAt: new Date() })
         .where(eq(ecommerceProducts.id, req.params.id))
         .returning();
 
       if (!produto) {
         return res.status(404).json({ error: "Produto não encontrado" });
+      }
+
+      // Atualizar categorias: deletar antigas e inserir novas
+      if (categorias && Array.isArray(categorias)) {
+        // Deletar categorias antigas
+        await db
+          .delete(ecommerceProductCategories)
+          .where(eq(ecommerceProductCategories.productId, req.params.id));
+
+        // Inserir novas categorias
+        if (categorias.length > 0) {
+          await db.insert(ecommerceProductCategories).values(
+            categorias.map((categorySlug: string) => ({
+              productId: req.params.id,
+              categorySlug,
+            }))
+          );
+        }
       }
 
       res.json(produto);
