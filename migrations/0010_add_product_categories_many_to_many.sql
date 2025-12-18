@@ -14,9 +14,8 @@ ALTER TABLE "ecommerce_product_categories"
   ADD CONSTRAINT "ecommerce_product_categories_product_id_ecommerce_products_id_fk" 
   FOREIGN KEY ("product_id") REFERENCES "ecommerce_products"("id") ON DELETE CASCADE;
 
-ALTER TABLE "ecommerce_product_categories" 
-  ADD CONSTRAINT "ecommerce_product_categories_category_slug_ecommerce_categories_slug_fk" 
-  FOREIGN KEY ("category_slug") REFERENCES "ecommerce_categories"("slug") ON DELETE CASCADE;
+-- Nota: Não adicionar FK para category_slug por enquanto, pois slug não tem UNIQUE constraint
+-- A integridade será mantida pela aplicação
 
 -- 3. Criar índices para performance
 CREATE INDEX IF NOT EXISTS "idx_product_categories_product" ON "ecommerce_product_categories" ("product_id");

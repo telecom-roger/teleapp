@@ -217,6 +217,9 @@ export default function AdminProdutos() {
     console.log("📤 Enviando dados:", {
       ...data,
       categorias: data.categorias,
+      categoriasLength: data.categorias?.length,
+      categoriasType: typeof data.categorias,
+      categoriasIsArray: Array.isArray(data.categorias),
       textosUpsell: data.textosUpsell,
       svasUpsell: data.svasUpsell,
       permiteCalculadoraLinhas: data.permiteCalculadoraLinhas,

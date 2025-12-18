@@ -339,7 +339,7 @@ export function FiltrosHierarquicos(props: FiltrosHierarquicosProps) {
             onClick={limparFiltros}
             variant="outline"
             size="sm"
-            className="h-10 px-6 hidden sm:block font-medium"
+            className="h-10 px-6 font-medium"
           >
             Recomeçar
           </Button>

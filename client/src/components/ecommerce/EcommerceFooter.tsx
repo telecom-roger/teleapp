@@ -16,7 +16,7 @@ export function EcommerceFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="font-bold text-lg mb-4">TelePlanos</h3>
+            <h3 className="font-bold text-lg mb-4">Telenext</h3>
             <p className="text-sm text-slate-600 mb-4">
               Compare e contrate os melhores planos de telecom do mercado.
               Transparência e facilidade para você.
@@ -132,13 +132,14 @@ export function EcommerceFooter() {
           </div>
         </div>
 
-        <div className="border-t mt-8 pt-8 text-center text-sm text-slate-600">
-          <p className="mb-2">
-            Esta plataforma realiza comparação de planos entre operadoras.
-          </p>
-          <p>
-            © {new Date().getFullYear()} TelePlanos. Todos os direitos
-            reservados.
+        <div className="border-t mt-8 pt-8 text-center">
+          <div className="text-xs text-slate-500 leading-relaxed mb-3 space-y-1">
+            <p>Esta plataforma atua como consultor independente.</p>
+            <p>As marcas Vivo, Claro e TIM pertencem aos seus respectivos titulares.</p>
+            <p>A contratação dos serviços é feita exclusivamente através de parceiros autorizados.</p>
+          </div>
+          <p className="text-sm text-slate-600">
+            © {new Date().getFullYear()} Telenext. Todos os direitos reservados.
           </p>
         </div>
       </div>

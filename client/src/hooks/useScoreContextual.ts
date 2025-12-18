@@ -61,7 +61,12 @@ export function calcularScoreContextual(
 
   // Categoria selecionada (10 pontos)
   if (contextoAtivo.categorias.length > 0) {
-    if (contextoAtivo.categorias.includes(produto.categoria)) {
+    // Verificar se alguma categoria do produto está no contexto
+    const produtoCategorias = (produto as any).categorias || [produto.categoria];
+    const temMatch = produtoCategorias.some((cat: string) => 
+      contextoAtivo.categorias.includes(cat)
+    );
+    if (temMatch) {
       pontuacaoContextoAtivo += 10;
     }
   }
@@ -105,26 +110,36 @@ export function calcularScoreContextual(
   }
 
   // Tempo gasto na categoria deste plano (até 8 pontos)
-  const tempoCategoriaMs = sinais.tempoPorCategoria[produto.categoria] || 0;
-  if (tempoCategoriaMs > 60000) {
+  const produtoCategorias = (produto as any).categorias || [produto.categoria];
+  const tempoMaxCategoria = Math.max(
+    ...produtoCategorias.map((cat: string) => sinais.tempoPorCategoria[cat] || 0)
+  );
+  if (tempoMaxCategoria > 60000) {
     pontuacaoSinais += 8; // +1 minuto
-  } else if (tempoCategoriaMs > 30000) {
+  } else if (tempoMaxCategoria > 30000) {
     pontuacaoSinais += 4; // +30 segundos
   }
 
   // Interesse em fibra + plano é fibra (4 pontos)
-  if (
-    sinais.interesseFibra > 0 &&
-    ["fibra", "combo"].includes(produto.categoria)
-  ) {
-    pontuacaoSinais += 4;
+  if (sinais.interesseFibra > 0) {
+    const produtoCategorias = (produto as any).categorias || [produto.categoria];
+    const temFibraOuCombo = produtoCategorias.some((cat: string) => 
+      ["fibra", "combo"].includes(cat)
+    );
+    if (temFibraOuCombo) {
+      pontuacaoSinais += 4;
+    }
   }
 
   // ==================== CONTEXTO INICIAL (até 10 pontos) ====================
   // Usado APENAS para desempate - menor peso
   if (contextoInicial) {
     // Categoria inicial (5 pontos)
-    if (contextoInicial.categorias.includes(produto.categoria)) {
+    const produtoCategorias = (produto as any).categorias || [produto.categoria];
+    const temMatchInicial = produtoCategorias.some((cat: string) => 
+      contextoInicial.categorias.includes(cat)
+    );
+    if (temMatchInicial) {
       pontuacaoContextoInicial += 5;
     }
 

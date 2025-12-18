@@ -57,7 +57,7 @@ export function EcommerceHeader() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-gray-900">
-                  TelePlanos
+                  Telenext
                 </span>
                 <span className="text-[10px] -mt-1 text-gray-600">
                   Conecte-se melhor

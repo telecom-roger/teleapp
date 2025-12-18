@@ -3,13 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLocation } from "wouter";
-import { ArrowRight, ArrowLeft, User, Building2 } from "lucide-react";
+import { ArrowRight, ArrowLeft, User, Building2, AlertCircle } from "lucide-react";
 import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
+import { DocumentoDuplicadoModal } from "@/components/ecommerce/DocumentoDuplicadoModal";
+import { useToast } from "@/hooks/use-toast";
+import { validarCPF, validarCNPJ, validarTelefone, formatarCPF, formatarCNPJ, formatarTelefone } from "@/lib/validators";
 
 export default function CheckoutDados() {
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
+  const [modalDuplicado, setModalDuplicado] = useState(false);
+  const [verificandoDocumento, setVerificandoDocumento] = useState(false);
   const [formData, setFormData] = useState({
     nome: "",
     documento: "",
@@ -18,6 +24,11 @@ export default function CheckoutDados() {
     razaoSocial: "",
     cnpj: "",
   });
+  const [erros, setErros] = useState({
+    documento: "",
+    cnpj: "",
+    telefone: "",
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -25,8 +36,104 @@ export default function CheckoutDados() {
     if (tipo) setTipoPessoa(tipo);
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validarDocumentoCompleto = (doc: string, tipo: "PF" | "PJ"): boolean => {
+    const limpo = doc.replace(/\D/g, "");
+    
+    if (tipo === "PF") {
+      if (limpo.length !== 11) {
+        setErros(prev => ({ ...prev, documento: "CPF deve ter 11 dígitos" }));
+        return false;
+      }
+      if (!validarCPF(limpo)) {
+        setErros(prev => ({ ...prev, documento: "CPF inválido" }));
+        return false;
+      }
+      setErros(prev => ({ ...prev, documento: "" }));
+      return true;
+    } else {
+      if (limpo.length !== 14) {
+        setErros(prev => ({ ...prev, cnpj: "CNPJ deve ter 14 dígitos" }));
+        return false;
+      }
+      if (!validarCNPJ(limpo)) {
+        setErros(prev => ({ ...prev, cnpj: "CNPJ inválido" }));
+        return false;
+      }
+      setErros(prev => ({ ...prev, cnpj: "" }));
+      return true;
+    }
+  };
+
+  const verificarDocumentoDuplicado = async (doc: string, tipo: "PF" | "PJ"): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/ecommerce/check-document", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          documento: doc,
+          tipoPessoa: tipo,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!data.valido) {
+        toast({
+          title: "Documento inválido",
+          description: data.error || "Verifique o documento informado",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      if (data.existe) {
+        setModalDuplicado(true);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao verificar documento:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível verificar o documento. Tente novamente.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar documento
+    const documento = tipoPessoa === "PF" ? formData.documento : formData.cnpj;
+    if (!validarDocumentoCompleto(documento, tipoPessoa)) {
+      return;
+    }
+
+    // Validar telefone
+    if (!validarTelefone(formData.telefone)) {
+      setErros(prev => ({ ...prev, telefone: "Telefone inválido" }));
+      toast({
+        title: "Telefone inválido",
+        description: "Por favor, informe um telefone válido com DDD",
+        variant: "destructive",
+      });
+      return;
+    }
+    setErros(prev => ({ ...prev, telefone: "" }));
+
+    // Verificar se documento já existe
+    setVerificandoDocumento(true);
+    const documentoDisponivel = await verificarDocumentoDuplicado(documento, tipoPessoa);
+    setVerificandoDocumento(false);
+
+    if (!documentoDisponivel) {
+      return;
+    }
+
+    // Salvar e continuar
     localStorage.setItem(
       "checkout-dados",
       JSON.stringify({ ...formData, tipoPessoa })
@@ -34,29 +141,9 @@ export default function CheckoutDados() {
     setLocation(`/ecommerce/checkout/endereco?tipo=${tipoPessoa}`);
   };
 
-  const formatCPF = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
-  };
-
-  const formatCNPJ = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1/$2")
-      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
-  };
-
-  const formatPhone = (value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{5})(\d{4})$/, "$1-$2");
-  };
+  const formatCPF = formatarCPF;
+  const formatCNPJ = formatarCNPJ;
+  const formatPhone = formatarTelefone;
 
   const voltar = () => {
     setLocation("/ecommerce/checkout/tipo-cliente");
@@ -65,6 +152,12 @@ export default function CheckoutDados() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <EcommerceHeader />
+
+      <DocumentoDuplicadoModal
+        open={modalDuplicado}
+        onOpenChange={setModalDuplicado}
+        tipoPessoa={tipoPessoa}
+      />
 
       <div className="flex-1 py-12 px-4">
         <div className="max-w-3xl mx-auto">
@@ -133,10 +226,22 @@ export default function CheckoutDados() {
                           documento: formatCPF(e.target.value),
                         })
                       }
+                      onBlur={(e) => {
+                        const doc = e.target.value;
+                        if (doc) validarDocumentoCompleto(doc, "PF");
+                      }}
                       placeholder="000.000.000-00"
                       maxLength={14}
-                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
+                      className={`h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500 ${
+                        erros.documento ? "border-red-500 focus:border-red-500" : ""
+                      }`}
                     />
+                    {erros.documento && (
+                      <div className="flex items-center gap-1 mt-1 text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        <span>{erros.documento}</span>
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
@@ -179,10 +284,22 @@ export default function CheckoutDados() {
                           cnpj: formatCNPJ(e.target.value),
                         })
                       }
+                      onBlur={(e) => {
+                        const doc = e.target.value;
+                        if (doc) validarDocumentoCompleto(doc, "PJ");
+                      }}
                       placeholder="00.000.000/0000-00"
                       maxLength={18}
-                      className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
+                      className={`h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500 ${
+                        erros.cnpj ? "border-red-500 focus:border-red-500" : ""
+                      }`}
                     />
+                    {erros.cnpj && (
+                      <div className="flex items-center gap-1 mt-1 text-red-600 text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        <span>{erros.cnpj}</span>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -224,10 +341,26 @@ export default function CheckoutDados() {
                       telefone: formatPhone(e.target.value),
                     })
                   }
+                  onBlur={(e) => {
+                    const tel = e.target.value;
+                    if (tel && !validarTelefone(tel)) {
+                      setErros(prev => ({ ...prev, telefone: "Telefone inválido (10 ou 11 dígitos)" }));
+                    } else {
+                      setErros(prev => ({ ...prev, telefone: "" }));
+                    }
+                  }}
                   placeholder="(00) 00000-0000"
                   maxLength={15}
-                  className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
+                  className={`h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500 ${
+                    erros.telefone ? "border-red-500 focus:border-red-500" : ""
+                  }`}
                 />
+                {erros.telefone && (
+                  <div className="flex items-center gap-1 mt-1 text-red-600 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{erros.telefone}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-4 pt-6">
@@ -241,10 +374,11 @@ export default function CheckoutDados() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 h-12 px-6 font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={verificandoDocumento}
+                  className="flex-1 h-12 px-6 font-semibold rounded-xl flex items-center justify-center gap-2 transition-colors bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Continuar
-                  <ArrowRight className="h-5 w-5" />
+                  {verificandoDocumento ? "Verificando..." : "Continuar"}
+                  {!verificandoDocumento && <ArrowRight className="h-5 w-5" />}
                 </button>
               </div>
             </form>

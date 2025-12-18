@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
-import { ecommerceCategories, ecommerceProducts } from "@shared/schema";
+import { ecommerceCategories, ecommerceProducts, ecommerceProductCategories } from "@shared/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { blockCustomers } from "./middleware/auth";
 
@@ -158,7 +158,24 @@ router.get("/products", blockCustomers, async (req: Request, res: Response) => {
       asc(ecommerceProducts.nome)
     );
 
-    res.json(products);
+    // Buscar categorias para cada produto
+    const productsWithCategories = await Promise.all(
+      products.map(async (product) => {
+        const categorias = await db
+          .select({
+            slug: ecommerceProductCategories.categorySlug,
+          })
+          .from(ecommerceProductCategories)
+          .where(eq(ecommerceProductCategories.productId, product.id));
+
+        return {
+          ...product,
+          categorias: categorias.map((c) => c.slug),
+        };
+      })
+    );
+
+    res.json(productsWithCategories);
   } catch (error: any) {
     console.error("Erro ao buscar produtos:", error);
     res.status(500).json({ error: "Erro ao buscar produtos" });
@@ -174,10 +191,12 @@ router.post(
   blockCustomers,
   async (req: Request, res: Response) => {
     try {
-      const productData = req.body;
+      const { categorias, ...productData } = req.body;
 
       console.log("📝 CREATE produto recebido:", {
         nome: productData.nome,
+        categorias,
+        categoriasLength: categorias?.length,
         beneficios: productData.beneficios,
         diferenciais: productData.diferenciais,
         temBeneficios: Array.isArray(productData.beneficios),
@@ -189,8 +208,20 @@ router.post(
         .values(productData)
         .returning();
 
+      // Salvar categorias na tabela de relacionamento
+      if (categorias && Array.isArray(categorias) && categorias.length > 0) {
+        console.log("💾 Salvando categorias:", categorias);
+        await db.insert(ecommerceProductCategories).values(
+          categorias.map((categorySlug: string) => ({
+            productId: product.id,
+            categorySlug,
+          }))
+        );
+      }
+
       console.log("✅ Produto criado:", {
         nome: product.nome,
+        categorias,
         beneficios: product.beneficios,
         diferenciais: product.diferenciais,
       });
@@ -213,10 +244,12 @@ router.put(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const productData = req.body;
+      const { categorias, ...productData } = req.body;
 
       console.log("📝 UPDATE produto recebido:", {
         id,
+        categorias,
+        categoriasLength: categorias?.length,
         beneficios: productData.beneficios,
         diferenciais: productData.diferenciais,
         temBeneficios: Array.isArray(productData.beneficios),
@@ -236,8 +269,29 @@ router.put(
         return res.status(404).json({ error: "Produto não encontrado" });
       }
 
+      // Atualizar categorias: deletar antigas e inserir novas
+      if (categorias && Array.isArray(categorias)) {
+        console.log("🗑️ Deletando categorias antigas do produto:", id);
+        // Deletar categorias antigas
+        await db
+          .delete(ecommerceProductCategories)
+          .where(eq(ecommerceProductCategories.productId, id));
+
+        // Inserir novas categorias
+        if (categorias.length > 0) {
+          console.log("💾 Salvando novas categorias:", categorias);
+          await db.insert(ecommerceProductCategories).values(
+            categorias.map((categorySlug: string) => ({
+              productId: id,
+              categorySlug,
+            }))
+          );
+        }
+      }
+
       console.log("✅ Produto atualizado:", {
         nome: product.nome,
+        categorias,
         beneficios: product.beneficios,
         diferenciais: product.diferenciais,
       });

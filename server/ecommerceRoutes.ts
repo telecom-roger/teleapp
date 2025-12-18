@@ -185,6 +185,10 @@ export function registerEcommerceRoutes(app: Express): void {
   app.post("/api/ecommerce/products", isAuthenticated, async (req, res) => {
     try {
       const { categorias, ...data } = req.body;
+      
+      console.log("🔍 POST /api/ecommerce/products - categorias recebidas:", categorias);
+      console.log("🔍 POST /api/ecommerce/products - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
+      
       const parsedData = insertEcommerceProductSchema.parse(data);
 
       const [produto] = await db
@@ -194,6 +198,7 @@ export function registerEcommerceRoutes(app: Express): void {
 
       // Salvar categorias na tabela de relacionamento
       if (categorias && Array.isArray(categorias) && categorias.length > 0) {
+        console.log("💾 Salvando categorias:", categorias);
         await db.insert(ecommerceProductCategories).values(
           categorias.map((categorySlug: string) => ({
             productId: produto.id,
@@ -213,6 +218,10 @@ export function registerEcommerceRoutes(app: Express): void {
   app.put("/api/ecommerce/products/:id", isAuthenticated, async (req, res) => {
     try {
       const { categorias, ...data } = req.body;
+      
+      console.log("🔍 PUT /api/ecommerce/products/:id - categorias recebidas:", categorias);
+      console.log("🔍 PUT /api/ecommerce/products/:id - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
+      
       const parsedData = insertEcommerceProductSchema.partial().parse(data);
 
       const [produto] = await db
@@ -227,6 +236,7 @@ export function registerEcommerceRoutes(app: Express): void {
 
       // Atualizar categorias: deletar antigas e inserir novas
       if (categorias && Array.isArray(categorias)) {
+        console.log("🗑️ Deletando categorias antigas do produto:", req.params.id);
         // Deletar categorias antigas
         await db
           .delete(ecommerceProductCategories)
@@ -234,6 +244,7 @@ export function registerEcommerceRoutes(app: Express): void {
 
         // Inserir novas categorias
         if (categorias.length > 0) {
+          console.log("💾 Salvando novas categorias:", categorias);
           await db.insert(ecommerceProductCategories).values(
             categorias.map((categorySlug: string) => ({
               productId: req.params.id,
@@ -424,6 +435,63 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
+  // POST /api/ecommerce/check-document - Verificar se CPF/CNPJ já existe (público)
+  app.post("/api/ecommerce/check-document", async (req, res) => {
+    try {
+      const { documento, tipoPessoa } = req.body;
+
+      if (!documento || !tipoPessoa) {
+        return res.status(400).json({ error: "Documento e tipo de pessoa são obrigatórios" });
+      }
+
+      const documentoLimpo = documento.replace(/\D/g, "");
+
+      // Validar CPF/CNPJ
+      const isDev = process.env.NODE_ENV === "development";
+      
+      if (tipoPessoa === "PF" && !isDev && !validarCPF(documentoLimpo)) {
+        return res.status(400).json({ error: "CPF inválido", valido: false });
+      }
+
+      if (tipoPessoa === "PJ") {
+        if (documentoLimpo.length !== 14) {
+          return res.status(400).json({ error: "CNPJ deve ter 14 dígitos", valido: false });
+        }
+        if (!isDev && !validarCNPJ(documentoLimpo)) {
+          return res.status(400).json({ error: "CNPJ inválido", valido: false });
+        }
+      }
+
+      // Verificar se já existe cliente com este documento
+      const existingClients = await db
+        .select({
+          id: clients.id,
+          email: clients.email,
+          nome: clients.nome,
+        })
+        .from(clients)
+        .where(eq(clients.cnpj, documentoLimpo))
+        .limit(1);
+
+      if (existingClients.length > 0) {
+        return res.json({
+          valido: true,
+          existe: true,
+          mensagem: "Identificamos que já existe um cadastro com este CPF/CNPJ.",
+        });
+      }
+
+      res.json({
+        valido: true,
+        existe: false,
+        mensagem: "Documento válido e disponível para cadastro",
+      });
+    } catch (error: any) {
+      console.error("Erro ao verificar documento:", error);
+      res.status(500).json({ error: "Erro ao verificar documento" });
+    }
+  });
+
   // POST /api/ecommerce/orders - Criar pedido (público com validações)
   app.post("/api/ecommerce/orders", async (req, res) => {
     try {
@@ -496,6 +564,13 @@ export function registerEcommerceRoutes(app: Express): void {
           .where(eq(users.email, emailCliente))
           .limit(1);
 
+        // Buscar um admin para associar como criador do cliente
+        const [adminUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.role, "admin"))
+          .limit(1);
+
         // Criar novo cliente
         isNovoCliente = true;
         const [novoCliente] = await db
@@ -505,7 +580,7 @@ export function registerEcommerceRoutes(app: Express): void {
               orderData.tipoPessoa === "PF"
                 ? orderData.nomeCompleto
                 : orderData.razaoSocial,
-            cnpj: orderData.cnpj || null,
+            cnpj: orderData.tipoPessoa === "PJ" ? (orderData.cnpj || null) : (orderData.cpf || null),
             email: orderData.email,
             celular: orderData.telefone,
             endereco: orderData.endereco,
@@ -517,7 +592,9 @@ export function registerEcommerceRoutes(app: Express): void {
             origin: "ecommerce",
             type: orderData.tipoPessoa, // PF ou PJ
             tipoCliente: orderData.tipoPessoa,
+            carteira: "ECOMMERCE", // Clientes do ecommerce vão para carteira ECOMMERCE
             status: "ativo", // Cliente do ecommerce já entra como ATIVO
+            createdBy: adminUser?.id || null, // Associar ao primeiro admin encontrado
           })
           .returning();
 
@@ -671,13 +748,6 @@ export function registerEcommerceRoutes(app: Express): void {
               orderId: order.id,
               tipo: "Contrato Social",
               nome: "Contrato Social",
-              obrigatorio: true,
-              status: "pendente"
-            },
-            {
-              orderId: order.id,
-              tipo: "Comprovante de Endereço",
-              nome: "Comprovante de Endereço",
               obrigatorio: true,
               status: "pendente"
             }

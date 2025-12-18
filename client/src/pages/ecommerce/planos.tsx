@@ -106,6 +106,7 @@ export default function EcommercePlanos() {
     setLinhas,
     registrarEvento,
     incrementarTempoCategoria,
+    limparContexto,
   } = useContextoInteligenteStore();
 
   // Estados locais (UI)
@@ -295,8 +296,17 @@ export default function EcommercePlanos() {
     }
   }, [produtosPorScore, ordenacao]);
 
-  // 4. Calcular badges dinâmicos
-  const badgesMap = useBadgeDinamico(produtosOrdenados, contextoAtivo);
+  // 3.6 Criar mapa de scores para badges
+  const scoresMap = useMemo(() => {
+    const map = new Map<string, number>();
+    produtosComScore.forEach((produto) => {
+      map.set(produto.id, produto.scoreContextual || 0);
+    });
+    return map;
+  }, [produtosComScore]);
+
+  // 4. Calcular badges dinâmicos (com scores)
+  const badgesMap = useBadgeDinamico(produtosOrdenados, contextoAtivo, scoresMap);
 
   // 5. Identificar critérios bloqueadores (para empty state)
   const criteriosBloqueadores = getCriteriosBloqueadores(
@@ -664,12 +674,12 @@ export default function EcommercePlanos() {
           {/* Dropdown de Ordenação */}
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium" style={{ color: "#555555" }}>
-              Ordenar por:
+              Ordenar:
             </span>
             <select
               value={ordenacao}
               onChange={(e) => setOrdenacao(e.target.value)}
-              className="h-10 px-4 font-semibold outline-none transition-all rounded-base"
+              className="h-9 px-3 text-sm outline-none transition-all rounded-base"
               style={{
                 border: "1px solid #E0E0E0",
                 backgroundColor: "#FFFFFF",

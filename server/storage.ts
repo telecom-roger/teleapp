@@ -152,8 +152,9 @@ export async function getClients(params: {
 
   let conditions = [];
   
-  // TODOS (admin ou não) veem apenas seus clientes OU compartilhados
-  if (userId) {
+  // Admins veem TODOS os clientes (incluindo do e-commerce)
+  // Usuários comuns veem apenas seus clientes OU compartilhados
+  if (userId && !isAdmin) {
     conditions.push(
       or(
         eq(clients.createdBy, userId),

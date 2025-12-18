@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -143,7 +144,8 @@ interface Filters {
 export default function EcommerceListagemPedidos() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
+  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
 
   const [filters, setFilters] = useState<Filters>({
     search: "",
@@ -166,6 +168,18 @@ export default function EcommerceListagemPedidos() {
   const [newAgentId, setNewAgentId] = useState("");
   const [observacao, setObservacao] = useState("");
 
+  // Proteção de rota - redirecionar se não autenticado ou não for admin
+  useEffect(() => {
+    if (!authLoading && (!isAuthenticated || user?.role !== "admin")) {
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa estar logado como administrador",
+        variant: "destructive",
+      });
+      window.location.href = "/api/login";
+    }
+  }, [isAuthenticated, authLoading, user, toast]);
+
   // Query para buscar pedidos com filtros - Atualização automática a cada 5 segundos
   const { data: orders = [], isLoading } = useQuery<Order[]>({
     queryKey: ["/api/admin/ecommerce/orders/list", filters],
@@ -183,6 +197,7 @@ export default function EcommerceListagemPedidos() {
     },
     refetchInterval: 5000, // Atualizar a cada 5 segundos
     refetchOnWindowFocus: true, // Atualizar ao focar na janela
+    enabled: isAuthenticated && user?.role === "admin", // Só executar se autenticado e admin
   });
 
   // Abrir modal de detalhes automaticamente se houver parâmetro 'pedido' na URL
@@ -347,6 +362,18 @@ export default function EcommerceListagemPedidos() {
       description: "Funcionalidade em desenvolvimento",
     });
   };
+
+  // Mostrar loading enquanto verifica autenticação
+  if (authLoading || !isAuthenticated || user?.role !== "admin") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Verificando acesso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

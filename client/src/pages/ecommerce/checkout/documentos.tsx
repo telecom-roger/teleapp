@@ -49,7 +49,8 @@ export default function CheckoutDocumentos() {
       };
     }
     
-    if (files.comprovante) {
+    // Comprovante apenas para PF
+    if (files.comprovante && tipoPessoa === "PF") {
       documentosData.comprovante = {
         name: files.comprovante.name,
         type: files.comprovante.type,
@@ -148,6 +149,7 @@ export default function CheckoutDocumentos() {
               </div>
               )}
               
+              {tipoPessoa === "PF" && (
               <div>
                 <label className="text-sm font-semibold text-gray-900 block mb-2">Comprovante de Endereço</label>
                 <div className="mt-2">
@@ -173,6 +175,7 @@ export default function CheckoutDocumentos() {
                   />
                 </div>
               </div>
+              )}
               
               <div className="flex gap-3 pt-4">
                 <button
