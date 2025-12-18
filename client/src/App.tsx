@@ -79,7 +79,7 @@ import TestPage from "@/pages/ecommerce/test-page";
 function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
   return (
     <Switch>
-      <Route path="/" component={isAuthenticated ? Dashboard : Landing} />
+      <Route path="/" component={EcommerceHome} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/dashboard" component={Dashboard} />
@@ -199,7 +199,7 @@ function AppContent() {
   } as React.CSSProperties;
 
   // Check if current route is an e-commerce page (public facing)
-  const isEcommercePage = location.startsWith("/ecommerce");
+  const isEcommercePage = location === "/" || location.startsWith("/ecommerce");
 
   // 🔒 PROTEÇÃO: Bloquear clientes de acessar áreas administrativas
   React.useEffect(() => {

@@ -44,7 +44,7 @@ export default function Login() {
         description: "Login realizado com sucesso",
       });
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         title: "Erro",
