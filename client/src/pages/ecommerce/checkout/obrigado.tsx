@@ -9,6 +9,7 @@ import { UpsellCard } from "@/components/ecommerce/UpsellCard";
 
 export default function CheckoutObrigado() {
   const [pedidoId, setPedidoId] = useState<string>("");
+  const [orderCodeFromUrl, setOrderCodeFromUrl] = useState<string>("");
   const { user } = useAuth();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
@@ -16,7 +17,9 @@ export default function CheckoutObrigado() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("pedido");
+    const code = params.get("orderCode");
     if (id) setPedidoId(id);
+    if (code) setOrderCodeFromUrl(code);
     
     // Scroll to top imediatamente quando a página carrega
     window.scrollTo(0, 0);
@@ -28,7 +31,12 @@ export default function CheckoutObrigado() {
     enabled: !!pedidoId && !!user,
   });
 
-  const orderCode = orderData?.orderCode || pedidoId.slice(0, 8);
+  // Extrair apenas os números do orderCode (formato moderno)
+  const orderCode = orderData?.orderCode 
+    ? orderData.orderCode.replace(/\D/g, '') // Remove tudo que não é número
+    : orderCodeFromUrl 
+      ? orderCodeFromUrl.replace(/\D/g, '')
+      : pedidoId.slice(0, 8);
 
   // Determine the correct URL for "Acessar Painel do Cliente" button
   const painelUrl =

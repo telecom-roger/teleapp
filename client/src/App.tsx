@@ -13,6 +13,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/hooks/useAuth";
 import { CartProvider } from "@/contexts/CartContext";
+import { CheckoutDddProvider } from "@/contexts/CheckoutDddContext";
 import { EcommerceProtectedRoute } from "@/components/EcommerceProtectedRoute";
 import { EcommerceOrderNotifications } from "@/components/ecommerce-order-notifications";
 
@@ -66,6 +67,7 @@ import CheckoutTipoCliente from "@/pages/ecommerce/checkout/tipo-cliente";
 import CheckoutDados from "@/pages/ecommerce/checkout/dados";
 import CheckoutEndereco from "@/pages/ecommerce/checkout/endereco";
 import CheckoutDocumentos from "@/pages/ecommerce/checkout/documentos";
+import SelecaoDdd from "@/pages/ecommerce/checkout/selecao-ddd";
 import CheckoutConfirmacao from "@/pages/ecommerce/checkout/confirmacao";
 import CheckoutObrigado from "@/pages/ecommerce/checkout/obrigado";
 import AdminProdutos from "@/pages/admin/app-produtos";
@@ -144,6 +146,7 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
         path="/app/checkout/documentos"
         component={CheckoutDocumentos}
       />
+      <Route path="/app/checkout/selecao-ddd" component={SelecaoDdd} />
       <Route
         path="/app/checkout/confirmacao"
         component={CheckoutConfirmacao}
@@ -269,8 +272,10 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <CartProvider>
-            <AppContent />
-            <Toaster />
+            <CheckoutDddProvider>
+              <AppContent />
+              <Toaster />
+            </CheckoutDddProvider>
           </CartProvider>
         </TooltipProvider>
       </ThemeProvider>

@@ -54,6 +54,12 @@ interface Order {
   uf?: string | null;
   createdAt: string;
   items: OrderItem[];
+  ddds?: Array<{
+    id: string;
+    pedidoId: string;
+    ddd: string;
+    quantidadeLinhas: number;
+  }>;
 }
 
 interface OrderItem {
@@ -648,6 +654,40 @@ export default function CustomerOrders() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* DDDs das Linhas Móveis */}
+                  {orderDetail.ddds && orderDetail.ddds.length > 0 && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Phone className="h-5 w-5" />
+                          DDDs das Linhas Móveis
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {orderDetail.ddds.map((ddd: any) => (
+                            <div
+                              key={ddd.id}
+                              className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+                                  <span className="text-lg font-bold text-blue-700">{ddd.ddd}</span>
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-gray-900">DDD {ddd.ddd}</div>
+                                  <div className="text-sm text-gray-600">
+                                    {ddd.quantidadeLinhas} {ddd.quantidadeLinhas === 1 ? 'linha' : 'linhas'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Documentos - Mostrar sempre que houver documentos solicitados */}
                   {requestedDocuments && requestedDocuments.length > 0 && (

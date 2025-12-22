@@ -69,7 +69,8 @@ export default function CheckoutDocumentos() {
     }
     
     localStorage.setItem("checkout-documentos", JSON.stringify(documentosData));
-    setLocation(`/app/checkout/confirmacao?tipo=${tipoPessoa}`);
+    console.log("📄➡️ [DOCUMENTOS] Navegando para seleção de DDD...");
+    setLocation(`/app/checkout/selecao-ddd?tipo=${tipoPessoa}`);
   };
   
   const voltar = () => {

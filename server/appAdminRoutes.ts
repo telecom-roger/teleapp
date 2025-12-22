@@ -336,6 +336,13 @@ router.get(
         .from(ecommerceOrderDocuments)
         .where(eq(ecommerceOrderDocuments.orderId, orderId));
 
+      // Buscar DDDs das linhas móveis
+      const { pedidoLinhaDdd } = await import("@shared/schema");
+      const ddds = await db
+        .select()
+        .from(pedidoLinhaDdd)
+        .where(eq(pedidoLinhaDdd.pedidoId, orderId));
+
       // Verificar se tem linhas de portabilidade cadastradas
       const { ecommerceOrderLines } = await import("@shared/schema");
       const linhasPortabilidade = await db
@@ -353,6 +360,7 @@ router.get(
         client,
         items,
         documents,
+        ddds,
       });
     } catch (error: any) {
       console.error("Erro ao buscar detalhes do pedido:", error);
@@ -660,12 +668,17 @@ router.get(
       console.log("🔔 [NOTIFICATIONS] Buscando novos pedidos para badge...");
       
       // Buscar pedidos novos das últimas 24 horas que ainda não foram visualizados por admin
+      // Incluir: novo_pedido, aguardando_dados_linhas, aguardando_documentos
       const orders = await db
         .select()
         .from(ecommerceOrders)
         .where(
           and(
-            eq(ecommerceOrders.etapa, "novo_pedido"),
+            or(
+              eq(ecommerceOrders.etapa, "novo_pedido"),
+              eq(ecommerceOrders.etapa, "aguardando_dados_linhas"),
+              eq(ecommerceOrders.etapa, "aguardando_documentos")
+            ),
             sql`${ecommerceOrders.createdAt} >= NOW() - INTERVAL '24 hours'`,
             or(
               isNull(ecommerceOrders.lastViewedByAdminAt),
@@ -676,7 +689,7 @@ router.get(
         .orderBy(desc(ecommerceOrders.createdAt))
         .limit(20);
 
-      console.log(`📊 [NOTIFICATIONS] Encontrados ${orders.length} pedidos novos`);
+      console.log(`📊 [NOTIFICATIONS] Encontrados ${orders.length} pedidos novos (etapas: novo_pedido, aguardando_dados_linhas, aguardando_documentos)`);
       
       res.json({
         orders,

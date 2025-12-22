@@ -132,7 +132,10 @@ export function FiltrosHierarquicos(props: FiltrosHierarquicosProps) {
               ].map((tipo) => (
                 <button
                   key={tipo.value}
-                  onClick={() => setTipoContratacao(tipo.value)}
+                  onClick={() => {
+                    console.log("🔄 Usuário alterou tipo de contratação:", tipo.value);
+                    setTipoContratacao(tipo.value);
+                  }}
                   className={cn(
                     "flex-1 h-12 px-4 rounded-xl font-medium text-sm transition-all duration-200",
                     tipoContratacao === tipo.value

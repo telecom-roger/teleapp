@@ -99,6 +99,12 @@ interface EcommerceOrder {
     subtotal: number;
   }>;
   itemsCount?: number;
+  ddds?: Array<{
+    id: string;
+    pedidoId: string;
+    ddd: string;
+    quantidadeLinhas: number;
+  }>;
 }
 
 interface EcommerceStats {
@@ -1265,12 +1271,12 @@ export default function AdminEcommercePedidos() {
 
       {/* Dialog de Detalhes */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader className="border-b pb-4">
-            <DialogTitle className="text-2xl font-bold text-slate-900">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white w-[95vw] sm:w-full">
+          <DialogHeader className="border-b pb-3 sm:pb-4">
+            <DialogTitle className="text-lg sm:text-2xl font-bold text-slate-900">
               Pedido #{selectedOrder?.orderCode}
             </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
+            <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
               Criado em{" "}
               {selectedOrder &&
                 new Date(selectedOrder.createdAt).toLocaleDateString("pt-BR", {
@@ -1293,19 +1299,19 @@ export default function AdminEcommercePedidos() {
           )}
           
           {orderDetails && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Cliente */}
-              <div className="space-y-3">
-                <h3 className="font-semibold flex items-center gap-2 text-lg">
-                  <User className="h-5 w-5 text-primary" />
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Informações do Cliente
                 </h3>
-                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Nome
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base break-words">
                       {orderDetails.nomeCompleto || orderDetails.razaoSocial}
                     </p>
                   </div>
@@ -1313,7 +1319,7 @@ export default function AdminEcommercePedidos() {
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Tipo
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base">
                       {orderDetails.tipoPessoa === "PF"
                         ? "Pessoa Física"
                         : "Pessoa Jurídica"}
@@ -1323,7 +1329,7 @@ export default function AdminEcommercePedidos() {
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Email
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base break-all">
                       {orderDetails.email}
                     </p>
                   </div>
@@ -1331,16 +1337,16 @@ export default function AdminEcommercePedidos() {
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Telefone
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base">
                       {orderDetails.telefone}
                     </p>
                   </div>
                   {(orderDetails.endereco || orderDetails.cidade) && (
-                    <div className="col-span-2">
+                    <div className="sm:col-span-2">
                       <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                         Endereço
                       </p>
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 text-sm sm:text-base">
                         {orderDetails.endereco}
                         {orderDetails.numero ? `, ${orderDetails.numero}` : ""}
                         {orderDetails.complemento
@@ -1357,17 +1363,17 @@ export default function AdminEcommercePedidos() {
               </div>
 
               {/* Detalhes da Contratação */}
-              <div className="space-y-3">
-                <h3 className="font-semibold flex items-center gap-2 text-lg">
-                  <Phone className="h-5 w-5 text-primary" />
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Detalhes da Contratação
                 </h3>
-                <div className="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
                   <div>
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Tipo de Contratação
                     </p>
-                    <Badge variant={orderDetails.tipoContratacao === "portabilidade" ? "default" : "secondary"}>
+                    <Badge variant={orderDetails.tipoContratacao === "portabilidade" ? "default" : "secondary"} className="text-xs sm:text-sm">
                       {orderDetails.tipoContratacao === "portabilidade" ? "📱 Portabilidade" : "🆕 Linha Nova"}
                     </Badge>
                   </div>
@@ -1375,7 +1381,7 @@ export default function AdminEcommercePedidos() {
                     <p className="text-xs text-muted-foreground uppercase font-medium mb-1">
                       Operadora
                     </p>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 text-sm sm:text-base">
                       {(() => {
                         const firstProduct = orderDetails.items?.find((item: any) => 
                           item.productCategoria === "movel" || item.productOperadora
@@ -1394,44 +1400,44 @@ export default function AdminEcommercePedidos() {
               </div>
 
               {/* Itens */}
-              <div className="space-y-3">
-                <h3 className="font-semibold flex items-center gap-2 text-lg">
-                  <Package className="h-5 w-5 text-primary" />
+              <div className="space-y-2 sm:space-y-3">
+                <h3 className="font-semibold flex items-center gap-2 text-base sm:text-lg">
+                  <Package className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Itens do Pedido
                 </h3>
                 <div className="space-y-2">
                   {orderDetails.items?.map((item) => (
                     <div
                       key={item.id}
-                      className="flex justify-between p-4 bg-white border border-slate-200 rounded-lg hover:border-primary/50 transition-colors"
+                      className="flex flex-col sm:flex-row sm:justify-between gap-2 sm:gap-0 p-3 sm:p-4 bg-white border border-slate-200 rounded-lg hover:border-primary/50 transition-colors"
                     >
-                      <div>
-                        <p className="font-semibold text-slate-900">
+                      <div className="flex-1">
+                        <p className="font-semibold text-slate-900 text-sm sm:text-base">
                           {item.productNome}
                         </p>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                           Quantidade:{" "}
                           <span className="font-medium text-slate-700">
                             {item.quantidade}
                           </span>
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="font-bold text-slate-900">
+                      <div className="text-left sm:text-right">
+                        <p className="font-bold text-slate-900 text-base sm:text-lg">
                           R$ {(item.subtotal / 100).toFixed(2)}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           R$ {(item.precoUnitario / 100).toFixed(2)}/un
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
-                <div className="flex justify-between items-center pt-4 border-t-2 border-slate-200">
-                  <span className="font-semibold text-lg text-slate-700">
+                <div className="flex justify-between items-center pt-3 sm:pt-4 border-t-2 border-slate-200">
+                  <span className="font-semibold text-base sm:text-lg text-slate-700">
                     Total do Pedido
                   </span>
-                  <span className="text-3xl font-bold text-primary">
+                  <span className="text-xl sm:text-3xl font-bold text-primary">
                     R$ {(orderDetails.total / 100).toFixed(2)}
                   </span>
                 </div>
@@ -1439,19 +1445,49 @@ export default function AdminEcommercePedidos() {
 
               {/* Linhas de Portabilidade */}
               {orderDetails.tipoContratacao === "portabilidade" && (
-                <div className="space-y-3 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                  <h3 className="font-semibold text-lg flex items-center gap-2 mb-4">
-                    <Phone className="h-5 w-5 text-primary" />
+                <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2 mb-3 sm:mb-4">
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                     Linhas de Portabilidade
                   </h3>
                   <AdminOrderLines orderId={orderDetails.id} />
                 </div>
               )}
 
+              {/* DDDs das Linhas Móveis */}
+              {orderDetails.ddds && orderDetails.ddds.length > 0 && (
+                <div className="space-y-2 sm:space-y-3">
+                  <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                    <Phone className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                    DDDs das Linhas Móveis
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    {orderDetails.ddds.map((ddd: any) => (
+                      <div
+                        key={ddd.id}
+                        className="bg-white p-3 sm:p-4 rounded-lg border border-blue-200 shadow-sm"
+                      >
+                        <div className="flex items-center gap-2 sm:gap-3">
+                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
+                            <span className="text-base sm:text-lg font-bold text-blue-700">{ddd.ddd}</span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">DDD {ddd.ddd}</div>
+                            <div className="text-xs sm:text-sm text-gray-600">
+                              {ddd.quantidadeLinhas} {ddd.quantidadeLinhas === 1 ? 'linha' : 'linhas'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Alterar Etapa */}
-              <div className="space-y-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
+              <div className="space-y-3 sm:space-y-4 p-3 sm:p-4 bg-slate-50 rounded-lg border border-slate-200">
+                <h3 className="font-semibold text-base sm:text-lg flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   Atualizar Etapa
                 </h3>
                 <div className="space-y-3">

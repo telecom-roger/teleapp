@@ -11,6 +11,7 @@ import {
   ecommerceOrderRequestedDocuments,
   ecommerceProductVariationGroups,
   ecommerceProductVariationOptions,
+  pedidoLinhaDdd,
   clients,
   users,
   interactions,
@@ -426,10 +427,17 @@ export function registerEcommerceRoutes(app: Express): void {
         .from(ecommerceOrderDocuments)
         .where(eq(ecommerceOrderDocuments.orderId, req.params.id));
 
+      // Buscar DDDs das linhas móveis
+      const ddds = await db
+        .select()
+        .from(pedidoLinhaDdd)
+        .where(eq(pedidoLinhaDdd.pedidoId, req.params.id));
+
       res.json({
         ...orderData,
         items,
         documents,
+        ddds,
       });
     } catch (error) {
       console.error("Erro ao buscar pedido:", error);
@@ -560,6 +568,90 @@ export function registerEcommerceRoutes(app: Express): void {
           return res.status(400).json({ error: "CNPJ inválido" });
         }
       }
+
+      // Validar DDDs se houver produtos móveis
+      if (orderData.ddds && orderData.ddds.length > 0) {
+        const DDDS_VALIDOS = [
+          "11", "12", "13", "14", "15", "16", "17", "18", "19", // SP
+          "21", "22", "24", // RJ
+          "27", "28", // ES
+          "31", "32", "33", "34", "35", "37", "38", // MG
+          "41", "42", "43", "44", "45", "46", // PR
+          "47", "48", "49", // SC
+          "51", "53", "54", "55", // RS
+          "61", // DF
+          "62", "64", // GO
+          "63", // TO
+          "65", "66", // MT
+          "67", // MS
+          "68", // AC
+          "69", // RO
+          "71", "73", "74", "75", "77", // BA
+          "79", // SE
+          "81", "87", // PE
+          "82", // AL
+          "83", // PB
+          "84", // RN
+          "85", "88", // CE
+          "86", "89", // PI
+          "91", "93", "94", // PA
+          "92", "97", // AM
+          "95", // RR
+          "96", // AP
+          "98", "99", // MA
+        ];
+
+        // Calcular total de linhas móveis do pedido
+        const totalLinhasMoveis = orderData.items?.reduce((acc: number, item: any) => {
+          if (item.productCategoria?.toLowerCase() === "movel") {
+            return acc + (item.quantidade || 0);
+          }
+          return acc;
+        }, 0) || 0;
+
+        if (totalLinhasMoveis === 0 && orderData.ddds.length > 0) {
+          return res.status(400).json({ 
+            error: "DDDs fornecidos mas não há produtos móveis no pedido" 
+          });
+        }
+
+        // Validar cada DDD
+        for (const dddItem of orderData.ddds) {
+          if (!DDDS_VALIDOS.includes(dddItem.ddd)) {
+            return res.status(400).json({ 
+              error: `DDD ${dddItem.ddd} inválido` 
+            });
+          }
+          
+          if (dddItem.quantidade < 1) {
+            return res.status(400).json({ 
+              error: `Quantidade de linhas para DDD ${dddItem.ddd} deve ser maior que 0` 
+            });
+          }
+        }
+
+        // Verificar se não há DDDs duplicados
+        const ddds = orderData.ddds.map((d: any) => d.ddd);
+        if (new Set(ddds).size !== ddds.length) {
+          return res.status(400).json({ 
+            error: "DDDs duplicados na distribuição" 
+          });
+        }
+
+        // Verificar se a soma das quantidades é igual ao total de linhas
+        const somaQuantidades = orderData.ddds.reduce((acc: number, d: any) => acc + d.quantidade, 0);
+        if (somaQuantidades !== totalLinhasMoveis) {
+          return res.status(400).json({ 
+            error: `Distribuição de DDDs (${somaQuantidades}) não corresponde ao total de linhas móveis (${totalLinhasMoveis})` 
+          });
+        }
+
+        console.log("\n✅ [VALIDAÇÃO DDDs]");
+        console.log("   Total linhas móveis:", totalLinhasMoveis);
+        console.log("   DDDs fornecidos:", orderData.ddds.length);
+        console.log("   Distribuição válida");
+      }
+
 
       // Verificar se cliente já existe
       let clientId: string;
@@ -765,6 +857,24 @@ export function registerEcommerceRoutes(app: Express): void {
             subtotal: item.subtotal,
           }))
         );
+
+        // Persistir distribuição de DDDs se fornecida
+        if (orderData.ddds && orderData.ddds.length > 0) {
+          await db.insert(pedidoLinhaDdd).values(
+            orderData.ddds.map((dddItem: any) => ({
+              pedidoId: order.id,
+              ddd: dddItem.ddd,
+              quantidadeLinhas: dddItem.quantidade,
+            }))
+          );
+          
+          console.log("\n✅ [DDDs PERSISTIDOS]");
+          console.log("   Pedido ID:", order.id);
+          console.log("   DDDs salvos:", orderData.ddds.length);
+          orderData.ddds.forEach((d: any) => {
+            console.log(`   - DDD ${d.ddd}: ${d.quantidade} linha(s)`);
+          });
+        }
 
         // Popular documentos solicitados baseado no tipo de pessoa
         const documentosSolicitados = [];
