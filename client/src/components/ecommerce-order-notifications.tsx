@@ -39,14 +39,6 @@ export function EcommerceOrderNotifications() {
       refetchInterval: 5000, // Atualiza a cada 5 segundos
     });
 
-  // Log para debug
-  console.log("🔔 [BADGE] Estado atual:", {
-    isLoading,
-    count: data?.count || 0,
-    ordersLength: data?.orders?.length || 0,
-    hasData: !!data
-  });
-
   const markAsReadMutation = useMutation<any, Error, string | undefined>({
     mutationFn: async (orderId?: string) => {
       const endpoint = orderId
@@ -87,7 +79,7 @@ export function EcommerceOrderNotifications() {
 
   const handleViewOrder = (orderId: string) => {
     markAsReadMutation.mutate(orderId);
-    navigate(`/admin/app-listagem?pedido=${orderId}`);
+    navigate(`/admin/app-pedidos?pedido=${orderId}`);
     setOpen(false);
   };
 

@@ -62,9 +62,22 @@ export default function CheckoutResumo() {
   };
 
   const handleContinuar = () => {
-    // Se estiver logado, pular direto para confirmação
+    // Verificar se há produtos móveis no carrinho
+    const temProdutosMoveis = items.some(
+      (item) => item.product?.categoria?.toLowerCase() === "movel"
+    );
+    
+    console.log("🔍 [RESUMO] Verificando produtos móveis:", temProdutosMoveis);
+    
+    // Se estiver logado, verificar se precisa de seleção de DDD
     if (customerData?.client) {
-      setLocation("/app/checkout/confirmacao");
+      if (temProdutosMoveis) {
+        console.log("📱 [RESUMO] Tem móveis - indo para seleção de DDD");
+        setLocation("/app/checkout/selecao-ddd");
+      } else {
+        console.log("✅ [RESUMO] Sem móveis - indo direto para confirmação");
+        setLocation("/app/checkout/confirmacao");
+      }
     } else {
       // Se não estiver logado, ir para escolha de tipo de cliente
       setLocation("/app/checkout/tipo-cliente");

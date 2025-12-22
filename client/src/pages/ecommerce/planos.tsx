@@ -145,6 +145,7 @@ export default function EcommercePlanos() {
   // Salvar tipoContratacao no localStorage sempre que mudar
   useEffect(() => {
     localStorage.setItem("tipo-contratacao", tipoContratacao);
+    console.log("💾 Tipo de contratação salvo:", tipoContratacao);
   }, [tipoContratacao]);
 
   const { addItem, removeItem, openCart, items: cartItems } = useCartStore();

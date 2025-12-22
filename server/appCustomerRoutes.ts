@@ -126,10 +126,18 @@ router.get("/orders/:orderId", requireRole(["customer"]), async (req: Request, r
       .from(ecommerceOrderDocuments)
       .where(eq(ecommerceOrderDocuments.orderId, order.id));
 
+    // Buscar DDDs das linhas móveis
+    const { pedidoLinhaDdd } = await import("@shared/schema");
+    const ddds = await db
+      .select()
+      .from(pedidoLinhaDdd)
+      .where(eq(pedidoLinhaDdd.pedidoId, order.id));
+
     res.json({
       ...order,
       items,
       documents,
+      ddds,
     });
   } catch (error: any) {
     console.error("Erro ao buscar pedido:", error);

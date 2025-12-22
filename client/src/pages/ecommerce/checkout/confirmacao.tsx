@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, Loader2, Search } from "lucide-react";
 import { useCartStore } from "@/stores/cartStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CartUpsellPreview } from "@/components/ecommerce/CartUpsellPreview";
+import { useCheckoutDdd } from "@/contexts/CheckoutDddContext";
 
 interface CustomerData {
   user: {
@@ -35,6 +36,7 @@ export default function CheckoutConfirmacao() {
   const [, setLocation] = useLocation();
   const { items, getTotal, clearCart } = useCartStore();
   const total = getTotal();
+  const { distribuicao } = useCheckoutDdd();
   const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
   const [dados, setDados] = useState<any>({});
   const [endereco, setEndereco] = useState<any>({});
@@ -182,6 +184,10 @@ export default function CheckoutConfirmacao() {
           valorPorLinhaAdicional: item.product.valorPorLinhaAdicional || 0,
           subtotal: item.product.preco * item.quantidade,
         })),
+        // DDDs (se houver)
+        ddds: distribuicao.length > 0 
+          ? distribuicao.map(d => ({ ddd: d.ddd, quantidade: d.quantidade }))
+          : undefined,
         // Totais
         subtotal: total,
         total: total,
@@ -310,7 +316,12 @@ export default function CheckoutConfirmacao() {
       localStorage.removeItem("checkout-documentos");
       
       console.log(`🎯 [CHECKOUT] Redirecionando para página obrigado...`);
-      setLocation(`/app/checkout/obrigado?pedido=${data.orderId}`);
+      // Passar orderCode na URL para usuários não logados
+      if (data.orderCode) {
+        setLocation(`/app/checkout/obrigado?pedido=${data.orderId}&orderCode=${data.orderCode}`);
+      } else {
+        setLocation(`/app/checkout/obrigado?pedido=${data.orderId}`);
+      }
     },
     onError: (error: Error) => {
       console.error("Erro ao criar pedido:", error);
@@ -319,9 +330,18 @@ export default function CheckoutConfirmacao() {
   });
   
   const voltar = () => {
-    // Se for cliente logado, voltar para planos
+    // Verificar se há produtos móveis
+    const temProdutosMoveis = items.some(
+      (item) => item.product?.categoria?.toLowerCase() === "movel"
+    );
+    
+    // Se for cliente logado, voltar para seleção de DDD ou planos
     if (customerData?.client) {
-      setLocation("/app/planos");
+      if (temProdutosMoveis) {
+        setLocation("/app/checkout/selecao-ddd");
+      } else {
+        setLocation("/app/planos");
+      }
     } else {
       setLocation(`/app/checkout/documentos?tipo=${tipoPessoa}`);
     }
@@ -568,6 +588,17 @@ export default function CheckoutConfirmacao() {
                                        item.product.operadora === 'T' ? 'Tim' : 
                                        item.product.operadora;
                   
+                  // Verificar se é produto móvel
+                  const isMobile = item.product?.categoria?.toLowerCase() === "movel";
+                  
+                  // Calcular total de linhas deste produto
+                  const totalLinhasProduto = item.quantidade + (item.linhasAdicionais || 0);
+                  
+                  // Filtrar DDDs relacionados a este produto (proporcional)
+                  const dddsParaProduto = isMobile && distribuicao && distribuicao.length > 0
+                    ? distribuicao
+                    : [];
+                  
                   return (
                   <div key={item.product.id} className="flex justify-between items-start">
                     <div className="flex-1">
@@ -575,10 +606,20 @@ export default function CheckoutConfirmacao() {
                       <p className="text-xs text-gray-600">
                         Qtd: {item.quantidade} • Op: {operadoraNome}
                       </p>
-                      {item.linhasAdicionais && item.linhasAdicionais > 0 && (
+                      {item.linhasAdicionais > 0 && (
                         <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-700 font-medium mt-1">
                           +{item.linhasAdicionais} linhas
                         </span>
+                      )}
+                      {dddsParaProduto.length > 0 && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          {dddsParaProduto.map((ddd, idx) => (
+                            <span key={idx}>
+                              {ddd.quantidade} {ddd.quantidade === 1 ? 'linha' : 'linhas'} DDD {ddd.ddd}
+                              {idx < dddsParaProduto.length - 1 ? ' • ' : ''}
+                            </span>
+                          ))}
+                        </p>
                       )}
                     </div>
                     <div className="font-bold text-sm text-gray-900">

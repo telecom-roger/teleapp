@@ -1582,6 +1582,39 @@ export type InsertEcommerceOrderLine = z.infer<
   typeof insertEcommerceOrderLineSchema
 >;
 
+// ==================== E-COMMERCE PEDIDO LINHA DDD ====================
+export const pedidoLinhaDdd = pgTable(
+  "pedido_linha_ddd",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    pedidoId: varchar("pedido_id")
+      .notNull()
+      .references(() => ecommerceOrders.id, { onDelete: "cascade" }),
+    ddd: varchar("ddd", { length: 2 }).notNull(),
+    quantidadeLinhas: integer("quantidade_linhas").notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_pedido_linha_ddd_pedido").on(table.pedidoId),
+    index("idx_pedido_linha_ddd_ddd").on(table.ddd),
+    uniqueIndex("idx_pedido_linha_ddd_unique").on(table.pedidoId, table.ddd),
+  ]
+);
+
+export const insertPedidoLinhaDddSchema = createInsertSchema(
+  pedidoLinhaDdd
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type PedidoLinhaDdd = typeof pedidoLinhaDdd.$inferSelect;
+export type InsertPedidoLinhaDdd = z.infer<typeof insertPedidoLinhaDddSchema>;
+
 // ==================== RELATIONS ====================
 // Relations para ecommerceProducts
 export const ecommerceProductsRelations = relations(ecommerceProducts, ({ many }) => ({
