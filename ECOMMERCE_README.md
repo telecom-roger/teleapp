@@ -22,13 +22,13 @@ psql -d seu_banco -f scripts/init-ecommerce-stages.sql
 
 **Público:**
 
-- Home: `http://localhost:5000/ecommerce`
-- Planos: `http://localhost:5000/ecommerce/planos`
+- Home: `http://localhost:5000/app`
+- Planos: `http://localhost:5000/app/planos`
 
 **Admin (requer login):**
 
-- Produtos: `http://localhost:5000/admin/ecommerce-produtos`
-- Pedidos: `http://localhost:5000/admin/ecommerce-pedidos`
+- Produtos: `http://localhost:5000/admin/app-produtos`
+- Pedidos: `http://localhost:5000/admin/app-pedidos`
 
 ---
 
@@ -38,18 +38,18 @@ psql -d seu_banco -f scripts/init-ecommerce-stages.sql
 
 ```bash
 # Listar produtos
-GET /api/ecommerce/products
+GET /api/app/products
 Query params: ?categoria=fibra&operadora=V&tipoPessoa=PF&ativo=true
 
 # Detalhes de um produto
-GET /api/ecommerce/products/:id
+GET /api/app/products/:id
 ```
 
 ### Produtos (Admin - Requer Auth)
 
 ```bash
 # Criar produto
-POST /api/ecommerce/products
+POST /api/app/products
 {
   "nome": "Fibra 500 Mega",
   "categoria": "fibra",
@@ -61,17 +61,17 @@ POST /api/ecommerce/products
 }
 
 # Atualizar produto
-PUT /api/ecommerce/products/:id
+PUT /api/app/products/:id
 
 # Deletar produto
-DELETE /api/ecommerce/products/:id
+DELETE /api/app/products/:id
 ```
 
 ### Pedidos
 
 ```bash
 # Criar pedido (público)
-POST /api/ecommerce/orders
+POST /api/app/orders
 {
   "tipoPessoa": "PF",
   "cpf": "12345678901",
@@ -93,11 +93,11 @@ POST /api/ecommerce/orders
 }
 
 # Listar pedidos (admin)
-GET /api/ecommerce/orders
+GET /api/app/orders
 Query params: ?etapa=novo_pedido&tipoPessoa=PF
 
 # Detalhes pedido (admin)
-GET /api/ecommerce/orders/:id
+GET /api/app/orders/:id
 ```
 
 ### CEP (Público)
@@ -118,7 +118,7 @@ GET /api/cep/01310100
 - `ecommerce_order_items` - Itens dos pedidos
 - `ecommerce_stages` - Etapas do Kanban
 - `ecommerce_order_documents` - Documentos anexados
-- `clients.origin` - Diferencia origem (system/ecommerce)
+- `clients.origin` - Diferencia origem (system/app)
 
 ### Campos Importantes
 
@@ -199,7 +199,7 @@ server/
   ecommerceRoutes.ts         ← APIs completas
 
 client/src/
-  components/ecommerce/
+  components/app/
     EcommerceHeader.tsx      ← Header público
     EcommerceFooter.tsx      ← Footer público
 
@@ -264,7 +264,7 @@ ECOMMERCE_README.md          ← Este arquivo
 
 ```bash
 # Login no sistema como admin
-# Acessar: /admin/ecommerce-produtos
+# Acessar: /admin/app-produtos
 # Clicar em "Novo Produto"
 # Preencher:
 Nome: Fibra 500 Mega
@@ -279,7 +279,7 @@ Ativo: ON
 ### 2. Ver Produto no Site
 
 ```bash
-# Acessar: /ecommerce/planos
+# Acessar: /app/planos
 # Filtrar por PF
 # Ver produto aparecer
 ```
@@ -288,7 +288,7 @@ Ativo: ON
 
 ```bash
 # Via Thunder Client ou Postman
-GET http://localhost:5000/api/ecommerce/products
+GET http://localhost:5000/api/app/products
 GET http://localhost:5000/api/cep/01310100
 ```
 
@@ -332,7 +332,7 @@ GET http://localhost:5000/api/cep/01310100
 ### Isolamento
 
 - Não afeta Kanban atual
-- Rotas separadas `/api/ecommerce/*`
+- Rotas separadas `/api/app/*`
 - Páginas públicas isoladas
 
 ---

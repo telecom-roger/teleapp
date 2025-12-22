@@ -35,7 +35,7 @@ export function DocumentoDuplicadoModal({
   };
 
   const handleEntrar = () => {
-    window.location.href = "/ecommerce/login?returnTo=checkout";
+    window.location.href = "/app/login?returnTo=checkout";
   };
 
   const handleRecuperar = () => {
@@ -70,7 +70,7 @@ export function DocumentoDuplicadoModal({
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // TODO: Implementar chamada real à API
-      // await apiRequest("POST", "/api/ecommerce/auth/request-access", { email });
+      // await apiRequest("POST", "/api/app/auth/request-access", { email });
       
       setEtapa("enviado");
     } catch (error: any) {
@@ -117,25 +117,23 @@ export function DocumentoDuplicadoModal({
               <Button
                 onClick={handleEntrar}
                 size="lg"
-                className="w-full h-12 text-base font-semibold"
+                className="w-full h-12 text-base font-semibold rounded-lg"
               >
-                🔐 Entrar na Conta
+                Entrar na Conta
               </Button>
-              
               <Button
                 onClick={handleRecuperar}
                 variant="outline"
                 size="lg"
-                className="w-full h-12 text-base font-semibold"
+                className="w-full h-12 text-base font-semibold rounded-lg"
               >
-                🔑 Recuperar Acesso
+                Recuperar Acesso
               </Button>
-
               <Button
                 onClick={handleFechar}
                 variant="ghost"
                 size="sm"
-                className="mt-2"
+                className="mt-2 rounded-lg"
               >
                 Cancelar
               </Button>
@@ -178,7 +176,7 @@ export function DocumentoDuplicadoModal({
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-12"
+                  className="h-12 rounded-lg px-4 font-semibold border-gray-300 focus:border-blue-500"
                   autoFocus
                 />
               </div>
@@ -188,16 +186,16 @@ export function DocumentoDuplicadoModal({
                   onClick={handleEnviarRecuperacao}
                   disabled={carregando}
                   size="lg"
-                  className="w-full h-12 text-base font-semibold"
+                  className="w-full h-12 text-base font-semibold rounded-lg"
                 >
                   {carregando ? "Enviando..." : "Enviar Link de Acesso"}
                 </Button>
-                
                 <Button
                   onClick={handleVoltar}
                   variant="ghost"
                   size="sm"
                   disabled={carregando}
+                  className="rounded-lg"
                 >
                   Voltar
                 </Button>
@@ -267,7 +265,7 @@ export function DocumentoDuplicadoModal({
 
               <Button
                 onClick={handleFechar}
-                className="w-full mt-6"
+                className="w-full mt-6 rounded-lg h-12 text-base font-semibold"
                 size="lg"
               >
                 Entendido

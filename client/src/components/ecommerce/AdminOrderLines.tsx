@@ -30,13 +30,13 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
 
   // Buscar sumário com progresso e produtos disponíveis
   const { data: summary, isLoading: loadingSummary } = useQuery<any>({
-    queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`],
+    queryKey: [`/api/app/order-lines/${orderId}/summary`],
     refetchInterval: 3000,
   });
 
   // Buscar linhas existentes
   const { data: lines, isLoading: loadingLines } = useQuery<any[]>({
-    queryKey: [`/api/ecommerce/order-lines/${orderId}`],
+    queryKey: [`/api/app/order-lines/${orderId}`],
     refetchInterval: 3000,
     staleTime: 0, // Sempre considerar dados como stale
     cacheTime: 0, // Não fazer cache
@@ -87,7 +87,7 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch(`/api/ecommerce/order-lines`, {
+      const res = await fetch(`/api/app/order-lines`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -99,8 +99,8 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
       toast({
         title: "Linha criada",
         description: "Linha de portabilidade adicionada com sucesso",
@@ -118,7 +118,7 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
 
   const updateMutation = useMutation({
     mutationFn: async ({ lineId, data }: { lineId: string; data: any }) => {
-      const res = await fetch(`/api/ecommerce/order-lines/${lineId}`, {
+      const res = await fetch(`/api/app/order-lines/${lineId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -130,8 +130,8 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
       toast({
         title: "Linha atualizada",
         description: "Alterações salvas com sucesso",
@@ -149,7 +149,7 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (lineId: string) => {
-      const res = await fetch(`/api/ecommerce/order-lines/${lineId}`, {
+      const res = await fetch(`/api/app/order-lines/${lineId}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -159,8 +159,8 @@ export default function AdminOrderLines({ orderId }: AdminOrderLinesProps) {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
       toast({
         title: "Linha removida",
         description: "Linha deletada com sucesso",

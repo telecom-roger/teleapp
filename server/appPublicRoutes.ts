@@ -6,13 +6,15 @@ import {
   ecommerceProductCategories,
   ecommerceAdicionais,
   ecommerceBanners,
+  ecommerceProductVariationGroups,
+  ecommerceProductVariationOptions,
 } from "@shared/schema";
 import { eq, and, asc, lte, gte, or, isNull, sql } from "drizzle-orm";
 
 const router = Router();
 
 /**
- * GET /api/ecommerce/public/categories
+ * GET /api/app/public/categories
  * Lista categorias ativas para o público
  */
 router.get("/categories", async (req: Request, res: Response) => {
@@ -31,7 +33,7 @@ router.get("/categories", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ecommerce/public/products
+ * GET /api/app/public/products
  * Lista produtos ativos para o público
  * Query params: ?categoria=slug
  */
@@ -76,7 +78,7 @@ router.get("/products", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ecommerce/public/categories/:slug
+ * GET /api/app/public/categories/:slug
  * Busca categoria específica por slug
  */
 router.get("/categories/:slug", async (req: Request, res: Response) => {
@@ -106,7 +108,7 @@ router.get("/categories/:slug", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ecommerce/public/adicionais
+ * GET /api/app/public/adicionais
  * Lista todos os adicionais disponíveis
  */
 router.get("/adicionais", async (req: Request, res: Response) => {
@@ -124,7 +126,7 @@ router.get("/adicionais", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ecommerce/public/banners
+ * GET /api/app/public/banners
  * Lista banners ativos para a página especificada
  * Query params: ?pagina=home
  */
@@ -170,7 +172,7 @@ router.get("/banners", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/ecommerce/public/banners/:pagina
+ * GET /api/app/public/banners/:pagina
  * Lista banners ativos para a página especificada (alternativa com path param)
  */
 router.get("/banners/:pagina", async (req: Request, res: Response) => {
@@ -205,6 +207,44 @@ router.get("/banners/:pagina", async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error("Erro ao buscar banners públicos:", error);
     res.status(500).json({ error: "Erro ao buscar banners" });
+  }
+});
+
+/**
+ * GET /api/app/public/products/:id/variations
+ * Busca grupos de variação e opções de um produto específico
+ */
+router.get("/products/:id/variations", async (req: Request, res: Response) => {
+  try {
+    const productId = req.params.id;
+
+    // Buscar grupos de variação do produto (UUID ou número)
+    const groups = await db
+      .select()
+      .from(ecommerceProductVariationGroups)
+      .where(eq(ecommerceProductVariationGroups.productId, productId))
+      .orderBy(asc(ecommerceProductVariationGroups.ordem));
+
+    // Para cada grupo, buscar suas opções
+    const groupsWithOptions = await Promise.all(
+      groups.map(async (group) => {
+        const options = await db
+          .select()
+          .from(ecommerceProductVariationOptions)
+          .where(eq(ecommerceProductVariationOptions.groupId, group.id))
+          .orderBy(asc(ecommerceProductVariationOptions.ordem));
+
+        return {
+          ...group,
+          options,
+        };
+      })
+    );
+
+    res.json(groupsWithOptions);
+  } catch (error: any) {
+    console.error("Erro ao buscar variações do produto:", error);
+    res.status(500).json({ error: "Erro ao buscar variações" });
   }
 });
 

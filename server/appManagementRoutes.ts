@@ -1,13 +1,19 @@
 import { Router, type Request, type Response } from "express";
 import { db } from "./db";
-import { ecommerceCategories, ecommerceProducts, ecommerceProductCategories } from "@shared/schema";
+import { 
+  ecommerceCategories, 
+  ecommerceProducts, 
+  ecommerceProductCategories,
+  ecommerceProductVariationGroups,
+  ecommerceProductVariationOptions 
+} from "@shared/schema";
 import { eq, desc, asc } from "drizzle-orm";
 import { blockCustomers } from "./middleware/auth";
 
 const router = Router();
 
 /**
- * GET /api/admin/ecommerce/categories
+ * GET /api/admin/app/categories
  * Lista todas as categorias
  */
 router.get(
@@ -29,7 +35,7 @@ router.get(
 );
 
 /**
- * POST /api/admin/ecommerce/categories
+ * POST /api/admin/app/categories
  * Cria nova categoria
  */
 router.post(
@@ -61,7 +67,7 @@ router.post(
 );
 
 /**
- * PUT /api/admin/ecommerce/categories/:id
+ * PUT /api/admin/app/categories/:id
  * Atualiza categoria
  */
 router.put(
@@ -100,7 +106,7 @@ router.put(
 );
 
 /**
- * DELETE /api/admin/ecommerce/categories/:id
+ * DELETE /api/admin/app/categories/:id
  * Deleta categoria
  */
 router.delete(
@@ -136,7 +142,7 @@ router.delete(
 );
 
 /**
- * GET /api/admin/ecommerce/products
+ * GET /api/admin/app/products
  * Lista todos os produtos/planos
  */
 router.get("/products", blockCustomers, async (req: Request, res: Response) => {
@@ -183,7 +189,7 @@ router.get("/products", blockCustomers, async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/admin/ecommerce/products
+ * POST /api/admin/app/products
  * Cria novo produto/plano
  */
 router.post(
@@ -235,7 +241,7 @@ router.post(
 );
 
 /**
- * PUT /api/admin/ecommerce/products/:id
+ * PUT /api/admin/app/products/:id
  * Atualiza produto/plano
  */
 router.put(
@@ -305,7 +311,7 @@ router.put(
 );
 
 /**
- * DELETE /api/admin/ecommerce/products/:id
+ * DELETE /api/admin/app/products/:id
  * Deleta produto/plano
  */
 router.delete(
@@ -321,6 +327,233 @@ router.delete(
     } catch (error: any) {
       console.error("Erro ao deletar produto:", error);
       res.status(500).json({ error: "Erro ao deletar produto" });
+    }
+  }
+);
+
+// ==================== PRODUCT VARIATION GROUPS ====================
+
+/**
+ * GET /api/admin/app/products/:productId/variation-groups
+ * Lista todos os grupos de variação de um produto
+ */
+router.get(
+  "/products/:productId/variation-groups",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { productId } = req.params;
+
+      const groups = await db
+        .select()
+        .from(ecommerceProductVariationGroups)
+        .where(eq(ecommerceProductVariationGroups.productId, productId))
+        .orderBy(asc(ecommerceProductVariationGroups.ordem));
+
+      // Para cada grupo, buscar suas opções
+      const groupsWithOptions = await Promise.all(
+        groups.map(async (group) => {
+          const options = await db
+            .select()
+            .from(ecommerceProductVariationOptions)
+            .where(eq(ecommerceProductVariationOptions.groupId, group.id))
+            .orderBy(asc(ecommerceProductVariationOptions.ordem));
+
+          return {
+            ...group,
+            options,
+          };
+        })
+      );
+
+      res.json(groupsWithOptions);
+    } catch (error: any) {
+      console.error("Erro ao buscar grupos de variação:", error);
+      res.status(500).json({ error: "Erro ao buscar grupos de variação" });
+    }
+  }
+);
+
+/**
+ * POST /api/admin/app/products/:productId/variation-groups
+ * Cria novo grupo de variação
+ */
+router.post(
+  "/products/:productId/variation-groups",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { productId } = req.params;
+      const { nome, tipoSelecao, obrigatorio, minSelecoes, maxSelecoes, ordem, ativo } = req.body;
+
+      const [group] = await db
+        .insert(ecommerceProductVariationGroups)
+        .values({
+          productId,
+          nome,
+          tipoSelecao: tipoSelecao || "radio",
+          obrigatorio: obrigatorio !== undefined ? obrigatorio : true,
+          minSelecoes: minSelecoes || 1,
+          maxSelecoes: maxSelecoes || 1,
+          ordem: ordem || 0,
+          ativo: ativo !== undefined ? ativo : true,
+        })
+        .returning();
+
+      res.json(group);
+    } catch (error: any) {
+      console.error("Erro ao criar grupo de variação:", error);
+      res.status(500).json({ error: "Erro ao criar grupo de variação" });
+    }
+  }
+);
+
+/**
+ * PUT /api/admin/app/products/:productId/variation-groups/:groupId
+ * Atualiza grupo de variação
+ */
+router.put(
+  "/products/:productId/variation-groups/:groupId",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { groupId } = req.params;
+      const { nome, tipoSelecao, obrigatorio, minSelecoes, maxSelecoes, ordem, ativo } = req.body;
+
+      const [group] = await db
+        .update(ecommerceProductVariationGroups)
+        .set({
+          nome,
+          tipoSelecao,
+          obrigatorio,
+          minSelecoes,
+          maxSelecoes,
+          ordem,
+          ativo,
+          updatedAt: new Date(),
+        })
+        .where(eq(ecommerceProductVariationGroups.id, groupId))
+        .returning();
+
+      res.json(group);
+    } catch (error: any) {
+      console.error("Erro ao atualizar grupo de variação:", error);
+      res.status(500).json({ error: "Erro ao atualizar grupo de variação" });
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/app/products/:productId/variation-groups/:groupId
+ * Deleta grupo de variação
+ */
+router.delete(
+  "/products/:productId/variation-groups/:groupId",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { groupId } = req.params;
+
+      await db
+        .delete(ecommerceProductVariationGroups)
+        .where(eq(ecommerceProductVariationGroups.id, groupId));
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Erro ao deletar grupo de variação:", error);
+      res.status(500).json({ error: "Erro ao deletar grupo de variação" });
+    }
+  }
+);
+
+// ==================== PRODUCT VARIATION OPTIONS ====================
+
+/**
+ * POST /api/admin/app/products/:productId/variation-groups/:groupId/options
+ * Cria nova opção de variação
+ */
+router.post(
+  "/products/:productId/variation-groups/:groupId/options",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { groupId } = req.params;
+      const { nome, descricao, preco, valorTecnico, ordem, ativo } = req.body;
+
+      const [option] = await db
+        .insert(ecommerceProductVariationOptions)
+        .values({
+          groupId,
+          nome,
+          descricao,
+          preco: preco || 0,
+          valorTecnico,
+          ordem: ordem || 0,
+          ativo: ativo !== undefined ? ativo : true,
+        })
+        .returning();
+
+      res.json(option);
+    } catch (error: any) {
+      console.error("Erro ao criar opção de variação:", error);
+      res.status(500).json({ error: "Erro ao criar opção de variação" });
+    }
+  }
+);
+
+/**
+ * PUT /api/admin/app/products/:productId/variation-groups/:groupId/options/:optionId
+ * Atualiza opção de variação
+ */
+router.put(
+  "/products/:productId/variation-groups/:groupId/options/:optionId",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { optionId } = req.params;
+      const { nome, descricao, preco, valorTecnico, ordem, ativo } = req.body;
+
+      const [option] = await db
+        .update(ecommerceProductVariationOptions)
+        .set({
+          nome,
+          descricao,
+          preco,
+          valorTecnico,
+          ordem,
+          ativo,
+          updatedAt: new Date(),
+        })
+        .where(eq(ecommerceProductVariationOptions.id, optionId))
+        .returning();
+
+      res.json(option);
+    } catch (error: any) {
+      console.error("Erro ao atualizar opção de variação:", error);
+      res.status(500).json({ error: "Erro ao atualizar opção de variação" });
+    }
+  }
+);
+
+/**
+ * DELETE /api/admin/app/products/:productId/variation-groups/:groupId/options/:optionId
+ * Deleta opção de variação
+ */
+router.delete(
+  "/products/:productId/variation-groups/:groupId/options/:optionId",
+  blockCustomers,
+  async (req: Request, res: Response) => {
+    try {
+      const { optionId } = req.params;
+
+      await db
+        .delete(ecommerceProductVariationOptions)
+        .where(eq(ecommerceProductVariationOptions.id, optionId));
+
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Erro ao deletar opção de variação:", error);
+      res.status(500).json({ error: "Erro ao deletar opção de variação" });
     }
   }
 );

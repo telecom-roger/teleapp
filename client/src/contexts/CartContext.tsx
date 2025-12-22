@@ -28,7 +28,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     // Carregar do localStorage
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("ecommerce-cart");
+      const saved = localStorage.getItem("app-cart");
       return saved ? JSON.parse(saved) : [];
     }
     return [];
@@ -37,7 +37,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Salvar no localStorage quando mudar
   useEffect(() => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("ecommerce-cart", JSON.stringify(items));
+      localStorage.setItem("app-cart", JSON.stringify(items));
     }
   }, [items]);
 

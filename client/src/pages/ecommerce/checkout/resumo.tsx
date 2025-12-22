@@ -34,15 +34,15 @@ export default function CheckoutResumo() {
 
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Buscar todos os produtos para mapear SVAs
   const { data: todosOsProdutos = [] } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/products"],
+    queryKey: ["/api/app/public/products"],
     queryFn: async () => {
-      const res = await fetch("/api/ecommerce/public/products");
+      const res = await fetch("/api/app/public/products");
       if (!res.ok) throw new Error("Erro ao buscar produtos");
       return res.json();
     },
@@ -64,15 +64,15 @@ export default function CheckoutResumo() {
   const handleContinuar = () => {
     // Se estiver logado, pular direto para confirmação
     if (customerData?.client) {
-      setLocation("/ecommerce/checkout/confirmacao");
+      setLocation("/app/checkout/confirmacao");
     } else {
       // Se não estiver logado, ir para escolha de tipo de cliente
-      setLocation("/ecommerce/checkout/tipo-cliente");
+      setLocation("/app/checkout/tipo-cliente");
     }
   };
 
   const handleVoltar = () => {
-    setLocation("/ecommerce/planos");
+    setLocation("/app/planos");
   };
 
   // Se carrinho vazio, redirecionar
@@ -105,9 +105,9 @@ export default function CheckoutResumo() {
   const total = getTotal();
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 pb-24">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-8 text-center">
+        <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Resumo da Contratação
           </h1>
@@ -245,7 +245,7 @@ export default function CheckoutResumo() {
                   )}
                 </div>
 
-                {/* SVAs e Textos Upsell */}
+                {/* SVAs e Serviços Incluídos */}
                 {item.svasUpsell && item.svasUpsell.length > 0 && (
                   <div className="mt-3 pt-3 border-t">
                     <p className="text-xs font-semibold text-slate-600 mb-2">
@@ -258,19 +258,6 @@ export default function CheckoutResumo() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {item.textosUpsell && item.textosUpsell.length > 0 && (
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    {item.textosUpsell.map((texto, idx) => (
-                      <p
-                        key={idx}
-                        className="text-xs text-blue-900 mt-1 first:mt-0"
-                      >
-                        ✓ {texto}
-                      </p>
-                    ))}
                   </div>
                 )}
 
@@ -348,17 +335,17 @@ export default function CheckoutResumo() {
         )}
 
         {/* Botões de Ação */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-8">
           <Button
             variant="outline"
             onClick={handleVoltar}
-            className="w-full sm:flex-1 h-12 rounded-xl border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-blue-600 font-semibold transition-colors"
+            className="w-full sm:flex-1 h-14 rounded-xl border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-blue-600 font-semibold transition-colors text-base"
           >
             Adicionar Mais Produtos
           </Button>
           <Button
             onClick={handleContinuar}
-            className="w-full sm:flex-1 h-12 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
+            className="w-full sm:flex-1 h-14 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors text-base"
           >
             Confirmar e Continuar
             <ArrowRight className="ml-2 h-5 w-5" />
@@ -370,7 +357,7 @@ export default function CheckoutResumo() {
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 mb-2">Já é nosso cliente?</p>
             <a
-              href="/ecommerce/login?returnTo=checkout"
+              href="/app/login?returnTo=checkout"
               className="inline-flex items-center justify-center px-6 py-3 h-12 rounded-xl border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-blue-600 transition-colors gap-2 font-semibold text-sm"
             >
               <User className="h-4 w-4" />

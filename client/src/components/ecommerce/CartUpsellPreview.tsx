@@ -23,7 +23,7 @@ export function CartUpsellPreview({ onAccept }: CartUpsellPreviewProps) {
 
   // Buscar todos os produtos disponíveis
   useEffect(() => {
-    fetch("/api/ecommerce/public/products")
+    fetch("/api/app/public/products")
       .then((res) => res.json())
       .then((products) => {
         setAllProducts(products);

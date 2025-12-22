@@ -26,29 +26,29 @@ export function EcommerceHeader() {
   const itemCount = getItemCount();
 
   const { data: customerData } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
     staleTime: 30000, // Cache por 30 segundos
   });
 
   const navItems = [
-    { label: "Planos", href: "/ecommerce/planos" },
-    { label: "Comparador", href: "/ecommerce/comparador" },
-    { label: "Benefícios", href: "/ecommerce#beneficios" },
-    { label: "Depoimentos", href: "/ecommerce#depoimentos" },
-    { label: "Contato", href: "/ecommerce#contato" },
+    { label: "Planos", href: "/app/planos" },
+    { label: "Comparador", href: "/app/comparador" },
+    { label: "Benefícios", href: "/app#beneficios" },
+    { label: "Depoimentos", href: "/app#depoimentos" },
+    { label: "Contato", href: "/app#contato" },
   ];
 
   const loginUrl = customerData?.client
-    ? "/ecommerce/painel"
-    : "/ecommerce/login";
+    ? "/app/painel"
+    : "/app/login";
 
   return (
     <header className="sticky top-0 z-50 w-full shadow-sm bg-white/95 backdrop-blur-sm border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/ecommerce">
+          <Link href="/app">
             <div className="flex items-center space-x-2 cursor-pointer">
               <div className="relative">
                 <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-600">
@@ -91,7 +91,7 @@ export function EcommerceHeader() {
           {/* CTA + Mobile Menu */}
           <div className="flex items-center space-x-3">
             {/* Carrinho Icon com Badge */}
-            {itemCount > 0 && (
+            {itemCount > 0 && !location.startsWith("/app/checkout") && (
               <button
                 onClick={openCart}
                 className="relative p-2 transition-colors text-gray-600 hover:text-blue-600"
@@ -114,7 +114,7 @@ export function EcommerceHeader() {
             </a>
 
             <a
-              href="/ecommerce/planos"
+              href="/app/planos"
               className="hidden md:inline-flex items-center justify-center text-sm font-semibold transition-all h-10 px-6 rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md"
             >
               <ShoppingCart className="mr-2 h-4 w-4" />
@@ -158,7 +158,7 @@ export function EcommerceHeader() {
                 {customerData?.client ? "Meu Painel" : "Entrar"}
               </a>
               <a
-                href="/ecommerce/planos"
+                href="/app/planos"
                 className="flex items-center justify-center w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 shadow-sm hover:shadow-md transition-all h-11 px-4 font-semibold"
                 onClick={() => setMobileMenuOpen(false)}
               >

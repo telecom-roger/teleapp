@@ -54,28 +54,28 @@ export function EcommerceFooter() {
             <h3 className="font-bold text-sm mb-4">Navegação</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/ecommerce">
+                <Link href="/app">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Início
                   </a>
                 </Link>
               </li>
               <li>
-                <Link href="/ecommerce/planos">
+                <Link href="/app/planos">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Ver Todos os Planos
                   </a>
                 </Link>
               </li>
               <li>
-                <Link href="/ecommerce/comparador">
+                <Link href="/app/comparador">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Comparador
                   </a>
                 </Link>
               </li>
               <li>
-                <Link href="/ecommerce/sobre">
+                <Link href="/app/sobre">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Sobre Nós
                   </a>
@@ -89,21 +89,21 @@ export function EcommerceFooter() {
             <h3 className="font-bold text-sm mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <Link href="/ecommerce/termos">
+                <Link href="/app/termos">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Termos de Uso
                   </a>
                 </Link>
               </li>
               <li>
-                <Link href="/ecommerce/privacidade">
+                <Link href="/app/privacidade">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     Política de Privacidade
                   </a>
                 </Link>
               </li>
               <li>
-                <Link href="/ecommerce/lgpd">
+                <Link href="/app/lgpd">
                   <a className="text-slate-600 hover:text-purple-600 transition-colors">
                     LGPD
                   </a>

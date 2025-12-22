@@ -158,7 +158,7 @@ export async function notifyNewOrder(
       ).toFixed(2)}`,
       metadata: {
         orderId,
-        link: `/admin/ecommerce-pedidos`,
+        link: `/admin/app-pedidos`,
       },
     });
   }

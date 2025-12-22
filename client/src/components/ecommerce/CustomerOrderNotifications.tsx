@@ -51,21 +51,21 @@ export function CustomerOrderNotifications() {
         if (data.tipo === "order_stage_change") {
           // Atualizar TODAS as queries relacionadas a pedidos para atualizar o dashboard em tempo real
           queryClient.invalidateQueries({
-            queryKey: ["/api/ecommerce/customer/order-updates"],
+            queryKey: ["/api/app/customer/order-updates"],
           });
           queryClient.invalidateQueries({
-            queryKey: ["/api/ecommerce/customer/orders"],
+            queryKey: ["/api/app/customer/orders"],
           });
 
           // Se temos o orderId, também invalida a query específica desse pedido e documentos
           const orderId = data.orderId || data.metadata?.orderId;
           if (orderId) {
             queryClient.invalidateQueries({
-              queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
+              queryKey: [`/api/app/customer/orders/${orderId}`],
             });
             // Invalida documentos do pedido caso a etapa tenha mudado para aguardando_documentos
             queryClient.invalidateQueries({
-              queryKey: [`/api/ecommerce/customer/documents/${orderId}`],
+              queryKey: [`/api/app/customer/documents/${orderId}`],
             });
           }
 
@@ -75,7 +75,7 @@ export function CustomerOrderNotifications() {
             description: data.descricao,
             action: orderId ? (
               <button
-                onClick={() => navigate(`/ecommerce/painel/pedidos/${orderId}`)}
+                onClick={() => navigate(`/app/painel/pedidos/${orderId}`)}
                 className="inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
               >
                 Ver Pedido
@@ -100,21 +100,21 @@ export function CustomerOrderNotifications() {
 
   const { data = { orders: [], count: 0 } as OrderUpdatesResponse, isLoading } =
     useQuery<OrderUpdatesResponse>({
-      queryKey: ["/api/ecommerce/customer/order-updates"],
+      queryKey: ["/api/app/customer/order-updates"],
     });
 
   const markAsReadMutation = useMutation<any, Error, string | undefined>({
     mutationFn: async (orderId?: string) => {
       const endpoint = orderId
-        ? `/api/ecommerce/customer/orders/${orderId}/mark-viewed`
-        : `/api/ecommerce/customer/orders/mark-all-viewed`;
+        ? `/api/app/customer/orders/${orderId}/mark-viewed`
+        : `/api/app/customer/orders/mark-all-viewed`;
       const res = await fetch(endpoint, { method: "POST" });
       if (!res.ok) throw new Error("Erro ao marcar como lido");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/ecommerce/customer/order-updates"],
+        queryKey: ["/api/app/customer/order-updates"],
       });
     },
   });
@@ -164,7 +164,7 @@ export function CustomerOrderNotifications() {
 
   const handleViewOrder = (orderId: string) => {
     markAsReadMutation.mutate(orderId);
-    navigate(`/ecommerce/painel/pedidos/${orderId}`);
+    navigate(`/app/painel/pedidos/${orderId}`);
     setOpen(false);
   };
 

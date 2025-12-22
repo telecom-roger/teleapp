@@ -75,19 +75,19 @@ export default function CustomerDashboard() {
     isLoading: loadingCustomer,
     isError,
   } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Proteção de rota - redirecionar se não autenticado
   useEffect(() => {
     if (!loadingCustomer && (isError || !customerData?.client)) {
-      setLocation("/ecommerce");
+      setLocation("/app");
     }
   }, [loadingCustomer, isError, customerData, setLocation]);
 
   const { data, isLoading: loadingOrders } = useQuery<{ orders: Order[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     enabled: !!customerData?.client?.id,
     // Removido polling - agora usa SSE em tempo real via CustomerOrderNotifications
   });
@@ -312,7 +312,7 @@ export default function CustomerDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Link href="/ecommerce/planos">
+                <Link href="/app/planos">
                   <Button
                     variant="outline"
                     className="w-full h-auto flex-col gap-2 py-6 border-primary text-primary hover:bg-primary hover:text-white"
@@ -322,7 +322,7 @@ export default function CustomerDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/ecommerce/painel/pedidos">
+                <Link href="/app/painel/pedidos">
                   <Button
                     variant="outline"
                     className="w-full h-auto flex-col gap-2 py-6"
@@ -332,7 +332,7 @@ export default function CustomerDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/ecommerce/painel/documentos">
+                <Link href="/app/painel/documentos">
                   <Button
                     variant="outline"
                     className="w-full h-auto flex-col gap-2 py-6"
@@ -342,7 +342,7 @@ export default function CustomerDashboard() {
                   </Button>
                 </Link>
 
-                <Link href="/ecommerce/painel/perfil">
+                <Link href="/app/painel/perfil">
                   <Button
                     variant="outline"
                     className="w-full h-auto flex-col gap-2 py-6"
@@ -365,7 +365,7 @@ export default function CustomerDashboard() {
                         Acompanhe o status dos seus pedidos recentes
                       </CardDescription>
                     </div>
-                    <Link href="/ecommerce/painel/pedidos">
+                    <Link href="/app/painel/pedidos">
                       <Button variant="ghost" size="sm">
                         Ver todos
                       </Button>
@@ -384,7 +384,7 @@ export default function CustomerDashboard() {
                       return (
                         <Link
                           key={order.id}
-                          href={`/ecommerce/painel/pedidos/${order.id}`}
+                          href={`/app/painel/pedidos/${order.id}`}
                         >
                           <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 cursor-pointer transition-all">
                             <div className="flex items-center gap-4">

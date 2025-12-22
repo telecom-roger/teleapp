@@ -30,11 +30,11 @@ export default function ModalAdicionais({
   onClose,
 }: ModalAdicionaisProps) {
   const { data: adicionais = [] } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/adicionais"],
+    queryKey: ["/api/app/public/adicionais"],
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        "/api/ecommerce/public/adicionais",
+        "/api/app/public/adicionais",
         {}
       );
       return res.json();

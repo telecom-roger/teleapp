@@ -1008,6 +1008,9 @@ export const ecommerceProducts = pgTable(
     beneficios: text("beneficios")
       .array()
       .default(sql`ARRAY[]::text[]`),
+    diferenciais: text("diferenciais")
+      .array()
+      .default(sql`ARRAY[]::text[]`),
     tipoPessoa: varchar("tipo_pessoa", { length: 10 })
       .notNull()
       .default("ambos"), // PF, PJ, ambos
@@ -1046,6 +1049,9 @@ export const ecommerceProducts = pgTable(
     precisaEnderecoInstalacao: boolean("precisa_endereco_instalacao").default(
       false
     ), // Se true, solicita endereço de instalação no checkout
+
+    // 🆕 Sistema de variações (produtos configuráveis)
+    possuiVariacoes: boolean("possui_variacoes").default(false), // Se true, produto requer configuração antes de adicionar ao carrinho
 
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
@@ -1237,6 +1243,81 @@ export const insertEcommerceStageSchema = createInsertSchema(
 
 export type EcommerceStage = typeof ecommerceStages.$inferSelect;
 export type InsertEcommerceStage = z.infer<typeof insertEcommerceStageSchema>;
+
+// ==================== E-COMMERCE PRODUCT VARIATION GROUPS ====================
+export const ecommerceProductVariationGroups = pgTable(
+  "ecommerce_product_variation_groups",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    productId: varchar("product_id")
+      .notNull()
+      .references(() => ecommerceProducts.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(), // Ex: "Internet Fibra", "Plano Móvel", "Serviços Adicionais"
+    tipoSelecao: varchar("tipo_selecao", { length: 20 })
+      .notNull()
+      .default("radio"), // "radio" (única escolha) ou "checkbox" (múltipla escolha)
+    obrigatorio: boolean("obrigatorio").default(true),
+    minSelecoes: integer("min_selecoes").default(1), // Para checkbox: mínimo de seleções
+    maxSelecoes: integer("max_selecoes").default(1), // Para checkbox: máximo de seleções
+    ordem: integer("ordem").default(0),
+    ativo: boolean("ativo").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_variation_groups_product").on(table.productId),
+    index("idx_variation_groups_ordem").on(table.ordem),
+  ]
+);
+
+export const insertEcommerceProductVariationGroupSchema = createInsertSchema(
+  ecommerceProductVariationGroups
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceProductVariationGroup = typeof ecommerceProductVariationGroups.$inferSelect;
+export type InsertEcommerceProductVariationGroup = z.infer<typeof insertEcommerceProductVariationGroupSchema>;
+
+// ==================== E-COMMERCE PRODUCT VARIATION OPTIONS ====================
+export const ecommerceProductVariationOptions = pgTable(
+  "ecommerce_product_variation_options",
+  {
+    id: varchar("id")
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    groupId: varchar("group_id")
+      .notNull()
+      .references(() => ecommerceProductVariationGroups.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(), // Ex: "700 Mega", "15 GB"
+    descricao: text("descricao"), // Descrição adicional da opção
+    preco: integer("preco").notNull().default(0), // em centavos (pode ser positivo ou negativo)
+    valorTecnico: varchar("valor_tecnico", { length: 50 }), // Ex: "700", "15" - obrigatório para integrações e filtros
+    ordem: integer("ordem").default(0),
+    ativo: boolean("ativo").default(true),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  },
+  (table) => [
+    index("idx_variation_options_group").on(table.groupId),
+    index("idx_variation_options_ordem").on(table.ordem),
+  ]
+);
+
+export const insertEcommerceProductVariationOptionSchema = createInsertSchema(
+  ecommerceProductVariationOptions
+).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type EcommerceProductVariationOption = typeof ecommerceProductVariationOptions.$inferSelect;
+export type InsertEcommerceProductVariationOption = z.infer<typeof insertEcommerceProductVariationOptionSchema>;
 
 // ==================== E-COMMERCE ORDERS ====================
 export const ecommerceOrders = pgTable(
@@ -1505,6 +1586,7 @@ export type InsertEcommerceOrderLine = z.infer<
 // Relations para ecommerceProducts
 export const ecommerceProductsRelations = relations(ecommerceProducts, ({ many }) => ({
   productCategories: many(ecommerceProductCategories),
+  variationGroups: many(ecommerceProductVariationGroups),
 }));
 
 // Relations para ecommerceCategories
@@ -1523,6 +1605,29 @@ export const ecommerceProductCategoriesRelations = relations(
     category: one(ecommerceCategories, {
       fields: [ecommerceProductCategories.categorySlug],
       references: [ecommerceCategories.slug],
+    }),
+  })
+);
+
+// Relations para ecommerceProductVariationGroups
+export const ecommerceProductVariationGroupsRelations = relations(
+  ecommerceProductVariationGroups,
+  ({ one, many }) => ({
+    product: one(ecommerceProducts, {
+      fields: [ecommerceProductVariationGroups.productId],
+      references: [ecommerceProducts.id],
+    }),
+    options: many(ecommerceProductVariationOptions),
+  })
+);
+
+// Relations para ecommerceProductVariationOptions
+export const ecommerceProductVariationOptionsRelations = relations(
+  ecommerceProductVariationOptions,
+  ({ one }) => ({
+    group: one(ecommerceProductVariationGroups, {
+      fields: [ecommerceProductVariationOptions.groupId],
+      references: [ecommerceProductVariationGroups.id],
     }),
   })
 );

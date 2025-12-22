@@ -61,7 +61,7 @@ export default function EcommerceLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { identifier: string; password: string }) => {
-      const res = await fetch("/api/ecommerce/auth/login", {
+      const res = await fetch("/api/app/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -79,10 +79,10 @@ export default function EcommerceLogin() {
       // Invalidar TODAS as queries de autenticação
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       await queryClient.invalidateQueries({
-        queryKey: ["/api/ecommerce/auth/customer"],
+        queryKey: ["/api/app/auth/customer"],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api/ecommerce/customer/orders"],
+        queryKey: ["/api/app/customer/orders"],
       });
 
       // Forçar refetch imediato da autenticação
@@ -90,7 +90,7 @@ export default function EcommerceLogin() {
 
       // Redirecionar após garantir que a autenticação foi recarregada
       setTimeout(() => {
-        navigate("/ecommerce/painel");
+        navigate("/app/painel");
       }, 200);
     },
     onError: (error: Error) => {
@@ -216,7 +216,7 @@ export default function EcommerceLogin() {
             <p>
               Ainda não tem conta?{" "}
               <button
-                onClick={() => navigate("/ecommerce/planos")}
+                onClick={() => navigate("/app/planos")}
                 className="text-blue-600 hover:text-blue-700 hover:underline font-semibold"
               >
                 Contrate agora

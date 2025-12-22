@@ -16,7 +16,7 @@ import ResumoMultiLinha from "@/components/ecommerce/ResumoMultiLinha";
 import { useState } from "react";
 
 export default function CategoriaPage() {
-  const [, params] = useRoute("/ecommerce/:slug");
+  const [, params] = useRoute("/app/:slug");
   const [, navigate] = useLocation();
   const slug = params?.slug;
 
@@ -27,11 +27,11 @@ export default function CategoriaPage() {
   });
 
   const { data: categoria } = useQuery<EcommerceCategory>({
-    queryKey: [`/api/ecommerce/public/categories/${slug}`],
+    queryKey: [`/api/app/public/categories/${slug}`],
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        `/api/ecommerce/public/categories/${slug}`,
+        `/api/app/public/categories/${slug}`,
         {}
       );
       return res.json();
@@ -40,11 +40,11 @@ export default function CategoriaPage() {
   });
 
   const { data: produtos = [] } = useQuery<EcommerceProduct[]>({
-    queryKey: ["/api/ecommerce/public/products", slug],
+    queryKey: ["/api/app/public/products", slug],
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        `/api/ecommerce/public/products?categoria=${slug}`,
+        `/api/app/public/products?categoria=${slug}`,
         {}
       );
       return res.json();
@@ -53,11 +53,11 @@ export default function CategoriaPage() {
   });
 
   const { data: adicionais = [] } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/adicionais"],
+    queryKey: ["/api/app/public/adicionais"],
     queryFn: async () => {
       const res = await apiRequest(
         "GET",
-        "/api/ecommerce/public/adicionais",
+        "/api/app/public/adicionais",
         {}
       );
       return res.json();
@@ -153,7 +153,7 @@ export default function CategoriaPage() {
         <div className="max-w-6xl mx-auto px-4">
           <Button
             variant="ghost"
-            onClick={() => navigate("/ecommerce")}
+            onClick={() => navigate("/app")}
             className="mb-4 hover:bg-white/50"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

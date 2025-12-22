@@ -69,7 +69,7 @@ async function registrarEventoTimeline(data: {
 }
 
 /**
- * GET /api/admin/ecommerce/orders
+ * GET /api/admin/app/orders
  * Lista todos os pedidos do ecommerce (para admin)
  */
 router.get("/orders", blockCustomers, async (req: Request, res: Response) => {
@@ -131,7 +131,7 @@ router.get("/orders", blockCustomers, async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/admin/ecommerce/orders/list
+ * GET /api/admin/app/orders/list
  * Lista todos os pedidos com filtros avançados (para listagem admin)
  * IMPORTANTE: Esta rota deve vir ANTES de /orders/:orderId para não ser capturada como parâmetro
  */
@@ -279,7 +279,7 @@ router.get(
 );
 
 /**
- * GET /api/admin/ecommerce/orders/:orderId
+ * GET /api/admin/app/orders/:orderId
  * Detalhes completos de um pedido (para admin)
  */
 router.get(
@@ -362,7 +362,7 @@ router.get(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/etapa
+ * PUT /api/admin/app/orders/:orderId/etapa
  * Atualiza a etapa de um pedido
  */
 router.put(
@@ -575,7 +575,7 @@ router.put(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/responsavel
+ * PUT /api/admin/app/orders/:orderId/responsavel
  * Atribui um responsável ao pedido
  */
 router.put(
@@ -608,7 +608,7 @@ router.put(
 );
 
 /**
- * GET /api/admin/ecommerce/stats
+ * GET /api/admin/app/stats
  * Estatísticas dos pedidos do ecommerce
  */
 router.get("/stats", blockCustomers, async (req: Request, res: Response) => {
@@ -648,7 +648,7 @@ router.get("/stats", blockCustomers, async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/admin/ecommerce/notifications/new-orders
+ * GET /api/admin/app/notifications/new-orders
  * Retorna pedidos novos das últimas 24 horas para notificações
  * Apenas pedidos não visualizados por admin (lastViewedByAdminAt < createdAt ou null)
  */
@@ -657,6 +657,8 @@ router.get(
   blockCustomers,
   async (req: Request, res: Response) => {
     try {
+      console.log("🔔 [NOTIFICATIONS] Buscando novos pedidos para badge...");
+      
       // Buscar pedidos novos das últimas 24 horas que ainda não foram visualizados por admin
       const orders = await db
         .select()
@@ -674,6 +676,8 @@ router.get(
         .orderBy(desc(ecommerceOrders.createdAt))
         .limit(20);
 
+      console.log(`📊 [NOTIFICATIONS] Encontrados ${orders.length} pedidos novos`);
+      
       res.json({
         orders,
         count: orders.length,
@@ -686,7 +690,7 @@ router.get(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/agent
+ * PUT /api/admin/app/orders/:orderId/agent
  * Atribui um agente ao pedido
  */
 router.put(
@@ -740,7 +744,7 @@ router.put(
   }
 );
 
-// POST /api/admin/ecommerce/orders/:orderId/mark-viewed - Marcar pedido específico como visualizado (admin)
+// POST /api/admin/app/orders/:orderId/mark-viewed - Marcar pedido específico como visualizado (admin)
 router.post(
   "/orders/:orderId/mark-viewed",
   requireAuth,
@@ -772,7 +776,7 @@ router.post(
   }
 );
 
-// POST /api/admin/ecommerce/orders/mark-all-viewed - Marcar todos os pedidos como visualizados (admin)
+// POST /api/admin/app/orders/mark-all-viewed - Marcar todos os pedidos como visualizados (admin)
 router.post(
   "/orders/mark-all-viewed",
   requireAuth,
@@ -793,7 +797,7 @@ router.post(
 // ==================== BANNERS ====================
 
 /**
- * GET /api/admin/ecommerce/banners
+ * GET /api/admin/app/banners
  * Lista todos os banners (admin)
  */
 router.get("/banners", blockCustomers, async (req: Request, res: Response) => {
@@ -811,7 +815,7 @@ router.get("/banners", blockCustomers, async (req: Request, res: Response) => {
 });
 
 /**
- * POST /api/admin/ecommerce/banners
+ * POST /api/admin/app/banners
  * Cria um novo banner
  */
 router.post("/banners", requireRole(["admin"]), async (req: Request, res: Response) => {
@@ -861,7 +865,7 @@ router.post("/banners", requireRole(["admin"]), async (req: Request, res: Respon
 });
 
 /**
- * PUT /api/admin/ecommerce/banners/:id
+ * PUT /api/admin/app/banners/:id
  * Atualiza um banner
  */
 router.put("/banners/:id", requireRole(["admin"]), async (req: Request, res: Response) => {
@@ -891,7 +895,7 @@ router.put("/banners/:id", requireRole(["admin"]), async (req: Request, res: Res
 });
 
 /**
- * DELETE /api/admin/ecommerce/banners/:id
+ * DELETE /api/admin/app/banners/:id
  * Remove um banner
  */
 router.delete("/banners/:id", requireRole(["admin"]), async (req: Request, res: Response) => {
@@ -910,7 +914,7 @@ router.delete("/banners/:id", requireRole(["admin"]), async (req: Request, res: 
 // ==================== DOCUMENTOS SOLICITADOS ====================
 
 /**
- * GET /api/admin/ecommerce/orders/:orderId/requested-documents
+ * GET /api/admin/app/orders/:orderId/requested-documents
  * Lista documentos solicitados para um pedido
  */
 router.get(
@@ -935,7 +939,7 @@ router.get(
 );
 
 /**
- * POST /api/admin/ecommerce/orders/:orderId/requested-documents
+ * POST /api/admin/app/orders/:orderId/requested-documents
  * Adiciona um documento solicitado para um pedido
  */
 router.post(
@@ -1009,7 +1013,7 @@ router.post(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/requested-documents/:documentId
+ * PUT /api/admin/app/orders/:orderId/requested-documents/:documentId
  * Atualiza status de um documento solicitado
  */
 router.put(
@@ -1050,7 +1054,7 @@ router.put(
 );
 
 /**
- * DELETE /api/admin/ecommerce/orders/:orderId/requested-documents/:documentId
+ * DELETE /api/admin/app/orders/:orderId/requested-documents/:documentId
  * Remove um documento solicitado e seus uploads associados
  */
 router.delete(
@@ -1155,7 +1159,7 @@ router.delete(
 );
 
 /**
- * POST /api/admin/ecommerce/orders/:orderId/load-default-documents
+ * POST /api/admin/app/orders/:orderId/load-default-documents
  * Carrega documentos padrão baseado no tipo de pessoa do pedido
  */
 router.post(
@@ -1276,7 +1280,7 @@ router.post(
 );
 
 /**
- * GET /api/admin/ecommerce/orders/:orderId/uploaded-documents
+ * GET /api/admin/app/orders/:orderId/uploaded-documents
  * Lista documentos enviados/uploaded pelo cliente para um pedido
  */
 router.get(
@@ -1310,7 +1314,7 @@ router.get(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/requested-documents/:documentId/approve
+ * PUT /api/admin/app/orders/:orderId/requested-documents/:documentId/approve
  * Aprovar documento solicitado
  */
 router.put(
@@ -1377,7 +1381,7 @@ router.put(
 );
 
 /**
- * PUT /api/admin/ecommerce/orders/:orderId/requested-documents/:documentId/reject
+ * PUT /api/admin/app/orders/:orderId/requested-documents/:documentId/reject
  * Reprovar documento solicitado
  */
 router.put(

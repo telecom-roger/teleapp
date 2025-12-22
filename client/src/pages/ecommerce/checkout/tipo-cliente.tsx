@@ -15,7 +15,7 @@ export default function CheckoutTipoCliente() {
   const { items } = useCartStore();
 
   const escolherTipo = (tipo: "PF" | "PJ") => {
-    setLocation(`/ecommerce/checkout/dados?tipo=${tipo}`);
+    setLocation(`/app/checkout/dados?tipo=${tipo}`);
   };
 
   return (
@@ -44,7 +44,7 @@ export default function CheckoutTipoCliente() {
                 </p>
                 <p className="text-gray-600">
                   <a
-                    href="/ecommerce/planos"
+                    href="/app/planos"
                     className="underline font-semibold hover:opacity-80"
                   >
                     Escolha um plano primeiro
@@ -123,7 +123,7 @@ export default function CheckoutTipoCliente() {
               Já é nosso cliente?
             </p>
             <a
-              href="/ecommerce/login?returnTo=checkout"
+              href="/app/login?returnTo=checkout"
               className="inline-flex items-center justify-center h-12 px-8 rounded-xl font-semibold transition-colors gap-2 bg-white border-2 border-gray-300 text-gray-600 hover:border-blue-600 hover:text-blue-600"
             >
               <User className="h-4 w-4" />

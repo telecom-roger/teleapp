@@ -98,7 +98,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
 
   // Buscar dados do pedido para verificar status
   const { data: orderData } = useQuery({
-    queryKey: [`/api/ecommerce/customer/orders`],
+    queryKey: [`/api/app/customer/orders`],
     refetchInterval: 3000,
   });
   
@@ -134,7 +134,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
 
   // Buscar resumo do pedido
   const { data: summary, isLoading: loadingSummary } = useQuery<any>({
-    queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`],
+    queryKey: [`/api/app/order-lines/${orderId}/summary`],
     refetchInterval: 5000, // Atualizar a cada 5 segundos
   });
   
@@ -273,7 +273,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
   // Mutation para criar linha
   const createLineMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/ecommerce/order-lines", {
+      const res = await fetch("/api/app/order-lines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -288,8 +288,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       return res.json();
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/app/customer/orders"] });
       
       // Limpar backup após sucesso
       setSlotBackup(null);
@@ -382,7 +382,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
   // Mutation para atualizar linha
   const updateLineMutation = useMutation({
     mutationFn: async ({ lineId, data }: { lineId: string; data: any }) => {
-      const res = await fetch(`/api/ecommerce/order-lines/${lineId}`, {
+      const res = await fetch(`/api/app/order-lines/${lineId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -397,7 +397,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       return res.json();
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
       
       // Limpar backup após sucesso
       setSlotBackup(null);
@@ -472,7 +472,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
   // Mutation para deletar linha
   const deleteLineMutation = useMutation({
     mutationFn: async (lineId: string) => {
-      const res = await fetch(`/api/ecommerce/order-lines/${lineId}`, {
+      const res = await fetch(`/api/app/order-lines/${lineId}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -485,8 +485,8 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
       return { lineId };
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`] });
-      queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/order-lines/${orderId}/summary`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/app/customer/orders"] });
       
       // Encontrar e limpar o slot local
       const slotIndex = slots.findIndex(s => s.id === data.lineId);
@@ -1624,7 +1624,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                 
                 try {
                   // Atualizar status do pedido para em_analise
-                  const res = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
+                  const res = await fetch(`/api/app/orders/${orderId}/status`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -1728,7 +1728,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
               onClick={async () => {
                 try {
                   // Solicitar alteração - muda status para ajuste_solicitado
-                  const res = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
+                  const res = await fetch(`/api/app/orders/${orderId}/status`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     credentials: "include",
@@ -1751,7 +1751,7 @@ export function OrderLinesFill({ orderId, onClose, readOnly = false }: OrderLine
                   });
                   
                   // Refetch orders para atualizar status
-                  queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/orders`] });
+                  queryClient.invalidateQueries({ queryKey: [`/api/app/customer/orders`] });
                 } catch (error: any) {
                   toast({
                     title: "Erro ao solicitar alteração",

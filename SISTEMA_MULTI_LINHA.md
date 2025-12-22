@@ -51,7 +51,7 @@ Cada linha pode ter seus próprios adicionais:
 
 1. **Adicionar Linha**
 
-   - Navegue até uma categoria (ex: `/ecommerce/fibra`)
+   - Navegue até uma categoria (ex: `/app/fibra`)
    - Encontre o plano desejado
    - Clique em **"Nova Linha"** no card do produto
    - A linha é adicionada ao resumo automaticamente
@@ -158,7 +158,7 @@ const resumo = useMultiLinhaStore((state) => state.getResumoDetalhado());
 
 ```typescript
 // Página de categoria
-import ResumoMultiLinha from "@/components/ecommerce/ResumoMultiLinha";
+import ResumoMultiLinha from "@/components/app/ResumoMultiLinha";
 
 export default function CategoriaPage() {
   return (
@@ -198,12 +198,12 @@ export default function CategoriaPage() {
 Todos os arquivos já foram criados:
 
 - ✅ `stores/multiLinhaStore.ts`
-- ✅ `components/ecommerce/ResumoMultiLinha.tsx`
-- ✅ `components/ecommerce/ResumoMultiLinhaDesktop.tsx`
-- ✅ `components/ecommerce/ResumoMultiLinhaMobile.tsx`
-- ✅ `components/ecommerce/ModalAdicionais.tsx`
-- ✅ `components/ecommerce/CardInteligente.tsx` (atualizado)
-- ✅ `pages/ecommerce/categoria.tsx` (atualizado)
+- ✅ `components/app/ResumoMultiLinha.tsx`
+- ✅ `components/app/ResumoMultiLinhaDesktop.tsx`
+- ✅ `components/app/ResumoMultiLinhaMobile.tsx`
+- ✅ `components/app/ModalAdicionais.tsx`
+- ✅ `components/app/CardInteligente.tsx` (atualizado)
+- ✅ `pages/app/categoria.tsx` (atualizado)
 
 ## 📱 Screenshots Esperados
 

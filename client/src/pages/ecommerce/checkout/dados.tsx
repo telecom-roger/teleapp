@@ -66,7 +66,7 @@ export default function CheckoutDados() {
 
   const verificarDocumentoDuplicado = async (doc: string, tipo: "PF" | "PJ"): Promise<boolean> => {
     try {
-      const response = await fetch("/api/ecommerce/check-document", {
+      const response = await fetch("/api/app/check-document", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -103,6 +103,28 @@ export default function CheckoutDados() {
     }
   };
 
+  const verificarEmailDuplicado = async (email: string): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/app/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (data.existe) {
+        setModalDuplicado(true);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("Erro ao verificar e-mail:", error);
+      return true; // Em caso de erro, permitir continuar
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -133,12 +155,18 @@ export default function CheckoutDados() {
       return;
     }
 
+    // Verificar se e-mail já existe
+    const emailDisponivel = await verificarEmailDuplicado(formData.email);
+    if (!emailDisponivel) {
+      return;
+    }
+
     // Salvar e continuar
     localStorage.setItem(
       "checkout-dados",
       JSON.stringify({ ...formData, tipoPessoa })
     );
-    setLocation(`/ecommerce/checkout/endereco?tipo=${tipoPessoa}`);
+    setLocation(`/app/checkout/endereco?tipo=${tipoPessoa}`);
   };
 
   const formatCPF = formatarCPF;
@@ -146,7 +174,7 @@ export default function CheckoutDados() {
   const formatPhone = formatarTelefone;
 
   const voltar = () => {
-    setLocation("/ecommerce/checkout/tipo-cliente");
+    setLocation("/app/checkout/tipo-cliente");
   };
 
   return (
@@ -319,6 +347,12 @@ export default function CheckoutDados() {
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
+                  onBlur={async (e) => {
+                    const email = e.target.value;
+                    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                      await verificarEmailDuplicado(email);
+                    }
+                  }}
                   placeholder="contato@exemplo.com"
                   className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                 />

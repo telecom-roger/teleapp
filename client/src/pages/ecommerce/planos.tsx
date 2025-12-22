@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCartStore } from "@/stores/cartStore";
 import { CartSidebar, CartBottomBar } from "@/components/ecommerce/CartSidebar";
 import { CalculadoraMultiLinhasSidebar } from "@/components/ecommerce/CalculadoraMultiLinhasSidebar";
+import { ProductVariationsModal } from "@/components/ecommerce/ProductVariationsModal";
 import { EcommerceHeader } from "@/components/ecommerce/EcommerceHeader";
 import { EcommerceFooter } from "@/components/ecommerce/EcommerceFooter";
 import {
@@ -136,6 +137,10 @@ export default function EcommercePlanos() {
     const saved = localStorage.getItem("tipo-contratacao");
     return (saved === "portabilidade" ? "portabilidade" : "linha_nova");
   });
+  
+  // Estados para modal de variações
+  const [showVariationsModal, setShowVariationsModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
   // Salvar tipoContratacao no localStorage sempre que mudar
   useEffect(() => {
@@ -159,13 +164,13 @@ export default function EcommercePlanos() {
 
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Buscar categorias dinâmicas
   const { data: categorias = [] } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/categories"],
+    queryKey: ["/api/app/public/categories"],
   });
 
   // Buscar produtos com filtro de categoria na URL
@@ -242,9 +247,9 @@ export default function EcommercePlanos() {
   }, [categoriasFiltro]);
 
   const { data: products, isLoading } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/products"],
+    queryKey: ["/api/app/public/products"],
     queryFn: async () => {
-      const res = await fetch("/api/ecommerce/public/products");
+      const res = await fetch("/api/app/public/products");
       if (!res.ok) throw new Error("Erro ao buscar produtos");
       return res.json();
     },
@@ -333,11 +338,48 @@ export default function EcommercePlanos() {
   );
 
   const handleAddToCart = (product: any) => {
-    // 🆕 Registrar evento comportamental
-    registrarEvento("plano_adicionado_carrinho", product.id);
+    // 🆕 Verificar se produto tem variações
+    console.log('🔍 Produto:', product.nome, '| possuiVariacoes:', product.possuiVariacoes);
+    
+    if (product.possuiVariacoes === true || product.possuiVariacoes === 1) {
+      console.log('✅ Abrindo modal de variações');
+      // Abrir modal de seleção de variações
+      setSelectedProduct(product);
+      setShowVariationsModal(true);
+      return;
+    }
 
+    console.log('➡️ Adicionando direto ao carrinho');
+    // Produto normal - adicionar direto ao carrinho
+    registrarEvento("plano_adicionado_carrinho", product.id);
     addItem(product, 1);
     openCart();
+  };
+  
+  const handleAddToCartWithVariations = (product: any, variationsData: any) => {
+    // Adicionar produto com variações selecionadas ao carrinho
+    registrarEvento("plano_adicionado_carrinho", product.id);
+    
+    // Criar um objeto de produto com as variações
+    const productWithVariations = {
+      ...product,
+      selectedVariations: variationsData.selections,
+      preco: variationsData.totalPrice, // Preço total com variações
+    };
+    
+    addItem(productWithVariations, 1);
+    
+    // Atualizar estado de seleção
+    const novoSet = new Set(planosSelecionados);
+    novoSet.add(product.id);
+    setPlanosSelecionados(novoSet);
+    
+    openCart();
+    
+    toast({
+      title: "Produto adicionado!",
+      description: `${product.nome} foi adicionado ao carrinho com suas personalizações.`,
+    });
   };
 
   const toggleSelecaoPlano = (product: any) => {
@@ -350,7 +392,18 @@ export default function EcommercePlanos() {
       // 🆕 Registrar remoção
       registrarEvento("plano_removido_carrinho", product.id);
     } else {
-      // Selecionar - adiciona ao carrinho
+      // Selecionar - verificar se tem variações primeiro
+      console.log('🔍 toggleSelecaoPlano - Produto:', product.nome, '| possuiVariacoes:', product.possuiVariacoes);
+      
+      if (product.possuiVariacoes === true || product.possuiVariacoes === 1) {
+        console.log('✅ Produto com variações - abrindo modal');
+        // Abrir modal de seleção de variações
+        setSelectedProduct(product);
+        setShowVariationsModal(true);
+        return; // NÃO adiciona ao carrinho ainda
+      }
+      
+      // Produto normal - adiciona ao carrinho
       novoSet.add(product.id);
       addItem(product, 1);
       openCart();
@@ -402,7 +455,7 @@ export default function EcommercePlanos() {
     });
 
     // Limpar URL também
-    window.history.replaceState({}, "", "/ecommerce/planos");
+    window.history.replaceState({}, "", "/app/planos");
   };
 
   // 🆕 Funções para toggle multi-select COM captura de contexto inicial
@@ -425,7 +478,7 @@ export default function EcommercePlanos() {
     }
 
     setCategoria(novasCategorias);
-    window.history.replaceState({}, "", "/ecommerce/planos");
+    window.history.replaceState({}, "", "/app/planos");
   };
 
   const toggleOperadora = (op: string) => {
@@ -445,7 +498,7 @@ export default function EcommercePlanos() {
     }
 
     setOperadora(novasOperadoras);
-    window.history.replaceState({}, "", "/ecommerce/planos");
+    window.history.replaceState({}, "", "/app/planos");
   };
 
   // Quando usuário mudar tipo de pessoa
@@ -462,7 +515,7 @@ export default function EcommercePlanos() {
     }
 
     setTipoPessoa(tipo);
-    window.history.replaceState({}, "", "/ecommerce/planos");
+    window.history.replaceState({}, "", "/app/planos");
   };
 
   // 🆕 Handlers para EmptyState
@@ -1060,6 +1113,17 @@ export default function EcommercePlanos() {
         quantidade={quantidadeLinhasCalculadora}
         onQuantidadeChange={setQuantidadeLinhasCalculadora}
         onContratar={contratarDoSidebar}
+      />
+
+      {/* Modal de Variações */}
+      <ProductVariationsModal
+        isOpen={showVariationsModal}
+        onClose={() => {
+          setShowVariationsModal(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct}
+        onAddToCart={handleAddToCartWithVariations}
       />
 
       <CartSidebar />

@@ -8,7 +8,7 @@ export default function TestPage() {
 
       <div style={{ marginTop: "30px" }}>
         <a
-          href="/ecommerce"
+          href="/app"
           style={{
             display: "inline-block",
             padding: "15px 30px",
@@ -25,7 +25,7 @@ export default function TestPage() {
 
       <div style={{ marginTop: "30px" }}>
         <button
-          onClick={() => (window.location.href = "/ecommerce/checkout")}
+          onClick={() => (window.location.href = "/app/checkout")}
           style={{
             padding: "15px 30px",
             background: "purple",

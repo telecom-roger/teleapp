@@ -58,27 +58,27 @@ export default function CustomerDocuments() {
     isLoading: loadingAuth,
     isError,
   } = useQuery({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Proteção de rota
   useEffect(() => {
     if (!loadingAuth && (isError || !customerData?.client)) {
-      setLocation("/ecommerce");
+      setLocation("/app");
     }
   }, [loadingAuth, isError, customerData, setLocation]);
 
 
   const { data, isLoading: loadingOrders } = useQuery<{ orders: Order[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     enabled: !!customerData?.client,
   });
   const orders = data?.orders ?? [];
 
   const { data: documents, isLoading: loadingDocuments } = useQuery<Document[]>(
     {
-      queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`],
+      queryKey: [`/api/app/customer/documents/${selectedOrder}`],
       enabled: !!selectedOrder,
     }
   );
@@ -100,7 +100,7 @@ export default function CustomerDocuments() {
         formData.append("file", files[0]);
       }
 
-      const res = await fetch(`/api/ecommerce/customer/documents/upload`, {
+      const res = await fetch(`/api/app/customer/documents/upload`, {
         method: "POST",
         body: formData,
       });
@@ -126,7 +126,7 @@ export default function CustomerDocuments() {
       });
       setUploadingFiles([]);
       queryClient.invalidateQueries({
-        queryKey: [`/api/ecommerce/customer/documents/${selectedOrder}`],
+        queryKey: [`/api/app/customer/documents/${selectedOrder}`],
       });
     },
     onError: (error: Error) => {
@@ -202,7 +202,7 @@ export default function CustomerDocuments() {
                     {ordersNeedingDocs.map((order) => (
                       <Link
                         key={order.id}
-                        href={`/ecommerce/painel/pedidos/${order.id}`}
+                        href={`/app/painel/pedidos/${order.id}`}
                       >
                         <button
                           className="w-full flex items-center justify-between p-4 border rounded-lg transition-colors text-left border-gray-200 hover:border-primary hover:bg-primary/5"

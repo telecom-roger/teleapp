@@ -1,11 +1,11 @@
 import type { Express, Request, Response } from "express";
 import type { Server } from "http";
 import { z } from "zod";
-import ecommerceAuthRoutes from "./ecommerceAuthRoutes";
-import ecommerceCustomerRoutes from "./ecommerceCustomerRoutes";
-import ecommerceAdminRoutes from "./ecommerceAdminRoutes";
-import ecommerceManagementRoutes from "./ecommerceManagementRoutes";
-import ecommercePublicRoutes from "./ecommercePublicRoutes";
+import appAuthRoutes from "./appAuthRoutes";
+import appCustomerRoutes from "./appCustomerRoutes";
+import appAdminRoutes from "./appAdminRoutes";
+import appManagementRoutes from "./appManagementRoutes";
+import appPublicRoutes from "./appPublicRoutes";
 import orderLinesRoutes from "./orderLinesRoutes";
 import {
   eq,
@@ -63,7 +63,7 @@ import {
 } from "./testAutomation";
 import { checkPropostaEnviadaTimeouts } from "./automationService";
 import { analyzeClientMessage, validateOpportunityCreation } from "./aiService";
-import { registerEcommerceRoutes } from "./ecommerceRoutes";
+import { registerEcommerceRoutes } from "./appRoutes";
 
 // ======================== CONSTANTES DE ETAPAS (AUTOMAÇÃO) ========================
 // 🔥 REGRAS CRÍTICAS DE MOVIMENTO DA IA:
@@ -161,23 +161,23 @@ export async function registerRoutes(
   registerEcommerceRoutes(app);
 
   // ==================== E-COMMERCE PUBLIC API (CATEGORIES & PRODUCTS) ====================
-  app.use("/api/ecommerce/public", ecommercePublicRoutes);
+  app.use("/api/app/public", appPublicRoutes);
 
   // ==================== E-COMMERCE AUTH ROUTES (PUBLIC) ====================
-  app.use("/api/ecommerce/auth", ecommerceAuthRoutes);
+  app.use("/api/app/auth", appAuthRoutes);
 
   // ==================== E-COMMERCE CUSTOMER PANEL ROUTES ====================
-  app.use("/api/ecommerce/customer", ecommerceCustomerRoutes);
+  app.use("/api/app/customer", appCustomerRoutes);
 
   // ==================== E-COMMERCE ORDER LINES (PORTABILIDADE) ====================
-  app.use("/api/ecommerce/order-lines", orderLinesRoutes);
+  app.use("/api/app/order-lines", orderLinesRoutes);
 
   // ==================== E-COMMERCE ADMIN ROUTES ====================
-  app.use("/api/admin/ecommerce", ecommerceAdminRoutes);
+  app.use("/api/admin/app", appAdminRoutes);
 
   // ==================== E-COMMERCE DOCUMENTS DOWNLOAD (SHARED) ====================
   app.get(
-    "/api/ecommerce/documents/:documentId",
+    "/api/app/documents/:documentId",
     isAuthenticated,
     async (req: Request, res: Response) => {
       try {
@@ -217,7 +217,7 @@ export async function registerRoutes(
   );
 
   // ==================== E-COMMERCE MANAGEMENT ROUTES (CATEGORIES & PRODUCTS) ====================
-  app.use("/api/admin/ecommerce/manage", ecommerceManagementRoutes);
+  app.use("/api/admin/app/manage", appManagementRoutes);
 
   // ==================== TEMPORARY: MIGRATION ROUTE ====================
   app.post(
@@ -606,6 +606,8 @@ export async function registerRoutes(
         .select({
           id: clients.id,
           nome: clients.nome,
+          cnpj: clients.cnpj,
+          parceiro: clients.parceiro,
           telefone: clients.celular,
           telefone2: clients.telefone2,
           email: clients.email,
@@ -613,6 +615,7 @@ export async function registerRoutes(
           tagNames: clients.tags,
           carteira: clients.carteira,
           tipo: clients.tipoCliente,
+          createdBy: clients.createdBy,
         })
         .from(clients)
         .where(whereCondition)
@@ -720,6 +723,8 @@ export async function registerRoutes(
         return {
           id: client.id,
           nome: client.nome,
+          cnpj: client.cnpj,
+          parceiro: client.parceiro,
           telefone: client.telefone,
           telefone2: client.telefone2,
           celular: client.telefone,
@@ -728,6 +733,7 @@ export async function registerRoutes(
           carteira: client.carteira,
           tipo: client.tipo,
           tags: clientTags,
+          createdBy: client.createdBy,
           sendStatus: sendStatusValue,
           etiqueta,
           engajamento,
@@ -5406,6 +5412,66 @@ export async function registerRoutes(
       res.json(filtered);
     } catch (error: any) {
       console.error("Error fetching users list:", error);
+      res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  });
+
+  // Get all admins (for admin assignment)
+  app.get("/api/admins-list", isAuthenticated, async (req, res) => {
+    try {
+      const admins = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        })
+        .from(users)
+        .where(eq(users.role, "admin"));
+      
+      res.json(admins);
+    } catch (error: any) {
+      console.error("Error fetching admins list:", error);
+      res.status(500).json({ error: error.message || "Internal server error" });
+    }
+  });
+
+  // Assign admin to client
+  app.patch("/api/clients/:id/assign-admin", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id: clientId } = req.params;
+      const { adminId } = req.body;
+
+      // Verificar se o usuário tem permissão (admin ou dono do cliente)
+      const access = await storage.checkClientAccess(clientId, user.id);
+      if (!access.canAccess && user.role !== "admin") {
+        return res.status(403).json({ error: "Você não tem acesso a este cliente" });
+      }
+
+      // Verificar se o adminId é realmente um admin
+      const [admin] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, adminId))
+        .limit(1);
+
+      if (!admin || admin.role !== "admin") {
+        return res.status(400).json({ error: "O usuário selecionado não é um administrador" });
+      }
+
+      // Atualizar o cliente
+      await db
+        .update(clients)
+        .set({ 
+          createdBy: adminId,
+          updatedAt: new Date()
+        })
+        .where(eq(clients.id, clientId));
+
+      res.json({ success: true, message: "Administrador atribuído com sucesso" });
+    } catch (error: any) {
+      console.error("Error assigning admin to client:", error);
       res.status(500).json({ error: error.message || "Internal server error" });
     }
   });

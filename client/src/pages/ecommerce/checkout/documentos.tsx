@@ -69,11 +69,11 @@ export default function CheckoutDocumentos() {
     }
     
     localStorage.setItem("checkout-documentos", JSON.stringify(documentosData));
-    setLocation(`/ecommerce/checkout/confirmacao?tipo=${tipoPessoa}`);
+    setLocation(`/app/checkout/confirmacao?tipo=${tipoPessoa}`);
   };
   
   const voltar = () => {
-    setLocation(`/ecommerce/checkout/endereco?tipo=${tipoPessoa}`);
+    setLocation(`/app/checkout/endereco?tipo=${tipoPessoa}`);
   };
   
   return (

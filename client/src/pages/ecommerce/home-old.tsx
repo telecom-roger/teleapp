@@ -20,11 +20,11 @@ import type { EcommerceCategory, EcommerceProduct } from "@shared/schema";
 
 export default function EcommerceHome() {
   const { data: categorias = [] } = useQuery<EcommerceCategory[]>({
-    queryKey: ["/api/ecommerce/public/categories"],
+    queryKey: ["/api/app/public/categories"],
   });
 
   const { data: produtos = [] } = useQuery<EcommerceProduct[]>({
-    queryKey: ["/api/ecommerce/public/products"],
+    queryKey: ["/api/app/public/products"],
   });
 
   const { addItem } = useCartStore();
@@ -96,7 +96,7 @@ export default function EcommerceHome() {
           </div>
           <div className="text-center mt-10">
             <Button size="lg" variant="outline" className="border-2 hover:bg-slate-50" asChild>
-              <Link href="/ecommerce/planos">
+              <Link href="/app/planos">
                 Ver todos os planos disponíveis
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
@@ -109,7 +109,7 @@ export default function EcommerceHome() {
       <section className="container mx-auto px-4 py-12 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/ecommerce/planos">
+            <Link href="/app/planos">
               <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-[#8A4FFF] bg-[#F5F5F5]">
                 <CardContent className="p-6 text-center">
                   <div className="w-14 h-14 rounded-xl bg-white mx-auto mb-3 flex items-center justify-center group-hover:bg-[#8A4FFF] transition-all shadow-sm">
@@ -121,7 +121,7 @@ export default function EcommerceHome() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/ecommerce/planos">
+            <Link href="/app/planos">
               <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-[#8A4FFF] bg-[#F5F5F5]">
                 <CardContent className="p-6 text-center">
                   <div className="w-14 h-14 rounded-xl bg-white mx-auto mb-3 flex items-center justify-center group-hover:bg-[#8A4FFF] transition-all shadow-sm">
@@ -133,7 +133,7 @@ export default function EcommerceHome() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/ecommerce/fibra">
+            <Link href="/app/fibra">
               <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-[#1AD1C1] bg-[#F5F5F5]">
                 <CardContent className="p-6 text-center">
                   <div className="w-14 h-14 rounded-xl bg-white mx-auto mb-3 flex items-center justify-center group-hover:bg-[#1AD1C1] transition-all shadow-sm">
@@ -145,7 +145,7 @@ export default function EcommerceHome() {
                 </CardContent>
               </Card>
             </Link>
-            <Link href="/ecommerce/movel">
+            <Link href="/app/movel">
               <Card className="group hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border border-slate-200 hover:border-[#007BFF] bg-[#F5F5F5]">
                 <CardContent className="p-6 text-center">
                   <div className="w-14 h-14 rounded-xl bg-white mx-auto mb-3 flex items-center justify-center group-hover:bg-[#007BFF] transition-all shadow-sm">
@@ -282,7 +282,7 @@ export default function EcommerceHome() {
             className="bg-white text-[#007BFF] hover:bg-slate-100 text-lg px-10 h-14 font-semibold shadow-lg transition-all duration-300"
             asChild
           >
-            <Link href="/ecommerce/planos">
+            <Link href="/app/planos">
               Comparar planos agora
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
@@ -298,7 +298,7 @@ export default function EcommerceHome() {
       {/* Mobile: Barra fixa inferior */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50">
         <Button className="w-full h-12 bg-[#007BFF] hover:bg-[#0056b3] text-white font-semibold transition-all duration-300" size="lg" asChild>
-          <Link href="/ecommerce/planos">
+          <Link href="/app/planos">
             Ver planos recomendados
           </Link>
         </Button>

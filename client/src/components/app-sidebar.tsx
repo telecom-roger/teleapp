@@ -136,27 +136,27 @@ const adminItems = [
   },
   {
     title: "Listagem de Pedidos",
-    url: "/admin/ecommerce-listagem",
+    url: "/admin/app-listagem",
     icon: ShoppingCart,
   },
   {
     title: "Kanban de Pedidos",
-    url: "/admin/ecommerce-pedidos",
+    url: "/admin/app-pedidos",
     icon: LayoutGrid,
   },
   {
     title: "Produtos E-commerce",
-    url: "/admin/ecommerce-produtos",
+    url: "/admin/app-produtos",
     icon: Package,
   },
   {
     title: "Categorias E-commerce",
-    url: "/admin/ecommerce-categorias",
+    url: "/admin/app-categorias",
     icon: Folder,
   },
   {
     title: "Banners E-commerce",
-    url: "/admin/ecommerce-banners",
+    url: "/admin/app-banners",
     icon: Image,
   },
   {

@@ -67,12 +67,12 @@ export default function AdminBanners() {
   });
 
   const { data: banners = [] } = useQuery<EcommerceBanner[]>({
-    queryKey: ["/api/admin/ecommerce/banners"],
+    queryKey: ["/api/admin/app/banners"],
   });
 
   const criarMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/admin/ecommerce/banners", {
+      const res = await fetch("/api/admin/app/banners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -91,7 +91,7 @@ export default function AdminBanners() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/banners"],
+        queryKey: ["/api/admin/app/banners"],
       });
       toast({ title: "Banner criado com sucesso!" });
       setDialogOpen(false);
@@ -108,7 +108,7 @@ export default function AdminBanners() {
 
   const atualizarMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const res = await fetch(`/api/admin/ecommerce/banners/${id}`, {
+      const res = await fetch(`/api/admin/app/banners/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -127,7 +127,7 @@ export default function AdminBanners() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/banners"],
+        queryKey: ["/api/admin/app/banners"],
       });
       toast({ title: "Banner atualizado com sucesso!" });
       setDialogOpen(false);
@@ -145,7 +145,7 @@ export default function AdminBanners() {
 
   const deletarMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ecommerce/banners/${id}`, {
+      const res = await fetch(`/api/admin/app/banners/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -162,7 +162,7 @@ export default function AdminBanners() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/banners"],
+        queryKey: ["/api/admin/app/banners"],
       });
       toast({ title: "Banner deletado com sucesso!" });
     },

@@ -57,6 +57,13 @@ import {
   Package,
   DollarSign,
   FileText,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  Phone,
+  Building,
+  CreditCard,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -164,9 +171,12 @@ export default function EcommerceListagemPedidos() {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showStatusDialog, setShowStatusDialog] = useState(false);
   const [showAgentDialog, setShowAgentDialog] = useState(false);
+  const [showInsertDialog, setShowInsertDialog] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [newAgentId, setNewAgentId] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [etapaAtual, setEtapaAtual] = useState(0);
+  const [tipoPessoa, setTipoPessoa] = useState<"PF" | "PJ">("PF");
 
   // Proteção de rota - redirecionar se não autenticado ou não for admin
   useEffect(() => {
@@ -182,7 +192,7 @@ export default function EcommerceListagemPedidos() {
 
   // Query para buscar pedidos com filtros - Atualização automática a cada 5 segundos
   const { data: orders = [], isLoading } = useQuery<Order[]>({
-    queryKey: ["/api/admin/ecommerce/orders/list", filters],
+    queryKey: ["/api/admin/app/orders/list", filters],
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -191,7 +201,7 @@ export default function EcommerceListagemPedidos() {
           params.append(key, value);
         }
       });
-      const res = await fetch(`/api/admin/ecommerce/orders/list?${params}`);
+      const res = await fetch(`/api/admin/app/orders/list?${params}`);
       if (!res.ok) throw new Error("Erro ao buscar pedidos");
       return res.json();
     },
@@ -211,7 +221,7 @@ export default function EcommerceListagemPedidos() {
         setSelectedOrder(order);
         setShowDetailsDialog(true);
         // Limpar o parâmetro da URL sem recarregar a página
-        window.history.replaceState({}, "", "/admin/ecommerce-listagem");
+        window.history.replaceState({}, "", "/admin/app-listagem");
       }
     }
   }, [orders, showDetailsDialog]);
@@ -236,7 +246,7 @@ export default function EcommerceListagemPedidos() {
       etapa: string;
       obs: string;
     }) => {
-      const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/etapa`, {
+      const res = await fetch(`/api/admin/app/orders/${orderId}/etapa`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ etapa, observacao: obs }),
@@ -246,10 +256,10 @@ export default function EcommerceListagemPedidos() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/orders/list"],
+        queryKey: ["/api/admin/app/orders/list"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/orders"],
+        queryKey: ["/api/admin/app/orders"],
       });
       toast({ title: "Status atualizado com sucesso!" });
       setShowStatusDialog(false);
@@ -269,7 +279,7 @@ export default function EcommerceListagemPedidos() {
       orderId: string;
       agentId: string;
     }) => {
-      const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/agent`, {
+      const res = await fetch(`/api/admin/app/orders/${orderId}/agent`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ agentId: agentId === "none" ? null : agentId }),
@@ -279,7 +289,7 @@ export default function EcommerceListagemPedidos() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/orders/list"],
+        queryKey: ["/api/admin/app/orders/list"],
       });
       toast({ title: "Agente atribuído com sucesso!" });
       setShowAgentDialog(false);
@@ -391,6 +401,26 @@ export default function EcommerceListagemPedidos() {
         </div>
         <div className="flex gap-2">
           <Button
+            onClick={() => setShowInsertDialog(true)}
+            style={{
+              background: "#10B981",
+              color: "#FFFFFF",
+              borderRadius: "8px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#059669";
+              e.currentTarget.style.transform = "scale(1.02)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#10B981";
+              e.currentTarget.style.transform = "scale(1)";
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Pedido
+          </Button>
+          <Button
             variant="outline"
             onClick={handleExportCSV}
             style={{
@@ -411,7 +441,7 @@ export default function EcommerceListagemPedidos() {
             Exportar CSV
           </Button>
           <Button
-            onClick={() => (window.location.href = "/admin/ecommerce-pedidos")}
+            onClick={() => (window.location.href = "/admin/app-pedidos")}
             style={{
               background: "#1E90FF",
               color: "#FFFFFF",
@@ -733,7 +763,7 @@ export default function EcommerceListagemPedidos() {
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => {
-                                  window.location.href = `/admin/ecommerce-pedidos`;
+                                  window.location.href = `/admin/app-pedidos`;
                                 }}
                               >
                                 <Kanban className="h-4 w-4 mr-2" />
@@ -1164,7 +1194,7 @@ export default function EcommerceListagemPedidos() {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    (window.location.href = `/admin/ecommerce-pedidos?pedido=${selectedOrder.id}`)
+                    (window.location.href = `/admin/app-pedidos?pedido=${selectedOrder.id}`)
                   }
                 >
                   <FileText className="h-4 w-4 mr-2" />
@@ -1173,7 +1203,7 @@ export default function EcommerceListagemPedidos() {
                 <Button
                   variant="outline"
                   onClick={() =>
-                    (window.location.href = `/admin/ecommerce-pedidos`)
+                    (window.location.href = `/admin/app-pedidos`)
                   }
                 >
                   <Kanban className="h-4 w-4 mr-2" />
@@ -1293,6 +1323,346 @@ export default function EcommerceListagemPedidos() {
             >
               {assignAgentMutation.isPending ? "Salvando..." : "Atribuir"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Premium de Inserir Pedido */}
+      <Dialog open={showInsertDialog} onOpenChange={setShowInsertDialog}>
+        <DialogContent className="max-w-3xl max-h-[95vh] overflow-hidden flex flex-col p-0">
+          {/* Header Fixo */}
+          <DialogHeader className="px-6 py-4 border-b bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                  <Package className="h-6 w-6" />
+                  Criar Novo Pedido
+                </DialogTitle>
+                <DialogDescription className="text-blue-100 mt-1">
+                  Preencha os dados do cliente e produtos
+                </DialogDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowInsertDialog(false)}
+                className="text-white hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            {/* Stepper */}
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {[
+                { num: 1, label: "Tipo" },
+                { num: 2, label: "Dados" },
+                { num: 3, label: "Produtos" },
+                { num: 4, label: "Resumo" },
+              ].map((step, idx) => (
+                <div key={step.num} className="flex items-center">
+                  <div
+                    className={`flex items-center justify-center w-8 h-8 rounded-full transition-all ${
+                      etapaAtual >= idx
+                        ? "bg-white text-blue-600 font-bold"
+                        : "bg-blue-400 text-white"
+                    }`}
+                  >
+                    {etapaAtual > idx ? (
+                      <Check className="h-5 w-5" />
+                    ) : (
+                      step.num
+                    )}
+                  </div>
+                  <span className="ml-2 text-sm text-white hidden sm:inline">
+                    {step.label}
+                  </span>
+                  {idx < 3 && (
+                    <ChevronRight className="h-4 w-4 mx-2 text-blue-200" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </DialogHeader>
+
+          {/* Conteúdo Scrollável */}
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            {/* Etapa 0: Tipo de Pessoa */}
+            {etapaAtual === 0 && (
+              <div className="space-y-6 animate-in fade-in slide-in-from-left-5 duration-300">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                    Selecione o tipo de cliente
+                  </h3>
+                  <p className="text-slate-600">
+                    Escolha se o pedido é para pessoa física ou jurídica
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setTipoPessoa("PF")}
+                    className={`p-8 rounded-xl border-2 transition-all hover:shadow-lg ${
+                      tipoPessoa === "PF"
+                        ? "border-blue-500 bg-blue-50 shadow-lg"
+                        : "border-slate-200 hover:border-blue-300"
+                    }`}
+                  >
+                    <User
+                      className={`h-12 w-12 mx-auto mb-4 ${
+                        tipoPessoa === "PF"
+                          ? "text-blue-600"
+                          : "text-slate-400"
+                      }`}
+                    />
+                    <h4 className="font-bold text-lg mb-2">Pessoa Física</h4>
+                    <p className="text-sm text-slate-600">
+                      CPF, nome completo
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoPessoa("PJ")}
+                    className={`p-8 rounded-xl border-2 transition-all hover:shadow-lg ${
+                      tipoPessoa === "PJ"
+                        ? "border-blue-500 bg-blue-50 shadow-lg"
+                        : "border-slate-200 hover:border-blue-300"
+                    }`}
+                  >
+                    <Building
+                      className={`h-12 w-12 mx-auto mb-4 ${
+                        tipoPessoa === "PJ"
+                          ? "text-blue-600"
+                          : "text-slate-400"
+                      }`}
+                    />
+                    <h4 className="font-bold text-lg mb-2">Pessoa Jurídica</h4>
+                    <p className="text-sm text-slate-600">
+                      CNPJ, razão social
+                    </p>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Etapa 1: Dados do Cliente */}
+            {etapaAtual === 1 && (
+              <form className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800">
+                    <strong>Tipo:</strong>{" "}
+                    {tipoPessoa === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {tipoPessoa === "PF" ? (
+                    <>
+                      <div className="sm:col-span-2">
+                        <Label className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Nome Completo *
+                        </Label>
+                        <Input
+                          placeholder="João Silva"
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          CPF *
+                        </Label>
+                        <Input
+                          placeholder="000.000.000-00"
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="sm:col-span-2">
+                        <Label className="flex items-center gap-2">
+                          <Building className="h-4 w-4" />
+                          Razão Social *
+                        </Label>
+                        <Input
+                          placeholder="Empresa LTDA"
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4" />
+                          CNPJ *
+                        </Label>
+                        <Input
+                          placeholder="00.000.000/0000-00"
+                          required
+                          className="mt-1"
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Telefone *
+                    </Label>
+                    <Input
+                      placeholder="(00) 00000-0000"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      E-mail *
+                    </Label>
+                    <Input
+                      type="email"
+                      placeholder="email@exemplo.com"
+                      required
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t pt-4 mt-6">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    Endereço
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <Label>Logradouro *</Label>
+                      <Input placeholder="Rua, Avenida..." className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Número *</Label>
+                      <Input placeholder="123" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Complemento</Label>
+                      <Input placeholder="Apto 45" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Bairro *</Label>
+                      <Input placeholder="Centro" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Cidade *</Label>
+                      <Input placeholder="São Paulo" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label>Estado *</Label>
+                      <Select>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="SP">SP</SelectItem>
+                          <SelectItem value="RJ">RJ</SelectItem>
+                          <SelectItem value="MG">MG</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>CEP *</Label>
+                      <Input placeholder="00000-000" className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* Etapa 2: Produtos */}
+            {etapaAtual === 2 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    Adicionar Produtos
+                  </h3>
+                  <p className="text-slate-600 text-sm">
+                    Selecione os produtos para este pedido
+                  </p>
+                </div>
+                <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center">
+                  <Package className="h-12 w-12 mx-auto text-slate-400 mb-4" />
+                  <p className="text-slate-600 mb-4">
+                    Funcionalidade em desenvolvimento
+                  </p>
+                  <Button variant="outline">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Adicionar Produto
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Etapa 3: Resumo */}
+            {etapaAtual === 3 && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-right-5 duration-300">
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-semibold text-slate-900">
+                    Resumo do Pedido
+                  </h3>
+                  <p className="text-slate-600 text-sm">
+                    Revise os dados antes de criar o pedido
+                  </p>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                  <Check className="h-16 w-16 mx-auto text-green-600 mb-4" />
+                  <h4 className="font-bold text-lg mb-2">Tudo pronto!</h4>
+                  <p className="text-slate-600">
+                    Clique em "Criar Pedido" para finalizar
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer Fixo */}
+          <DialogFooter className="px-6 py-4 border-t bg-slate-50 flex-shrink-0">
+            <div className="flex justify-between w-full gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  if (etapaAtual > 0) {
+                    setEtapaAtual(etapaAtual - 1);
+                  } else {
+                    setShowInsertDialog(false);
+                  }
+                }}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                {etapaAtual === 0 ? "Cancelar" : "Voltar"}
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  if (etapaAtual < 3) {
+                    setEtapaAtual(etapaAtual + 1);
+                  } else {
+                    toast({
+                      title: "Pedido criado!",
+                      description: "O pedido foi registrado com sucesso.",
+                    });
+                    setShowInsertDialog(false);
+                    setEtapaAtual(0);
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {etapaAtual === 3 ? "Criar Pedido" : "Próximo"}
+                {etapaAtual < 3 && <ChevronRight className="h-4 w-4 ml-1" />}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

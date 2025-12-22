@@ -10,7 +10,7 @@ interface EcommerceProtectedRouteProps {
 
 /**
  * Protected route component for e-commerce customer pages
- * Redirects to /ecommerce/login if user is not authenticated with customer role
+ * Redirects to /app/login if user is not authenticated with customer role
  */
 export function EcommerceProtectedRoute({
   component: Component,
@@ -40,7 +40,7 @@ export function EcommerceProtectedRoute({
 
   // Redirect to login if not authenticated or not a customer
   if (!user || user.role !== "customer") {
-    return <Redirect to="/ecommerce/login" />;
+    return <Redirect to="/app/login" />;
   }
 
   // User is authenticated as customer, render the protected component

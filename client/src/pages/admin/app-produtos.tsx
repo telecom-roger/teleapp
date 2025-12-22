@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -23,6 +24,11 @@ import {
   ChevronsLeft,
   ChevronsRight,
   X,
+  Settings,
+  CheckCircle2,
+  Save,
+  FileText,
+  User,
 } from "lucide-react";
 import {
   Dialog,
@@ -54,11 +60,13 @@ import type { EcommerceProduct, EcommerceCategory } from "@shared/schema";
 export default function AdminProdutos() {
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editando, setEditando] = useState<EcommerceProduct | null>(null);
   const [svasSelecionados, setSvasSelecionados] = useState<string[]>([]);
   const [textosUpsell, setTextosUpsell] = useState<string[]>([""]);
   const [categoriasSelecionadas, setCategoriasSelecionadas] = useState<string[]>([]);
+  const [possuiVariacoes, setPossuiVariacoes] = useState(false);
 
   // Filtros
   const [busca, setBusca] = useState("");
@@ -75,7 +83,7 @@ export default function AdminProdutos() {
   const [itensPorPagina, setItensPorPagina] = useState(20);
 
   const { data: produtos = [], isLoading } = useQuery<EcommerceProduct[]>({
-    queryKey: ["/api/admin/ecommerce/manage/products"],
+    queryKey: ["/api/admin/app/manage/products"],
     enabled: isAuthenticated,
   });
 
@@ -85,7 +93,7 @@ export default function AdminProdutos() {
   }, [produtos]);
 
   const { data: categorias = [] } = useQuery<EcommerceCategory[]>({
-    queryKey: ["/api/admin/ecommerce/manage/categories"],
+    queryKey: ["/api/admin/app/manage/categories"],
     enabled: isAuthenticated,
   });
 
@@ -93,14 +101,14 @@ export default function AdminProdutos() {
     mutationFn: async (data: Partial<EcommerceProduct>) => {
       const res = await apiRequest(
         "POST",
-        "/api/admin/ecommerce/manage/products",
+        "/api/admin/app/manage/products",
         data
       );
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/products"],
+        queryKey: ["/api/admin/app/manage/products"],
       });
       toast({ title: "Produto criado com sucesso!" });
       setDialogOpen(false);
@@ -120,14 +128,14 @@ export default function AdminProdutos() {
     }) => {
       const res = await apiRequest(
         "PUT",
-        `/api/admin/ecommerce/manage/products/${id}`,
+        `/api/admin/app/manage/products/${id}`,
         data
       );
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/products"],
+        queryKey: ["/api/admin/app/manage/products"],
       });
       toast({ title: "Produto atualizado!" });
       setDialogOpen(false);
@@ -142,13 +150,13 @@ export default function AdminProdutos() {
     mutationFn: async (id: string) => {
       await apiRequest(
         "DELETE",
-        `/api/admin/ecommerce/manage/products/${id}`,
+        `/api/admin/app/manage/products/${id}`,
         {}
       );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/products"],
+        queryKey: ["/api/admin/app/manage/products"],
       });
       toast({ title: "Produto deletado" });
     },
@@ -194,6 +202,7 @@ export default function AdminProdutos() {
         formData.get("permiteCalculadoraLinhas") === "on",
       precisaEnderecoInstalacao:
         formData.get("precisaEnderecoInstalacao") === "on",
+      possuiVariacoes: formData.get("possuiVariacoes") === "on",
       textosUpsell: textosUpsell.filter((t) => t.trim() !== ""), // Filtrar textos vazios
       svasUpsell: svasSelecionados, // Usar os SVAs selecionados via checkboxes
       // NOVOS CAMPOS - Sistema de Recomendação Inteligente
@@ -350,6 +359,7 @@ export default function AdminProdutos() {
               setSvasSelecionados([]);
               setCategoriasSelecionadas([]);
               setTextosUpsell([""]);
+              setPossuiVariacoes(false);
               setDialogOpen(true);
             }}
             style={{
@@ -794,6 +804,16 @@ export default function AdminProdutos() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        {produto.possuiVariacoes && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setLocation(`/admin/app-produtos/${produto.id}/variacoes`)}
+                            title="Gerenciar Variações"
+                          >
+                            <Settings className="h-4 w-4 text-blue-600" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -809,6 +829,8 @@ export default function AdminProdutos() {
                                 ? produto.textosUpsell
                                 : [""]
                             );
+                            // @ts-ignore - possuiVariacoes pode não existir em produtos antigos
+                            setPossuiVariacoes(produto.possuiVariacoes || false);
                             setDialogOpen(true);
                           }}
                         >
@@ -923,302 +945,520 @@ export default function AdminProdutos() {
         </CardContent>
       </Card>
 
-      {/* Dialog Criar/Editar */}
+      {/* Dialog Criar/Editar - Layout Premium */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editando ? "Editar Produto" : "Novo Produto"}
-            </DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden flex flex-col p-0">
+          {/* Header Premium */}
+          <DialogHeader className="px-6 py-5 border-b bg-gradient-to-r from-blue-600 to-blue-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-2xl font-bold text-white flex items-center gap-2">
+                  <Package className="h-6 w-6" />
+                  {editando ? "Editar Produto" : "Novo Produto"}
+                </DialogTitle>
+                <p className="text-blue-100 text-sm mt-1">
+                  {editando ? `Editando: ${editando.nome}` : "Configure todos os detalhes do produto"}
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setDialogOpen(false)}
+                className="text-white hover:bg-white/20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Nome</Label>
-              <Input name="nome" defaultValue={editando?.nome} required />
-            </div>
-
-            <div>
-              <Label>Descrição</Label>
-              <Textarea
-                name="descricao"
-                defaultValue={editando?.descricao || ""}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <Label>Categorias (selecione uma ou mais)</Label>
-                <div className="border rounded-md p-4 max-h-60 overflow-y-auto space-y-2">
-                  {categorias.map((cat) => (
-                    <div key={cat.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`cat-${cat.slug}`}
-                        checked={categoriasSelecionadas.includes(cat.slug)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setCategoriasSelecionadas([...categoriasSelecionadas, cat.slug]);
-                          } else {
-                            setCategoriasSelecionadas(
-                              categoriasSelecionadas.filter((c) => c !== cat.slug)
-                            );
-                          }
-                        }}
-                        className="rounded border-gray-300"
-                      />
-                      <label
-                        htmlFor={`cat-${cat.slug}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {cat.nome}
-                      </label>
-                    </div>
-                  ))}
+          {/* Conteúdo Scrollável */}
+          <div className="flex-1 overflow-y-auto">
+            <form onSubmit={handleSubmit} id="product-form" className="p-6 space-y-6">
+              {/* Informações Básicas */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <FileText className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Informações Básicas</h3>
                 </div>
-                {categoriasSelecionadas.length === 0 && (
-                  <p className="text-sm text-red-500">
-                    Selecione pelo menos uma categoria
-                  </p>
-                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Nome do Produto *</Label>
+                    <Input 
+                      name="nome" 
+                      defaultValue={editando?.nome} 
+                      required 
+                      className="mt-1.5"
+                      placeholder="Ex: Combo Vivo Fibra 500MB"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Descrição</Label>
+                    <Textarea
+                      name="descricao"
+                      defaultValue={editando?.descricao || ""}
+                      className="mt-1.5"
+                      rows={3}
+                      placeholder="Descreva as características principais do produto"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label>Operadora</Label>
-                <Select
-                  name="operadora"
-                  defaultValue={editando?.operadora || "V"}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="V">VIVO</SelectItem>
-                    <SelectItem value="C">CLARO</SelectItem>
-                    <SelectItem value="T">TIM</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              {/* Categorias e Operadora */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Package className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Classificação</h3>
+                </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Velocidade</Label>
-                <Input
-                  name="velocidade"
-                  defaultValue={editando?.velocidade || ""}
-                  placeholder="Ex: 500 Mbps"
-                />
-              </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Categorias (selecione uma ou mais) *</Label>
+                    <div className="border rounded-lg p-4 max-h-60 overflow-y-auto space-y-2 bg-slate-50">
+                      {categorias.map((cat) => (
+                        <div key={cat.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`cat-${cat.slug}`}
+                            checked={categoriasSelecionadas.includes(cat.slug)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setCategoriasSelecionadas([...categoriasSelecionadas, cat.slug]);
+                              } else {
+                                setCategoriasSelecionadas(
+                                  categoriasSelecionadas.filter((c) => c !== cat.slug)
+                                );
+                              }
+                            }}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label
+                            htmlFor={`cat-${cat.slug}`}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {cat.nome}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {categoriasSelecionadas.length === 0 && (
+                      <p className="text-sm text-red-500">
+                        Selecione pelo menos uma categoria
+                      </p>
+                    )}
+                  </div>
 
-              <div>
-                <Label>Franquia</Label>
-                <Input
-                  name="franquia"
-                  defaultValue={editando?.franquia || ""}
-                  placeholder="Ex: Ilimitado"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Preço (R$)</Label>
-                <Input
-                  name="preco"
-                  type="number"
-                  step="0.01"
-                  defaultValue={editando ? editando.preco / 100 : ""}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label>Instalação (R$)</Label>
-                <Input
-                  name="precoInstalacao"
-                  type="number"
-                  step="0.01"
-                  defaultValue={
-                    editando?.precoInstalacao
-                      ? editando.precoInstalacao / 100
-                      : 0
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Fidelidade (meses)</Label>
-                <Input
-                  name="fidelidade"
-                  type="number"
-                  defaultValue={editando?.fidelidade || 0}
-                />
+                  <div>
+                    <Label className="text-sm font-medium">Operadora *</Label>
+                    <Select
+                      name="operadora"
+                      defaultValue={editando?.operadora || "V"}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="V">VIVO</SelectItem>
+                        <SelectItem value="C">CLARO</SelectItem>
+                        <SelectItem value="T">TIM</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <Label>Tipo Pessoa</Label>
-                <Select
-                  name="tipoPessoa"
-                  defaultValue={editando?.tipoPessoa || "ambos"}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PF">Pessoa Física</SelectItem>
-                    <SelectItem value="PJ">Pessoa Jurídica</SelectItem>
-                    <SelectItem value="ambos">Ambos</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Especificações Técnicas */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Settings className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Especificações Técnicas</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Velocidade</Label>
+                    <Input
+                      name="velocidade"
+                      defaultValue={editando?.velocidade || ""}
+                      placeholder="Ex: 500 Mbps"
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Franquia</Label>
+                    <Input
+                      name="franquia"
+                      defaultValue={editando?.franquia || ""}
+                      placeholder="Ex: Ilimitado"
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <Label>Benefícios (um por linha)</Label>
-              <Textarea
-                name="beneficios"
-                defaultValue={editando?.beneficios?.join("\n") || ""}
-                rows={4}
-              />
-            </div>
+              {/* Preços */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <DollarSign className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Preços</h3>
+                </div>
 
-            <div>
-              <Label>Diferenciais (um por linha) - Colapsáveis no card</Label>
-              <Textarea
-                name="diferenciais"
-                defaultValue={editando?.diferenciais?.join("\n") || ""}
-                rows={4}
-                placeholder="Recursos extras que aparecem colapsados..."
-              />
-            </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Preço Mensal (R$) *</Label>
+                    <Input
+                      name="preco"
+                      type="number"
+                      step="0.01"
+                      defaultValue={editando ? editando.preco / 100 : ""}
+                      required
+                      className="mt-1.5"
+                      placeholder="0.00"
+                    />
+                  </div>
 
-            {/* NOVOS CAMPOS - SISTEMA DE RECOMENDAÇÃO INTELIGENTE */}
-            <div className="border-t pt-4 mt-4">
-              \n{" "}
-              <h3 className="text-sm font-semibold mb-3">
-                Sistema de Recomendação Inteligente
-              </h3>
-              <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Instalação (R$)</Label>
+                    <Input
+                      name="precoInstalacao"
+                      type="number"
+                      step="0.01"
+                      defaultValue={
+                        editando?.precoInstalacao
+                          ? editando.precoInstalacao / 100
+                          : 0
+                      }
+                      className="mt-1.5"
+                      placeholder="0.00"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Fidelidade (meses)</Label>
+                    <Input
+                      name="fidelidade"
+                      type="number"
+                      defaultValue={editando?.fidelidade || 0}
+                      className="mt-1.5"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Tipo Pessoa */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <User className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Público Alvo</h3>
+                </div>
+
                 <div>
-                  <Label>Modalidade</Label>
+                  <Label className="text-sm font-medium">Tipo de Pessoa</Label>
                   <Select
-                    name="modalidade"
-                    defaultValue={editando?.modalidade || "ambos"}
+                    name="tipoPessoa"
+                    defaultValue={editando?.tipoPessoa || "ambos"}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1.5">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="novo">Novo Número</SelectItem>
-                      <SelectItem value="portabilidade">
-                        Portabilidade
-                      </SelectItem>
+                      <SelectItem value="PF">Pessoa Física</SelectItem>
+                      <SelectItem value="PJ">Pessoa Jurídica</SelectItem>
                       <SelectItem value="ambos">Ambos</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                <div>
-                  <Label>Score Base (0-100)</Label>
-                  <Input
-                    name="scoreBase"
-                    type="number"
-                    min="0"
-                    max="100"
-                    defaultValue={editando?.scoreBase || 50}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label>Uso Recomendado (separado por vírgulas)</Label>
-                <Input
-                  name="usoRecomendado"
-                  defaultValue={editando?.usoRecomendado?.join(", ") || ""}
-                  placeholder="Ex: trabalho, streaming, jogos"
-                />
-                <p className="text-xs text-slate-500 mt-1">
-                  Opções: trabalho, streaming, jogos, basico, equipe
-                </p>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Limite Mínimo de Dispositivos</Label>
-                  <Input
-                    name="limiteDispositivosMin"
-                    type="number"
-                    min="0"
-                    defaultValue={editando?.limiteDispositivosMin || ""}
-                  />
+              {/* Benefícios e Diferenciais */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Benefícios</h3>
                 </div>
 
-                <div>
-                  <Label>Limite Máximo de Dispositivos</Label>
-                  <Input
-                    name="limiteDispositivosMax"
-                    type="number"
-                    min="0"
-                    defaultValue={editando?.limiteDispositivosMax || ""}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Benefícios (um por linha)</Label>
+                    <Textarea
+                      name="beneficios"
+                      defaultValue={editando?.beneficios?.join("\n") || ""}
+                      rows={4}
+                      className="mt-1.5"
+                      placeholder="WiFi grátis&#10;Instalação gratuita&#10;Suporte 24h"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Diferenciais (um por linha)</Label>
+                    <Textarea
+                      name="diferenciais"
+                      defaultValue={editando?.diferenciais?.join("\n") || ""}
+                      rows={4}
+                      className="mt-1.5"
+                      placeholder="Recursos extras que aparecem colapsados..."
+                    />
+                  </div>
                 </div>
               </div>
-              <div>
-                <Label>Badge de Destaque</Label>
-                <Input
-                  name="badgeTexto"
-                  defaultValue={editando?.badgeTexto || ""}
-                  placeholder="Ex: Mais Vendido, Ultra Velocidade"
-                />
-              </div>
-              <div>
-                <Label>Texto de Decisão (Por que escolher este plano?)</Label>
-                <Textarea
-                  name="textoDecisao"
-                  defaultValue={editando?.textoDecisao || ""}
-                  rows={3}
-                  placeholder="Ex: Ideal para quem precisa de alta velocidade e franquia ilimitada"
-                />
-              </div>
-            </div>
 
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  name="ativo"
-                  defaultChecked={editando?.ativo !== false}
-                />
-                <Label>Ativo</Label>
+              {/* Sistema de Recomendação Inteligente */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Sistema de Recomendação</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium">Modalidade</Label>
+                    <Select
+                      name="modalidade"
+                      defaultValue={editando?.modalidade || "ambos"}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="novo">Novo Número</SelectItem>
+                        <SelectItem value="portabilidade">Portabilidade</SelectItem>
+                        <SelectItem value="ambos">Ambos</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Score Base (0-100)</Label>
+                    <Input
+                      name="scoreBase"
+                      type="number"
+                      min="0"
+                      max="100"
+                      defaultValue={editando?.scoreBase || 50}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Uso Recomendado</Label>
+                    <Input
+                      name="usoRecomendado"
+                      defaultValue={editando?.usoRecomendado?.join(", ") || ""}
+                      placeholder="trabalho, streaming, jogos, basico, equipe"
+                      className="mt-1.5"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">
+                      Separado por vírgulas
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Limite Mín. Dispositivos</Label>
+                    <Input
+                      name="limiteDispositivosMin"
+                      type="number"
+                      min="0"
+                      defaultValue={editando?.limiteDispositivosMin || ""}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Limite Máx. Dispositivos</Label>
+                    <Input
+                      name="limiteDispositivosMax"
+                      type="number"
+                      min="0"
+                      defaultValue={editando?.limiteDispositivosMax || ""}
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Badge de Destaque</Label>
+                    <Input
+                      name="badgeTexto"
+                      defaultValue={editando?.badgeTexto || ""}
+                      placeholder="Ex: Mais Vendido, Ultra Velocidade"
+                      className="mt-1.5"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <Label className="text-sm font-medium">Texto de Decisão</Label>
+                    <Textarea
+                      name="textoDecisao"
+                      defaultValue={editando?.textoDecisao || ""}
+                      rows={2}
+                      placeholder="Por que escolher este plano?"
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  name="destaque"
-                  defaultChecked={editando?.destaque || false}
-                />
-                <Label>Destaque</Label>
+              {/* Configurações e Switches */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Settings className="h-5 w-5 text-blue-600" />
+                  <h3 className="font-semibold text-lg">Configurações</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <Switch
+                      name="ativo"
+                      defaultChecked={editando?.ativo !== false}
+                    />
+                    <div>
+                      <Label className="text-sm font-medium cursor-pointer">Produto Ativo</Label>
+                      <p className="text-xs text-slate-500">Visível no e-commerce</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <Switch
+                      name="destaque"
+                      defaultChecked={editando?.destaque || false}
+                    />
+                    <div>
+                      <Label className="text-sm font-medium cursor-pointer">Destaque</Label>
+                      <p className="text-xs text-slate-500">Aparece em destaque</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <Switch
+                      name="permiteCalculadoraLinhas"
+                      defaultChecked={editando?.permiteCalculadoraLinhas || false}
+                    />
+                    <div>
+                      <Label className="text-sm font-medium cursor-pointer">Calculadora de Linhas</Label>
+                      <p className="text-xs text-slate-500">Permite adicionar linhas</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-3 p-3 bg-slate-50 rounded-lg">
+                    <Switch
+                      name="precisaEnderecoInstalacao"
+                      defaultChecked={editando?.precisaEnderecoInstalacao || false}
+                    />
+                    <div>
+                      <Label className="text-sm font-medium cursor-pointer">Endereço Instalação</Label>
+                      <p className="text-xs text-slate-500">Solicita endereço</p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  name="permiteCalculadoraLinhas"
-                  defaultChecked={editando?.permiteCalculadoraLinhas || false}
-                />
-                <Label>Calculadora de Linhas</Label>
+              {/* VARIAÇÕES - Novo Sistema */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <Settings className="h-5 w-5 text-purple-600" />
+                  <h3 className="font-semibold text-lg">Produto Configurável</h3>
+                </div>
+
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <Switch
+                        name="possuiVariacoes"
+                        checked={possuiVariacoes}
+                        onCheckedChange={(checked) => {
+                          setPossuiVariacoes(checked);
+                        }}
+                      />
+                      <div>
+                        <Label className="text-sm font-semibold cursor-pointer text-purple-900">
+                          Possui Variações (Produto Configurável)
+                        </Label>
+                        <p className="text-xs text-purple-700">
+                          Permite criar combos personalizáveis (Ex: Internet + Móvel + Extras)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {possuiVariacoes && (
+                    <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="bg-white border border-purple-200 rounded-lg p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="bg-purple-100 p-2 rounded-lg">
+                            <Settings className="h-5 w-5 text-purple-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-purple-900 mb-2">
+                              Como Configurar Variações
+                            </h4>
+                            <ol className="text-sm text-purple-800 space-y-1 list-decimal list-inside">
+                              <li>Salve este produto primeiro</li>
+                              <li>Na listagem, clique no botão <strong className="inline-flex items-center gap-1">⚙️ Azul</strong></li>
+                              <li>Crie grupos (Ex: "Internet Fibra", "Plano Móvel")</li>
+                              <li>Adicione opções em cada grupo (Ex: "500 Mega - R$ 0", "1 Giga - +R$ 30")</li>
+                            </ol>
+
+                            {editando && (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => {
+                                  setDialogOpen(false);
+                                  setLocation(`/admin/app-produtos/${editando.id}/variacoes`);
+                                }}
+                                className="mt-4 bg-purple-600 hover:bg-purple-700"
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                Configurar Variações Agora
+                              </Button>
+                            )}
+                            
+                            {!editando && (
+                              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                <p className="text-xs text-yellow-800">
+                                  ⚠️ <strong>Salve o produto primeiro</strong> para poder configurar as variações
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Preview de como funcionará */}
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+                        <h5 className="font-semibold text-sm text-purple-900 mb-2">
+                          📋 Exemplo de Configuração
+                        </h5>
+                        <div className="text-xs space-y-2 text-slate-700">
+                          <div className="bg-white p-2 rounded border border-slate-200">
+                            <strong>Grupo 1:</strong> Internet Fibra (Obrigatório) <br/>
+                            → 500 Mega: R$ 0,00 <br/>
+                            → 700 Mega: +R$ 20,00 <br/>
+                            → 1 Giga: +R$ 40,00
+                          </div>
+                          <div className="bg-white p-2 rounded border border-slate-200">
+                            <strong>Grupo 2:</strong> Extras (Opcional) <br/>
+                            → Netflix: +R$ 25,00 <br/>
+                            → Seguro: +R$ 12,00
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Switch
-                  name="precisaEnderecoInstalacao"
-                  defaultChecked={editando?.precisaEnderecoInstalacao || false}
-                />
-                <Label>Precisa Endereço Instalação</Label>
-              </div>
-            </div>
-
-            {/* Upsell - Múltiplos Textos */}
-            <div className="space-y-3">
+              {/* Upsell - Múltiplos Textos */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+                  <TrendingUp className="h-5 w-5 text-orange-600" />
+                  <h3 className="font-semibold text-lg">Sistema de Upsell</h3>
+                </div>
+                
               <div className="flex items-center justify-between">
                 <Label>Textos do Upsell (opcional)</Label>
                 <Button
@@ -1272,35 +1512,45 @@ export default function AdminProdutos() {
                   </div>
                 ))}
               </div>
-              <div className="text-xs text-muted-foreground space-y-1">
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs space-y-1.5">
+                <p className="font-medium text-blue-900">📌 Instruções:</p>
                 <p>• <strong>Momento 1 (Checkout):</strong> Exibido durante a finalização do pedido</p>
                 <p>• <strong>Momento 2 (Pós-Checkout):</strong> Exibido após confirmação do pedido</p>
                 <p>• <strong>Momento 3 (Painel):</strong> Exibido nos detalhes do pedido no painel do cliente</p>
                 <p>• Sistema oferece SVAs sequencialmente, um por vez, respeitando a ordem e limite de 3 ofertas</p>
                 <p>
                   • Use variáveis:{" "}
-                  <code className="bg-slate-100 px-1 rounded">
+                  <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200">
                     [nome_servico]
                   </code>{" "}
-                  e <code className="bg-slate-100 px-1 rounded">[preco]</code>
+                  e <code className="bg-white px-1.5 py-0.5 rounded border border-blue-200">[preco]</code>
                 </p>
-                <p>• Exemplo: "Adicione [nome_servico] por apenas [preco]!"</p>
+                <p className="text-blue-700">💡 Exemplo: "Adicione [nome_servico] por apenas [preco]!"</p>
               </div>
             </div>
 
+            {/* SVAs para Upsell */}
             <div className="space-y-3">
-              <Label>SVAs para Upsell</Label>
-              <div className="border rounded-lg p-4 max-h-[200px] overflow-y-auto bg-slate-50 space-y-2">
+              <div className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-green-600" />
+                <Label className="text-base font-semibold">SVAs para Upsell</Label>
+              </div>
+              <div className="border-2 border-green-200 rounded-lg p-4 max-h-[280px] overflow-y-auto bg-gradient-to-br from-green-50/50 to-blue-50/50 space-y-2">
                 {produtosSVA.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum produto SVA cadastrado ainda. Crie produtos com
-                    categoria "sva" primeiro.
-                  </p>
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum produto SVA cadastrado ainda.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Crie produtos com categoria "sva" primeiro.
+                    </p>
+                  </div>
                 ) : (
                   produtosSVA.map((sva) => (
                     <div
                       key={sva.id}
-                      className="flex items-start space-x-3 p-2 rounded-md hover:bg-white transition-colors"
+                      className="flex items-start space-x-3 p-3 rounded-lg hover:bg-white/80 transition-all duration-200 border border-transparent hover:border-green-200 hover:shadow-sm"
                     >
                       <Checkbox
                         id={`sva-${sva.id}`}
@@ -1314,22 +1564,29 @@ export default function AdminProdutos() {
                             );
                           }
                         }}
+                        className="mt-0.5"
                       />
                       <label
                         htmlFor={`sva-${sva.id}`}
-                        className="flex-1 cursor-pointer text-sm"
+                        className="flex-1 cursor-pointer"
                       >
-                        <div className="font-medium text-slate-900">
+                        <div className="font-medium text-slate-900 mb-1">
                           {sva.nome}
                         </div>
-                        <div className="text-xs text-slate-600">
-                          {(sva.preco / 100).toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })}
-                          /mês
-                          {sva.descricao &&
-                            ` • ${sva.descricao.substring(0, 50)}...`}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-green-700">
+                            {(sva.preco / 100).toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                            /mês
+                          </span>
+                          {sva.descricao && (
+                            <span className="text-xs text-slate-600">
+                              • {sva.descricao.substring(0, 50)}
+                              {sva.descricao.length > 50 ? "..." : ""}
+                            </span>
+                          )}
                         </div>
                       </label>
                     </div>
@@ -1337,27 +1594,39 @@ export default function AdminProdutos() {
                 )}
               </div>
               {svasSelecionados.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {svasSelecionados.length} SVA
-                  {svasSelecionados.length > 1 ? "s" : ""} selecionado
-                  {svasSelecionados.length > 1 ? "s" : ""}
-                </p>
+                <div className="flex items-center gap-2 p-2 bg-green-100 border border-green-300 rounded-lg">
+                  <CheckCircle2 className="h-4 w-4 text-green-700" />
+                  <p className="text-sm text-green-800 font-medium">
+                    {svasSelecionados.length} SVA
+                    {svasSelecionados.length > 1 ? "s" : ""} selecionado
+                    {svasSelecionados.length > 1 ? "s" : ""} para upsell
+                  </p>
+                </div>
               )}
             </div>
 
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+          {/* Footer com Botões Premium */}
+          <div className="sticky bottom-0 px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 border-t flex items-center justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              className="min-w-[120px] hover:bg-white"
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit"
+              className="min-w-[120px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg shadow-blue-200"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Salvar Produto
+            </Button>
+          </div>
+        </form>
+      </div>
+    </DialogContent>
+  </Dialog>
+</div>
+);
 }

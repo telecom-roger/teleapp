@@ -145,7 +145,7 @@ Painel:
 
 ### Backend
 
-#### GET `/api/ecommerce/customer/orders/:orderId/next-upsell`
+#### GET `/api/app/customer/orders/:orderId/next-upsell`
 - Coleta todos svasUpsell dos produtos do pedido
 - Filtra já oferecidos
 - Retorna primeiro elegível se under limit
@@ -165,7 +165,7 @@ Painel:
 }
 ```
 
-#### POST `/api/ecommerce/customer/orders/:orderId/upsell-response`
+#### POST `/api/app/customer/orders/:orderId/upsell-response`
 - Registra aceite/recusa
 - Atualiza arrays de tracking
 - Se aceito: adiciona SVA ao pedido e atualiza total
@@ -232,13 +232,13 @@ Painel:
 - `migrations/add-upsell-tracking.mjs` - Migration das novas colunas
 
 ### Backend
-- `server/ecommerceCustomerRoutes.ts` - Endpoints next-upsell e upsell-response
+- `server/appCustomerRoutes.ts` - Endpoints next-upsell e upsell-response
 
 ### Frontend
-- `client/src/components/ecommerce/UpsellCard.tsx` - Componente reutilizável
-- `client/src/components/ecommerce/CartSidebar.tsx` - Removida lógica antiga
-- `client/src/pages/ecommerce/checkout/obrigado.tsx` - Upsell pós-checkout
-- `client/src/pages/ecommerce/customer-orders.tsx` - Upsell no painel
+- `client/src/components/app/UpsellCard.tsx` - Componente reutilizável
+- `client/src/components/app/CartSidebar.tsx` - Removida lógica antiga
+- `client/src/pages/app/checkout/obrigado.tsx` - Upsell pós-checkout
+- `client/src/pages/app/customer-orders.tsx` - Upsell no painel
 
 ## 🚀 Próximos Passos
 

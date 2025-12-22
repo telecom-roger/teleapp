@@ -33,7 +33,7 @@
 - itemCount: number
 ```
 
-#### **CartSidebar** (`client/src/components/ecommerce/CartSidebar.tsx`)
+#### **CartSidebar** (`client/src/components/app/CartSidebar.tsx`)
 
 - ✅ Sidebar fixa no desktop (320px largura, direita)
 - ✅ Bottom bar no mobile com sheet full-screen
@@ -66,7 +66,7 @@
 #### **Página 3: Endereço** (`checkout/endereco.tsx`)
 
 - ✅ Campo CEP com botão de busca
-- ✅ Integração com ViaCEP (API /api/ecommerce/cep/:cep)
+- ✅ Integração com ViaCEP (API /api/app/cep/:cep)
 - ✅ Auto-preenchimento de logradouro, bairro, cidade, UF
 - ✅ Campos: número, complemento (opcional)
 - ✅ Salva em localStorage
@@ -88,7 +88,7 @@
 - ✅ Lista de produtos com preços
 - ✅ Total geral destacado
 - ✅ Botão "Confirmar Pedido" com loading state
-- ✅ POST para `/api/ecommerce/orders` com todos os dados
+- ✅ POST para `/api/app/orders` com todos os dados
 - ✅ Limpa carrinho após sucesso
 - ✅ Limpa localStorage do checkout
 
@@ -105,7 +105,7 @@
 
 ### 3. Kanban Visual Admin 📊
 
-#### **Página Admin Kanban** (`admin/ecommerce-kanban.tsx`)
+#### **Página Admin Kanban** (`admin/app-kanban.tsx`)
 
 - ✅ Layout em colunas representando etapas do pedido
 - ✅ Cores dinâmicas por stage (vindas do DB)
@@ -123,7 +123,7 @@
 **API Endpoint Criado:**
 
 ```typescript
-PUT /api/ecommerce/orders/:id/status
+PUT /api/app/orders/:id/status
 Body: { status: "novo_status" }
 ```
 
@@ -184,8 +184,8 @@ enviarEmailStatusPedido({
 
 #### **Integração no Backend**
 
-- ✅ POST `/api/ecommerce/orders`: Envia boas-vindas + pedido recebido
-- ✅ PUT `/api/ecommerce/orders/:id/status`: Envia atualização de status
+- ✅ POST `/api/app/orders`: Envia boas-vindas + pedido recebido
+- ✅ PUT `/api/app/orders/:id/status`: Envia atualização de status
 - ✅ Envios assíncronos (não bloqueiam resposta da API)
 - ✅ Tratamento de erros com logs
 - ✅ Funciona sem SMTP (logs no console)
@@ -200,14 +200,14 @@ enviarEmailStatusPedido({
 
 ```
 client/src/contexts/CartContext.tsx
-client/src/components/ecommerce/CartSidebar.tsx
-client/src/pages/ecommerce/checkout/tipo-cliente.tsx
-client/src/pages/ecommerce/checkout/dados.tsx
-client/src/pages/ecommerce/checkout/endereco.tsx
-client/src/pages/ecommerce/checkout/documentos.tsx
-client/src/pages/ecommerce/checkout/confirmacao.tsx
-client/src/pages/ecommerce/checkout/obrigado.tsx
-client/src/pages/admin/ecommerce-kanban.tsx
+client/src/components/app/CartSidebar.tsx
+client/src/pages/app/checkout/tipo-cliente.tsx
+client/src/pages/app/checkout/dados.tsx
+client/src/pages/app/checkout/endereco.tsx
+client/src/pages/app/checkout/documentos.tsx
+client/src/pages/app/checkout/confirmacao.tsx
+client/src/pages/app/checkout/obrigado.tsx
+client/src/pages/admin/app-kanban.tsx
 ```
 
 **Backend:**
@@ -236,7 +236,7 @@ client/src/App.tsx
   - Adicionado AdminKanban
   - Criadas 6 novas rotas
 
-client/src/pages/ecommerce/planos.tsx
+client/src/pages/app/planos.tsx
   - Importado useCart e CartSidebar
   - Adicionado onClick no botão "Adicionar ao Carrinho"
   - Renderizado <CartSidebar />
@@ -245,7 +245,7 @@ client/src/pages/ecommerce/planos.tsx
 **Backend:**
 
 ```
-server/ecommerceRoutes.ts
+server/appRoutes.ts
   - Importado emailService
   - Adicionado envio de emails em POST /orders
   - Criada nova rota PUT /orders/:id/status
@@ -294,8 +294,8 @@ APP_URL=http://localhost:5000
 ### 1. Navegação Pública (Sem Login)
 
 ```
-/ecommerce (home)
-  → /ecommerce/planos (catálogo com filtros)
+/app (home)
+  → /app/planos (catálogo com filtros)
     → Adicionar produtos ao carrinho
     → Ver sidebar com resumo
 ```
@@ -303,13 +303,13 @@ APP_URL=http://localhost:5000
 ### 2. Checkout (5 Etapas)
 
 ```
-/ecommerce/checkout (escolher PF/PJ)
-  → /ecommerce/checkout/dados (form cadastral)
-    → /ecommerce/checkout/endereco (CEP + endereço)
-      → /ecommerce/checkout/documentos (uploads)
-        → /ecommerce/checkout/confirmacao (revisar tudo)
-          → POST /api/ecommerce/orders
-            → /ecommerce/checkout/obrigado (sucesso!)
+/app/checkout (escolher PF/PJ)
+  → /app/checkout/dados (form cadastral)
+    → /app/checkout/endereco (CEP + endereço)
+      → /app/checkout/documentos (uploads)
+        → /app/checkout/confirmacao (revisar tudo)
+          → POST /api/app/orders
+            → /app/checkout/obrigado (sucesso!)
 ```
 
 ### 3. Criação Automática de Conta
@@ -322,7 +322,7 @@ APP_URL=http://localhost:5000
 ### 4. Gestão Admin (Com Login)
 
 ```
-/admin/ecommerce-kanban
+/admin/app-kanban
   → Visualiza pedidos em colunas por etapa
   → Clica em card para ver detalhes
   → Move pedido entre etapas via Select

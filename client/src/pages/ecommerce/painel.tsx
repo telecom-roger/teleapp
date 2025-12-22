@@ -27,20 +27,20 @@ export default function EcommercePainel() {
     isLoading: loadingCustomer,
     isError,
   } = useQuery({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Buscar pedidos
   const { data, isLoading: loadingOrders } = useQuery<{ orders: any[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     enabled: !!customerData,
   });
   const orders = data?.orders ?? [];
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch("/api/ecommerce/auth/logout", {
+      const res = await fetch("/api/app/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -50,7 +50,7 @@ export default function EcommercePainel() {
     onSuccess: () => {
       // Limpar todas as queries do cache
       queryClient.clear();
-      navigate("/ecommerce/login");
+      navigate("/app/login");
     },
   });
 
@@ -109,15 +109,15 @@ export default function EcommercePainel() {
     {
       icon: Package,
       label: "Dashboard",
-      path: "/ecommerce/painel",
+      path: "/app/painel",
       active: true,
     },
     {
       icon: FileText,
       label: "Meus Pedidos",
-      path: "/ecommerce/painel/pedidos",
+      path: "/app/painel/pedidos",
     },
-    { icon: User, label: "Meu Perfil", path: "/ecommerce/painel/perfil" },
+    { icon: User, label: "Meu Perfil", path: "/app/painel/perfil" },
   ];
 
   if (loadingCustomer) {
@@ -150,7 +150,7 @@ export default function EcommercePainel() {
   }
 
   if (!customerData || isError) {
-    navigate("/ecommerce/login");
+    navigate("/app/login");
     return null;
   }
 
@@ -597,6 +597,7 @@ export default function EcommercePainel() {
                 boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
                 cursor: "pointer",
               }}
+              onClick={() => navigate(`/app/painel/pedidos/${lastOrder.id}`)}
               onMouseEnter={(e) => {
                 e.currentTarget.style.boxShadow =
                   "0 8px 24px rgba(30,144,255,0.12)";
@@ -686,7 +687,10 @@ export default function EcommercePainel() {
                     e.currentTarget.style.borderColor = "#E0E0E0";
                     e.currentTarget.style.background = "transparent";
                   }}
-                  onClick={() => navigate("/ecommerce/painel/pedidos")}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate("/app/painel/pedidos");
+                  }}
                 >
                   Ver Todos os Pedidos
                   <ChevronRight className="w-4 h-4" />
@@ -732,7 +736,7 @@ export default function EcommercePainel() {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
-                onClick={() => navigate("/ecommerce/planos")}
+                onClick={() => navigate("/app/planos")}
               >
                 <Package className="w-5 h-5" />
                 <span>Contratar Novo Plano</span>
@@ -760,7 +764,7 @@ export default function EcommercePainel() {
                   e.currentTarget.style.transform = "translateY(0)";
                   e.currentTarget.style.boxShadow = "none";
                 }}
-                onClick={() => navigate("/ecommerce/painel/perfil")}
+                onClick={() => navigate("/app/painel/perfil")}
               >
                 <User className="w-5 h-5" />
                 <span>Editar Meu Perfil</span>

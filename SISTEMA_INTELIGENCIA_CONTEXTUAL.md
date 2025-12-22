@@ -50,7 +50,7 @@
 - ✅ Apenas UM badge por produto (maior prioridade)
 - ✅ Variantes de cores (success, info, primary, warning, default)
 
-### 6. **Componente EmptyState** (`client/src/components/ecommerce/EmptyStatePlanos.tsx`)
+### 6. **Componente EmptyState** (`client/src/components/app/EmptyStatePlanos.tsx`)
 
 - ✅ Design profissional com ícone e mensagem clara
 - ✅ Lista critérios ativos que estão bloqueando resultados
@@ -59,7 +59,7 @@
 - ✅ Botões aplicam ajustes imediatamente (sem modal)
 - ✅ Hover effects e ícones para cada sugestão
 
-### 7. **Integração na Página** (`client/src/pages/ecommerce/planos.tsx`)
+### 7. **Integração na Página** (`client/src/pages/app/planos.tsx`)
 
 - ✅ Import e uso do contextoInteligenteStore
 - ✅ Substituição de useState por store de contexto
@@ -276,7 +276,7 @@ Usuário clica "Remover filtro TIM"
 
 ### 📈 **Analytics Backend**
 
-- [ ] Criar endpoint `POST /api/ecommerce/analytics/event`
+- [ ] Criar endpoint `POST /api/app/analytics/event`
 - [ ] Enviar eventos de forma assíncrona (non-blocking)
 - [ ] Armazenar em tabela `ecommerce_events` para análise futura
 - [ ] Dashboard de insights para o time

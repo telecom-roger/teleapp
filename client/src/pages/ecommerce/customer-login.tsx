@@ -63,7 +63,7 @@ export default function CustomerLogin() {
 
   const loginMutation = useMutation({
     mutationFn: async (data: { identifier: string; password: string }) => {
-      const res = await fetch("/api/ecommerce/auth/login", {
+      const res = await fetch("/api/app/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -85,10 +85,10 @@ export default function CustomerLogin() {
       // Invalidar TODAS as queries de autenticação
       await queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
       await queryClient.invalidateQueries({
-        queryKey: ["/api/ecommerce/auth/customer"],
+        queryKey: ["/api/app/auth/customer"],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["/api/ecommerce/customer/orders"],
+        queryKey: ["/api/app/customer/orders"],
       });
 
       // Forçar refetch imediato da autenticação
@@ -101,15 +101,15 @@ export default function CustomerLogin() {
       // Se veio do checkout, voltar para o resumo do checkout
       if (
         returnTo === "checkout" ||
-        document.referrer.includes("/ecommerce/checkout")
+        document.referrer.includes("/app/checkout")
       ) {
         setTimeout(() => {
-          setLocation("/ecommerce/checkout");
+          setLocation("/app/checkout");
         }, 200);
       } else {
         // Caso contrário, ir para o painel
         setTimeout(() => {
-          setLocation("/ecommerce/painel");
+          setLocation("/app/painel");
         }, 200);
       }
     },

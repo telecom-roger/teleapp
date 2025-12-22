@@ -41,23 +41,23 @@ export function CustomerHeader() {
   const queryClient = useQueryClient();
 
   const { data } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
   });
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/ecommerce/auth/logout", { method: "POST" });
+      await fetch("/api/app/auth/logout", { method: "POST" });
       // Invalidar TODAS as queries para limpar o cache
       queryClient.clear();
       toast({
         title: "Logout realizado",
         description: "Até logo!",
       });
-      setLocation("/ecommerce");
+      setLocation("/app");
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
       queryClient.clear();
-      setLocation("/ecommerce");
+      setLocation("/app");
     }
   };
 
@@ -66,7 +66,7 @@ export function CustomerHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-4">
-            <Link href="/ecommerce/painel">
+            <Link href="/app/painel">
               <a className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                 Portal do Cliente
               </a>
@@ -131,7 +131,7 @@ export function CustomerSidebar() {
 
   // Buscar pedidos do cliente para verificar se tem portabilidade
   const { data } = useQuery<{ orders: any[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
     onSuccess: (data) => {
@@ -168,18 +168,18 @@ export function CustomerSidebar() {
   console.log('📱 [SIDEBAR] Tem portabilidade?', temPortabilidade);
 
   const menuItems = [
-    { href: "/ecommerce/painel", icon: Home, label: "Dashboard" },
+    { href: "/app/painel", icon: Home, label: "Dashboard" },
     {
-      href: "/ecommerce/painel/pedidos",
+      href: "/app/painel/pedidos",
       icon: ShoppingBag,
       label: "Meus Pedidos",
     },
     {
-      href: "/ecommerce/painel/documentos",
+      href: "/app/painel/documentos",
       icon: FileText,
       label: "Documentos",
     },
-    { href: "/ecommerce/painel/perfil", icon: User, label: "Meu Perfil" },
+    { href: "/app/painel/perfil", icon: User, label: "Meu Perfil" },
     {
       href: "https://wa.me/5519999999999",
       icon: MessageCircle,
@@ -191,7 +191,7 @@ export function CustomerSidebar() {
   // Inserir item de portabilidade após "Meus Pedidos" se tiver portabilidade
   if (temPortabilidade) {
     menuItems.splice(2, 0, {
-      href: "/ecommerce/painel/linhas-portabilidade",
+      href: "/app/painel/linhas-portabilidade",
       icon: Phone,
       label: "Linhas de Portabilidade",
     });
@@ -245,7 +245,7 @@ export function CustomerMobileNav() {
 
   // Buscar pedidos do cliente para verificar se tem portabilidade
   const { data } = useQuery<{ orders: any[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
   });
 
   const orders = data?.orders || [];
@@ -256,16 +256,16 @@ export function CustomerMobileNav() {
   );
 
   const menuItems = [
-    { href: "/ecommerce/painel", icon: Home, label: "Início" },
-    { href: "/ecommerce/painel/pedidos", icon: ShoppingBag, label: "Pedidos" },
-    { href: "/ecommerce/painel/documentos", icon: FileText, label: "Docs" },
-    { href: "/ecommerce/painel/perfil", icon: User, label: "Perfil" },
+    { href: "/app/painel", icon: Home, label: "Início" },
+    { href: "/app/painel/pedidos", icon: ShoppingBag, label: "Pedidos" },
+    { href: "/app/painel/documentos", icon: FileText, label: "Docs" },
+    { href: "/app/painel/perfil", icon: User, label: "Perfil" },
   ];
 
   // Inserir item de portabilidade após "Pedidos" se tiver portabilidade
   if (temPortabilidade) {
     menuItems.splice(2, 0, {
-      href: "/ecommerce/painel/linhas-portabilidade",
+      href: "/app/painel/linhas-portabilidade",
       icon: Phone,
       label: "Linhas",
     });

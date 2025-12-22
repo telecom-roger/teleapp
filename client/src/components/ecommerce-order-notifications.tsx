@@ -35,22 +35,30 @@ export function EcommerceOrderNotifications() {
 
   const { data = { orders: [], count: 0 } as NewOrdersResponse, isLoading } =
     useQuery<NewOrdersResponse>({
-      queryKey: ["/api/admin/ecommerce/notifications/new-orders"],
+      queryKey: ["/api/admin/app/notifications/new-orders"],
       refetchInterval: 5000, // Atualiza a cada 5 segundos
     });
+
+  // Log para debug
+  console.log("🔔 [BADGE] Estado atual:", {
+    isLoading,
+    count: data?.count || 0,
+    ordersLength: data?.orders?.length || 0,
+    hasData: !!data
+  });
 
   const markAsReadMutation = useMutation<any, Error, string | undefined>({
     mutationFn: async (orderId?: string) => {
       const endpoint = orderId
-        ? `/api/admin/ecommerce/orders/${orderId}/mark-viewed`
-        : `/api/admin/ecommerce/orders/mark-all-viewed`;
+        ? `/api/admin/app/orders/${orderId}/mark-viewed`
+        : `/api/admin/app/orders/mark-all-viewed`;
       const res = await fetch(endpoint, { method: "POST" });
       if (!res.ok) throw new Error("Erro ao marcar como lido");
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/notifications/new-orders"],
+        queryKey: ["/api/admin/app/notifications/new-orders"],
       });
     },
   });
@@ -79,7 +87,7 @@ export function EcommerceOrderNotifications() {
 
   const handleViewOrder = (orderId: string) => {
     markAsReadMutation.mutate(orderId);
-    navigate(`/admin/ecommerce-listagem?pedido=${orderId}`);
+    navigate(`/admin/app-listagem?pedido=${orderId}`);
     setOpen(false);
   };
 

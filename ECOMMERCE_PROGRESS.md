@@ -18,7 +18,7 @@
 - ✅ `ecommerceOrderItems` - Itens dos pedidos
 - ✅ `ecommerceStages` - Etapas do Kanban e-commerce
 - ✅ `ecommerceOrderDocuments` - Documentos anexados
-- ✅ `clients.origin` - Campo para diferenciar origem (system/ecommerce)
+- ✅ `clients.origin` - Campo para diferenciar origem (system/app)
 
 **Localização:** `shared/schema.ts` (linhas 745-893)  
 **Migration:** `migrations/0001_pretty_rhino.sql`
@@ -27,16 +27,16 @@
 
 ### 🔌 **Backend APIs**
 
-**Arquivo:** `server/ecommerceRoutes.ts` (criado)  
+**Arquivo:** `server/appRoutes.ts` (criado)  
 **Registrado em:** `server/routes.ts` (linha ~149)
 
 #### Produtos
 
-- ✅ `GET /api/ecommerce/products` - Listar produtos (público, com filtros)
-- ✅ `GET /api/ecommerce/products/:id` - Detalhes produto (público)
-- ✅ `POST /api/ecommerce/products` - Criar produto (admin)
-- ✅ `PUT /api/ecommerce/products/:id` - Atualizar produto (admin)
-- ✅ `DELETE /api/ecommerce/products/:id` - Deletar produto (admin)
+- ✅ `GET /api/app/products` - Listar produtos (público, com filtros)
+- ✅ `GET /api/app/products/:id` - Detalhes produto (público)
+- ✅ `POST /api/app/products` - Criar produto (admin)
+- ✅ `PUT /api/app/products/:id` - Atualizar produto (admin)
+- ✅ `DELETE /api/app/products/:id` - Deletar produto (admin)
 
 **Filtros disponíveis:**
 
@@ -47,28 +47,28 @@
 
 #### Pedidos (Orders)
 
-- ✅ `GET /api/ecommerce/orders` - Listar pedidos (admin)
-- ✅ `GET /api/ecommerce/orders/:id` - Detalhes pedido com items + documentos (admin)
-- ✅ `POST /api/ecommerce/orders` - Criar pedido (público)
+- ✅ `GET /api/app/orders` - Listar pedidos (admin)
+- ✅ `GET /api/app/orders/:id` - Detalhes pedido com items + documentos (admin)
+- ✅ `POST /api/app/orders` - Criar pedido (público)
   - Validação CPF/CNPJ ✅
   - Verifica cliente existente ✅
   - Cria novo cliente se não existir ✅
   - Cria usuário com senha temporária ✅
   - Vincula itens do pedido ✅
-- ✅ `PUT /api/ecommerce/orders/:id` - Atualizar pedido (admin)
-- ✅ `DELETE /api/ecommerce/orders/:id` - Deletar pedido (admin)
+- ✅ `PUT /api/app/orders/:id` - Atualizar pedido (admin)
+- ✅ `DELETE /api/app/orders/:id` - Deletar pedido (admin)
 
 #### Stages (Kanban)
 
-- ✅ `GET /api/ecommerce/stages` - Listar etapas (admin)
-- ✅ `POST /api/ecommerce/stages` - Criar etapa (admin)
-- ✅ `PUT /api/ecommerce/stages/:id` - Atualizar etapa (admin)
-- ✅ `DELETE /api/ecommerce/stages/:id` - Deletar etapa (admin)
+- ✅ `GET /api/app/stages` - Listar etapas (admin)
+- ✅ `POST /api/app/stages` - Criar etapa (admin)
+- ✅ `PUT /api/app/stages/:id` - Atualizar etapa (admin)
+- ✅ `DELETE /api/app/stages/:id` - Deletar etapa (admin)
 
 #### Utilidades
 
 - ✅ `GET /api/cep/:cep` - Buscar endereço via ViaCEP (público)
-- ✅ `POST /api/ecommerce/orders/:id/documents` - Upload documento (em desenvolvimento)
+- ✅ `POST /api/app/orders/:id/documents` - Upload documento (em desenvolvimento)
 
 #### Funções Helper
 
@@ -82,7 +82,7 @@
 
 #### Componentes Base
 
-**Arquivo:** `client/src/components/ecommerce/`
+**Arquivo:** `client/src/components/app/`
 
 - ✅ `EcommerceHeader.tsx` - Header com menu e navegação
 
@@ -100,7 +100,7 @@
 
 #### Páginas Públicas
 
-**Arquivo:** `client/src/pages/ecommerce/`
+**Arquivo:** `client/src/pages/app/`
 
 - ✅ `home.tsx` - Página inicial
 
@@ -128,8 +128,8 @@
 
 **Rotas registradas em:** `client/src/App.tsx`
 
-- `/ecommerce` → Home
-- `/ecommerce/planos` → Lista de planos
+- `/app` → Home
+- `/app/planos` → Lista de planos
 
 ---
 
@@ -157,8 +157,8 @@
 
 **Rotas registradas em:** `client/src/App.tsx`
 
-- `/admin/ecommerce-produtos` → Gerenciar produtos
-- `/admin/ecommerce-pedidos` → Ver pedidos
+- `/admin/app-produtos` → Gerenciar produtos
+- `/admin/app-pedidos` → Ver pedidos
 
 ---
 
@@ -166,13 +166,13 @@
 
 ### ✅ **Fluxo Completo Funcionando**
 
-1. **Visitante acessa** `/ecommerce`
-2. **Navega para** `/ecommerce/planos`
+1. **Visitante acessa** `/app`
+2. **Navega para** `/app/planos`
 3. **Filtra planos** por PF/PJ, categoria, operadora
 4. **Vê lista de planos** com preços e detalhes
 5. **Admin pode:**
-   - Criar produtos via `/admin/ecommerce-produtos`
-   - Ver pedidos via `/admin/ecommerce-pedidos`
+   - Criar produtos via `/admin/app-produtos`
+   - Ver pedidos via `/admin/app-pedidos`
 
 ### ✅ **Validações**
 
@@ -292,11 +292,11 @@ migrations/
 
 ```bash
 # Produtos
-GET http://localhost:5000/api/ecommerce/products
-GET http://localhost:5000/api/ecommerce/products?categoria=fibra&operadora=V&tipoPessoa=PF
+GET http://localhost:5000/api/app/products
+GET http://localhost:5000/api/app/products?categoria=fibra&operadora=V&tipoPessoa=PF
 
 # Criar produto (precisa auth)
-POST http://localhost:5000/api/ecommerce/products
+POST http://localhost:5000/api/app/products
 {
   "nome": "Fibra 500 Mega",
   "categoria": "fibra",
@@ -314,15 +314,15 @@ GET http://localhost:5000/api/cep/01310100
 ### 2. Frontend Público
 
 ```
-http://localhost:5000/ecommerce
-http://localhost:5000/ecommerce/planos
+http://localhost:5000/app
+http://localhost:5000/app/planos
 ```
 
 ### 3. Frontend Admin (precisa login)
 
 ```
-http://localhost:5000/admin/ecommerce-produtos
-http://localhost:5000/admin/ecommerce-pedidos
+http://localhost:5000/admin/app-produtos
+http://localhost:5000/admin/app-pedidos
 ```
 
 ---
@@ -337,9 +337,9 @@ http://localhost:5000/admin/ecommerce-pedidos
 
 2. **Isolamento:**
 
-   - Rotas `/api/ecommerce/*` separadas
-   - Páginas em `/ecommerce/*` públicas
-   - Admin em `/admin/ecommerce-*`
+   - Rotas `/api/app/*` separadas
+   - Páginas em `/app/*` públicas
+   - Admin em `/admin/app-*`
    - Não afeta Kanban/Clientes atuais
 
 3. **Performance:**
@@ -373,12 +373,12 @@ Quando retomar, implementar na ordem:
 **Para confirmar que está tudo OK:**
 
 1. Iniciar servidor: `npm run dev`
-2. Acessar: `http://localhost:5000/ecommerce`
+2. Acessar: `http://localhost:5000/app`
 3. Verificar se home carrega
 4. Ir para planos e testar filtros
-5. Login admin e acessar `/admin/ecommerce-produtos`
+5. Login admin e acessar `/admin/app-produtos`
 6. Criar um produto de teste
-7. Ver produto aparecer em `/ecommerce/planos`
+7. Ver produto aparecer em `/app/planos`
 
 ✅ **SE TUDO ACIMA FUNCIONAR = MVP COMPLETO!**
 

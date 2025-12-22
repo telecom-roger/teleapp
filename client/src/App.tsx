@@ -68,12 +68,13 @@ import CheckoutEndereco from "@/pages/ecommerce/checkout/endereco";
 import CheckoutDocumentos from "@/pages/ecommerce/checkout/documentos";
 import CheckoutConfirmacao from "@/pages/ecommerce/checkout/confirmacao";
 import CheckoutObrigado from "@/pages/ecommerce/checkout/obrigado";
-import AdminProdutos from "@/pages/admin/ecommerce-produtos";
-import AdminCategorias from "@/pages/admin/ecommerce-categorias";
-import AdminBanners from "@/pages/admin/ecommerce-banners";
-import AdminPedidos from "@/pages/admin/ecommerce-pedidos";
-import AdminKanban from "@/pages/admin/ecommerce-kanban";
-import AdminListagemPedidos from "@/pages/admin/ecommerce-listagem-pedidos";
+import AdminProdutos from "@/pages/admin/app-produtos";
+import AdminProdutoVariacoes from "@/pages/admin/app-produto-variacoes";
+import AdminCategorias from "@/pages/admin/app-categorias";
+import AdminBanners from "@/pages/admin/app-banners";
+import AdminPedidos from "@/pages/admin/app-pedidos";
+import AdminKanban from "@/pages/admin/app-kanban";
+import AdminListagemPedidos from "@/pages/admin/app-listagem-pedidos";
 import TestPage from "@/pages/ecommerce/test-page";
 
 function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
@@ -112,76 +113,77 @@ function Router({ isAuthenticated }: { isAuthenticated: boolean }) {
         component={AdminAutomacaoAdvanced}
       />
       <Route path="/admin/import-partners" component={ImportPartners} />
-      <Route path="/admin/ecommerce-produtos" component={AdminProdutos} />
-      <Route path="/admin/ecommerce-categorias" component={AdminCategorias} />
-      <Route path="/admin/ecommerce-banners" component={AdminBanners} />
-      <Route path="/admin/ecommerce-pedidos" component={AdminPedidos} />
-      <Route path="/admin/ecommerce-kanban" component={AdminKanban} />
+      <Route path="/admin/app-produtos" component={AdminProdutos} />
+      <Route path="/admin/app-produtos/:productId/variacoes" component={AdminProdutoVariacoes} />
+      <Route path="/admin/app-categorias" component={AdminCategorias} />
+      <Route path="/admin/app-banners" component={AdminBanners} />
+      <Route path="/admin/app-pedidos" component={AdminPedidos} />
+      <Route path="/admin/app-kanban" component={AdminKanban} />
       <Route
-        path="/admin/ecommerce-listagem"
+        path="/admin/app-listagem"
         component={AdminListagemPedidos}
       />
       <Route path="/test/automation" component={TestAutomation} />
       <Route path="/test/chat" component={TestChat} />
 
       {/* E-commerce Routes */}
-      <Route path="/ecommerce" component={EcommerceHome} />
-      <Route path="/ecommerce/test" component={TestPage} />
-      <Route path="/ecommerce/planos" component={EcommercePlanos} />
-      <Route path="/ecommerce/login" component={CustomerLogin} />
+      <Route path="/app" component={EcommerceHome} />
+      <Route path="/app/test" component={TestPage} />
+      <Route path="/app/planos" component={EcommercePlanos} />
+      <Route path="/app/login" component={CustomerLogin} />
 
       {/* E-commerce Checkout Routes (public) - ANTES do :slug */}
-      <Route path="/ecommerce/checkout" component={CheckoutResumo} />
+      <Route path="/app/checkout" component={CheckoutResumo} />
       <Route
-        path="/ecommerce/checkout/tipo-cliente"
+        path="/app/checkout/tipo-cliente"
         component={CheckoutTipoCliente}
       />
-      <Route path="/ecommerce/checkout/dados" component={CheckoutDados} />
-      <Route path="/ecommerce/checkout/endereco" component={CheckoutEndereco} />
+      <Route path="/app/checkout/dados" component={CheckoutDados} />
+      <Route path="/app/checkout/endereco" component={CheckoutEndereco} />
       <Route
-        path="/ecommerce/checkout/documentos"
+        path="/app/checkout/documentos"
         component={CheckoutDocumentos}
       />
       <Route
-        path="/ecommerce/checkout/confirmacao"
+        path="/app/checkout/confirmacao"
         component={CheckoutConfirmacao}
       />
-      <Route path="/ecommerce/checkout/obrigado" component={CheckoutObrigado} />
+      <Route path="/app/checkout/obrigado" component={CheckoutObrigado} />
 
       {/* E-commerce Protected Routes (require customer authentication) */}
-      <Route path="/ecommerce/painel">
+      <Route path="/app/painel">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerDashboard} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/pedidos/:orderId">
+      <Route path="/app/painel/pedidos/:orderId">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerOrders} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/linhas-portabilidade">
+      <Route path="/app/painel/linhas-portabilidade">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerLinhasPortabilidade} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/pedidos">
+      <Route path="/app/painel/pedidos">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerOrders} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/perfil">
+      <Route path="/app/painel/perfil">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerProfile} {...params} />
         )}
       </Route>
-      <Route path="/ecommerce/painel/documentos">
+      <Route path="/app/painel/documentos">
         {(params) => (
           <EcommerceProtectedRoute component={CustomerDocuments} {...params} />
         )}
       </Route>
 
       {/* Rota genérica :slug DEVE ser a ÚLTIMA */}
-      <Route path="/ecommerce/:slug" component={EcommerceCategoria} />
+      <Route path="/app/:slug" component={EcommerceCategoria} />
 
       <Route component={NotFound} />
     </Switch>
@@ -199,13 +201,13 @@ function AppContent() {
   } as React.CSSProperties;
 
   // Check if current route is an e-commerce page (public facing)
-  const isEcommercePage = location === "/" || location.startsWith("/ecommerce");
+  const isEcommercePage = location === "/" || location.startsWith("/app");
 
   // 🔒 PROTEÇÃO: Bloquear clientes de acessar áreas administrativas
   React.useEffect(() => {
     if (user && user.role === "customer" && !isEcommercePage) {
       // Cliente tentando acessar área administrativa - redirecionar para painel do cliente
-      setLocation("/ecommerce/painel");
+      setLocation("/app/painel");
     }
   }, [user, location, isEcommercePage, setLocation]);
 

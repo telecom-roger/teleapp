@@ -45,7 +45,7 @@ export default function CheckoutConfirmacao() {
   
   // Verificar se o cliente está logado
   const { data: customerData } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
   
@@ -63,18 +63,16 @@ export default function CheckoutConfirmacao() {
         documento: customerData.client.cnpj || "",
       });
       
-      // Se não estiver editando outro endereço, usar o cadastrado
-      if (!usarOutroEndereco) {
-        setEndereco({
-          logradouro: customerData.client.endereco || "",
-          numero: customerData.client.numero || "",
-          bairro: customerData.client.bairro || "",
-          cidade: customerData.client.cidade || "",
-          estado: customerData.client.uf || "",
-          cep: customerData.client.cep || "",
-          complemento: "",
-        });
-      }
+      // Sempre popular o endereço com dados do cliente logado
+      setEndereco({
+        logradouro: customerData.client.endereco || "",
+        numero: customerData.client.numero || "",
+        bairro: customerData.client.bairro || "",
+        cidade: customerData.client.cidade || "",
+        estado: customerData.client.uf || "",
+        cep: customerData.client.cep || "",
+        complemento: "",
+      });
       return;
     }
     
@@ -190,7 +188,7 @@ export default function CheckoutConfirmacao() {
         termosAceitos: true,
       };
       
-      const response = await fetch("/api/ecommerce/orders", {
+      const response = await fetch("/api/app/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
@@ -218,7 +216,7 @@ export default function CheckoutConfirmacao() {
           
           if (svaFoiAceito) {
             console.log(`✅ [CHECKOUT] SVA ${svaCheckout} foi ACEITO - marcando como aceito`);
-            const response = await fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-response`, {
+            const response = await fetch(`/api/app/customer/orders/${orderId}/upsell-response`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
@@ -237,7 +235,7 @@ export default function CheckoutConfirmacao() {
             console.log(`✅ [CHECKOUT] SVA marcado como aceito - confirmado`);
           } else {
             console.log(`👁️ [CHECKOUT] SVA ${svaCheckout} foi apenas visualizado - marcando como oferecido`);
-            const response = await fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-viewed`, {
+            const response = await fetch(`/api/app/customer/orders/${orderId}/upsell-viewed`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
@@ -294,7 +292,7 @@ export default function CheckoutConfirmacao() {
               formData.append('orderId', orderId);
               formData.append('tipo', tiposDocumento[key] || key);
               
-              await fetch('/api/ecommerce/customer/documents/upload', {
+              await fetch('/api/app/customer/documents/upload', {
                 method: 'POST',
                 body: formData,
               });
@@ -312,7 +310,7 @@ export default function CheckoutConfirmacao() {
       localStorage.removeItem("checkout-documentos");
       
       console.log(`🎯 [CHECKOUT] Redirecionando para página obrigado...`);
-      setLocation(`/ecommerce/checkout/obrigado?pedido=${data.orderId}`);
+      setLocation(`/app/checkout/obrigado?pedido=${data.orderId}`);
     },
     onError: (error: Error) => {
       console.error("Erro ao criar pedido:", error);
@@ -323,9 +321,9 @@ export default function CheckoutConfirmacao() {
   const voltar = () => {
     // Se for cliente logado, voltar para planos
     if (customerData?.client) {
-      setLocation("/ecommerce/planos");
+      setLocation("/app/planos");
     } else {
-      setLocation(`/ecommerce/checkout/documentos?tipo=${tipoPessoa}`);
+      setLocation(`/app/checkout/documentos?tipo=${tipoPessoa}`);
     }
   };
   
@@ -333,13 +331,13 @@ export default function CheckoutConfirmacao() {
     // Validar dados antes de enviar
     if (!dados.email || !dados.telefone) {
       alert("Por favor, preencha todos os dados necessários.");
-      setLocation("/ecommerce/checkout");
+      setLocation("/app/checkout");
       return;
     }
     
     if (items.length === 0) {
       alert("Seu carrinho está vazio.");
-      setLocation("/ecommerce/planos");
+      setLocation("/app/planos");
       return;
     }
     
@@ -386,9 +384,23 @@ export default function CheckoutConfirmacao() {
             
             <div className="rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden">
               <div className="p-6 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900">Endereço de Instalação</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Endereço Cadastrado</h2>
               </div>
               <div className="p-6">
+                {/* Sempre mostrar o endereço cadastrado quando o usuário está logado */}
+                {customerData?.client && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                    <h3 className="font-semibold text-gray-900 mb-2">Endereço do Cadastro</h3>
+                    <p className="text-gray-700">
+                      {customerData.client.endereco || "Endereço não informado"}, {customerData.client.numero || ""}
+                    </p>
+                    <p className="text-gray-600">{customerData.client.bairro || ""}</p>
+                    <p className="text-gray-600">{customerData.client.cidade || ""} - {customerData.client.uf || ""}</p>
+                    <p className="text-gray-600">CEP: {customerData.client.cep || ""}</p>
+                  </div>
+                )}
+
+                {/* Checkbox para usar o mesmo endereço ou adicionar endereço de instalação diferente */}
                 {customerData?.client && (
                   <div className="mb-4">
                     <div className="flex items-center space-x-2">
@@ -425,7 +437,14 @@ export default function CheckoutConfirmacao() {
                   </div>
                 )}
 
-                {(!customerData?.client || !usarMesmoEndereco) && editandoEndereco ? (
+                {/* Se desmarcou, mostrar campos para adicionar endereço de instalação diferente */}
+                {!usarMesmoEndereco && customerData?.client && (
+                  <div className="mb-4">
+                    <h3 className="font-semibold text-gray-900 mb-3">Endereço de Instalação</h3>
+                  </div>
+                )}
+
+                {editandoEndereco && !usarMesmoEndereco ? (
                   <div className="space-y-3">
                     <div className="flex gap-2">
                       <input
@@ -497,28 +516,42 @@ export default function CheckoutConfirmacao() {
                         className="border rounded-xl px-3 py-2 text-sm border-gray-300 focus:border-blue-500"
                       />
                     </div>
-                    {customerData?.client && (
-                      <button
-                        onClick={() => {
-                          setEditandoEndereco(false);
-                        }}
-                        className="w-full h-10 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors"
-                      >
-                        Confirmar Endereço
-                      </button>
-                    )}
+                    <button
+                      onClick={() => {
+                        setEditandoEndereco(false);
+                      }}
+                      className="w-full h-10 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:border-blue-600 hover:text-blue-600 transition-colors"
+                    >
+                      Confirmar Endereço
+                    </button>
                   </div>
-                ) : (
-                  <div>
+                ) : !usarMesmoEndereco && customerData?.client ? (
+                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
                     <p className="font-semibold text-gray-900">
-                      {endereco.logradouro}, {endereco.numero}
+                      {endereco.logradouro || "Endereço não informado"}, {endereco.numero || ""}
                       {endereco.complemento && ` - ${endereco.complemento}`}
                     </p>
-                    <p className="text-gray-600">{endereco.bairro}</p>
-                    <p className="text-gray-600">{endereco.cidade} - {endereco.estado}</p>
-                    <p className="text-gray-600">CEP: {endereco.cep}</p>
+                    <p className="text-gray-600">{endereco.bairro || ""}</p>
+                    <p className="text-gray-600">{endereco.cidade || ""} - {endereco.estado || ""}</p>
+                    <p className="text-gray-600">CEP: {endereco.cep || ""}</p>
+                    <button
+                      onClick={() => setEditandoEndereco(true)}
+                      className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-semibold"
+                    >
+                      Editar Endereço de Instalação
+                    </button>
                   </div>
-                )}
+                ) : !customerData?.client ? (
+                  <div>
+                    <p className="font-semibold text-gray-900">
+                      {endereco.logradouro || "Endereço não informado"}, {endereco.numero || ""}
+                      {endereco.complemento && ` - ${endereco.complemento}`}
+                    </p>
+                    <p className="text-gray-600">{endereco.bairro || ""}</p>
+                    <p className="text-gray-600">{endereco.cidade || ""} - {endereco.estado || ""}</p>
+                    <p className="text-gray-600">CEP: {endereco.cep || ""}</p>
+                  </div>
+                ) : null}
               </div>
             </div>
           </div>
@@ -529,12 +562,18 @@ export default function CheckoutConfirmacao() {
                 <h2 className="text-lg font-semibold text-gray-900">Produtos</h2>
               </div>
               <div className="p-6 space-y-4">
-                {items.map((item) => (
+                {items.map((item) => {
+                  const operadoraNome = item.product.operadora === 'V' ? 'Vivo' : 
+                                       item.product.operadora === 'C' ? 'Claro' : 
+                                       item.product.operadora === 'T' ? 'Tim' : 
+                                       item.product.operadora;
+                  
+                  return (
                   <div key={item.product.id} className="flex justify-between items-start">
                     <div className="flex-1">
                       <p className="font-semibold text-sm text-gray-900">{item.product.nome}</p>
                       <p className="text-xs text-gray-600">
-                        Qtd: {item.quantidade} • Op. {item.product.operadora}
+                        Qtd: {item.quantidade} • Op: {operadoraNome}
                       </p>
                       {item.linhasAdicionais && item.linhasAdicionais > 0 && (
                         <span className="inline-flex items-center text-xs px-2 py-1 rounded-full bg-blue-500/10 text-blue-700 font-medium mt-1">
@@ -546,7 +585,8 @@ export default function CheckoutConfirmacao() {
                       {formatPreco(item.product.preco * item.quantidade)}
                     </div>
                   </div>
-                ))}
+                  );
+                })}
                 
                 <div className="border-t pt-4 mt-4 border-gray-200">
                   <div className="flex justify-between items-center">

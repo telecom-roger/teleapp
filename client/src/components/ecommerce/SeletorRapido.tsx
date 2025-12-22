@@ -128,7 +128,7 @@ export default function SeletorRapido({
     if (categoriaSelecionada) params.set("categoria", categoriaSelecionada);
     if (operadoraSelecionada) params.set("operadora", operadoraSelecionada);
 
-    return `/ecommerce/planos?${params.toString()}`;
+    return `/app/planos?${params.toString()}`;
   };
 
   return (

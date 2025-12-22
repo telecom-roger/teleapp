@@ -102,17 +102,17 @@ export default function EcommerceHome() {
   const [tooltipOperadoraOpen, setTooltipOperadoraOpen] = useState(false);
 
   const { data: categorias = [] } = useQuery<EcommerceCategory[]>({
-    queryKey: ["/api/ecommerce/public/categories"],
+    queryKey: ["/api/app/public/categories"],
   });
 
   const { data: produtos = [] } = useQuery<EcommerceProduct[]>({
-    queryKey: ["/api/ecommerce/public/products"],
+    queryKey: ["/api/app/public/products"],
   });
 
   const { data: banners = [] } = useQuery<EcommerceBanner[]>({
-    queryKey: ["/api/ecommerce/public/banners", "home"],
+    queryKey: ["/api/app/public/banners", "home"],
     queryFn: async () => {
-      const res = await fetch("/api/ecommerce/public/banners/home");
+      const res = await fetch("/api/app/public/banners/home");
       if (!res.ok) throw new Error("Erro ao buscar banners");
       return res.json();
     },
@@ -146,7 +146,7 @@ export default function EcommerceHome() {
       : quantidadeLinhas;
     params.set("linhas", linhasFinais.toString());
 
-    window.location.href = `/ecommerce/planos?${params.toString()}`;
+    window.location.href = `/app/planos?${params.toString()}`;
   };
 
   // Funções para toggle multi-select
@@ -812,7 +812,7 @@ export default function EcommerceHome() {
 
               {/* Link Ver Mais */}
               <div className="text-center mt-10">
-                <a href="/ecommerce/planos">
+                <a href="/app/planos">
                   <Button
                     size="lg"
                     className="font-bold text-base transition-all duration-300"
@@ -995,7 +995,7 @@ export default function EcommerceHome() {
         </div>
 
         <div className="text-center mt-10">
-          <a href="/ecommerce/planos">
+          <a href="/app/planos">
             <Button
               size="lg"
               variant="outline"
@@ -1323,7 +1323,7 @@ export default function EcommerceHome() {
             Compare planos, economize e contrate online em poucos minutos
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/ecommerce/comparador">
+            <a href="/app/comparador">
               <Button
                 size="lg"
                 className="h-12 px-10 rounded-xl bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-200 border-0"
@@ -1332,7 +1332,7 @@ export default function EcommerceHome() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </a>
-            <a href="/ecommerce/planos">
+            <a href="/app/planos">
               <Button
                 size="lg"
                 variant="outline"

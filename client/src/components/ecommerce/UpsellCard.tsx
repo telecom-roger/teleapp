@@ -37,7 +37,7 @@ export function UpsellCard({ orderId, momento }: UpsellCardProps) {
 
   // Buscar próximo upsell disponível
   const { data, isLoading } = useQuery<UpsellData>({
-    queryKey: [`/api/ecommerce/customer/orders/${orderId}/next-upsell`],
+    queryKey: [`/api/app/customer/orders/${orderId}/next-upsell`],
     enabled: !!orderId && !jaRespondeu,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
@@ -55,7 +55,7 @@ export function UpsellCard({ orderId, momento }: UpsellCardProps) {
       console.log("📝 [UPSELL] Texto gerado:", texto);
 
       // REGISTRAR VISUALIZAÇÃO no backend (apenas para tracking)
-      fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-viewed`, {
+      fetch(`/api/app/customer/orders/${orderId}/upsell-viewed`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -81,7 +81,7 @@ export function UpsellCard({ orderId, momento }: UpsellCardProps) {
   // Registrar resposta (aceitar/recusar)
   const respostaMutation = useMutation({
     mutationFn: async ({ svaId, accepted }: { svaId: string; accepted: boolean }) => {
-      const response = await fetch(`/api/ecommerce/customer/orders/${orderId}/upsell-response`, {
+      const response = await fetch(`/api/app/customer/orders/${orderId}/upsell-response`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -117,8 +117,8 @@ export function UpsellCard({ orderId, momento }: UpsellCardProps) {
       }
 
       // Invalidar queries específicas para recarregar
-      queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/customer/orders"] });
-      queryClient.invalidateQueries({ queryKey: [`/api/ecommerce/customer/orders/${orderId}/next-upsell`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/app/customer/orders"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/app/customer/orders/${orderId}/next-upsell`] });
       console.log(`🔄 [UPSELL] Queries invalidadas, mas não vai buscar novamente nesta página`);
     },
     onError: () => {

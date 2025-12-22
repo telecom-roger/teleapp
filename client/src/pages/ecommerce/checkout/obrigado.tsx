@@ -24,7 +24,7 @@ export default function CheckoutObrigado() {
 
   // Buscar dados do pedido para obter o orderCode
   const { data: orderData } = useQuery({
-    queryKey: ["/api/ecommerce/customer/orders", pedidoId],
+    queryKey: ["/api/app/customer/orders", pedidoId],
     enabled: !!pedidoId && !!user,
   });
 
@@ -32,7 +32,7 @@ export default function CheckoutObrigado() {
 
   // Determine the correct URL for "Acessar Painel do Cliente" button
   const painelUrl =
-    user?.role === "customer" ? "/ecommerce/painel" : "/ecommerce/login";
+    user?.role === "customer" ? "/app/painel" : "/app/login";
 
   return (
     <div className="min-h-screen py-12 px-4 bg-gray-50">
@@ -99,7 +99,7 @@ export default function CheckoutObrigado() {
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a
-                href="/ecommerce"
+                href="/app"
                 className="inline-flex items-center justify-center h-12 px-6 rounded-xl font-semibold transition-colors border-2 border-gray-300 text-gray-600 hover:border-blue-600 hover:text-blue-600"
               >
                 Voltar à Loja
@@ -109,10 +109,10 @@ export default function CheckoutObrigado() {
                 onClick={() => {
                   // Invalidar queries para atualização instantânea do dashboard
                   queryClient.invalidateQueries({
-                    queryKey: ["/api/ecommerce/customer/orders"],
+                    queryKey: ["/api/app/customer/orders"],
                   });
                   queryClient.invalidateQueries({
-                    queryKey: ["/api/ecommerce/customer/order-updates"],
+                    queryKey: ["/api/app/customer/order-updates"],
                   });
                   navigate(painelUrl);
                 }}

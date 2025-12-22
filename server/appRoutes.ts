@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { z } from "zod";
-import { eq, and, or, desc, sql, ilike } from "drizzle-orm";
+import { eq, and, or, desc, sql, ilike, asc } from "drizzle-orm";
 import {
   ecommerceProducts,
   ecommerceProductCategories,
@@ -9,6 +9,8 @@ import {
   ecommerceStages,
   ecommerceOrderDocuments,
   ecommerceOrderRequestedDocuments,
+  ecommerceProductVariationGroups,
+  ecommerceProductVariationOptions,
   clients,
   users,
   interactions,
@@ -94,8 +96,8 @@ function gerarSenhaAleatoria(tamanho = 8): string {
 // ==================== PRODUCTS ====================
 
 export function registerEcommerceRoutes(app: Express): void {
-  // GET /api/ecommerce/products - Listar produtos (público)
-  app.get("/api/ecommerce/products", async (req, res) => {
+  // GET /api/app/products - Listar produtos (público)
+  app.get("/api/app/products", async (req, res) => {
     try {
       const { categoria, operadora, tipoPessoa, ativo } = req.query;
 
@@ -150,8 +152,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // GET /api/ecommerce/products/:id - Detalhes de um produto (público)
-  app.get("/api/ecommerce/products/:id", async (req, res) => {
+  // GET /api/app/products/:id - Detalhes de um produto (público)
+  app.get("/api/app/products/:id", async (req, res) => {
     try {
       const [produto] = await db
         .select()
@@ -181,13 +183,13 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // POST /api/ecommerce/products - Criar produto (admin)
-  app.post("/api/ecommerce/products", isAuthenticated, async (req, res) => {
+  // POST /api/app/products - Criar produto (admin)
+  app.post("/api/app/products", isAuthenticated, async (req, res) => {
     try {
       const { categorias, ...data } = req.body;
       
-      console.log("🔍 POST /api/ecommerce/products - categorias recebidas:", categorias);
-      console.log("🔍 POST /api/ecommerce/products - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
+      console.log("🔍 POST /api/app/products - categorias recebidas:", categorias);
+      console.log("🔍 POST /api/app/products - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
       
       const parsedData = insertEcommerceProductSchema.parse(data);
 
@@ -214,13 +216,13 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // PUT /api/ecommerce/products/:id - Atualizar produto (admin)
-  app.put("/api/ecommerce/products/:id", isAuthenticated, async (req, res) => {
+  // PUT /api/app/products/:id - Atualizar produto (admin)
+  app.put("/api/app/products/:id", isAuthenticated, async (req, res) => {
     try {
       const { categorias, ...data } = req.body;
       
-      console.log("🔍 PUT /api/ecommerce/products/:id - categorias recebidas:", categorias);
-      console.log("🔍 PUT /api/ecommerce/products/:id - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
+      console.log("🔍 PUT /api/app/products/:id - categorias recebidas:", categorias);
+      console.log("🔍 PUT /api/app/products/:id - tipo:", typeof categorias, "isArray:", Array.isArray(categorias));
       
       const parsedData = insertEcommerceProductSchema.partial().parse(data);
 
@@ -263,9 +265,9 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // DELETE /api/ecommerce/products/:id - Deletar produto (admin)
+  // DELETE /api/app/products/:id - Deletar produto (admin)
   app.delete(
-    "/api/ecommerce/products/:id",
+    "/api/app/products/:id",
     isAuthenticated,
     async (req, res) => {
       try {
@@ -283,8 +285,8 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // ==================== STAGES ====================
 
-  // GET /api/ecommerce/stages - Listar etapas do Kanban
-  app.get("/api/ecommerce/stages", isAuthenticated, async (req, res) => {
+  // GET /api/app/stages - Listar etapas do Kanban
+  app.get("/api/app/stages", isAuthenticated, async (req, res) => {
     try {
       const stages = await db
         .select()
@@ -298,8 +300,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // POST /api/ecommerce/stages - Criar etapa (admin)
-  app.post("/api/ecommerce/stages", isAuthenticated, async (req, res) => {
+  // POST /api/app/stages - Criar etapa (admin)
+  app.post("/api/app/stages", isAuthenticated, async (req, res) => {
     try {
       const data = insertEcommerceStageSchema.parse(req.body);
 
@@ -312,8 +314,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // PUT /api/ecommerce/stages/:id - Atualizar etapa (admin)
-  app.put("/api/ecommerce/stages/:id", isAuthenticated, async (req, res) => {
+  // PUT /api/app/stages/:id - Atualizar etapa (admin)
+  app.put("/api/app/stages/:id", isAuthenticated, async (req, res) => {
     try {
       const data = insertEcommerceStageSchema.partial().parse(req.body);
 
@@ -336,8 +338,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // DELETE /api/ecommerce/stages/:id - Deletar etapa (admin)
-  app.delete("/api/ecommerce/stages/:id", isAuthenticated, async (req, res) => {
+  // DELETE /api/app/stages/:id - Deletar etapa (admin)
+  app.delete("/api/app/stages/:id", isAuthenticated, async (req, res) => {
     try {
       await db
         .delete(ecommerceStages)
@@ -352,8 +354,8 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // ==================== ORDERS ====================
 
-  // GET /api/ecommerce/orders - Listar pedidos (admin)
-  app.get("/api/ecommerce/orders", isAuthenticated, async (req, res) => {
+  // GET /api/app/orders - Listar pedidos (admin)
+  app.get("/api/app/orders", isAuthenticated, async (req, res) => {
     try {
       const { etapa, tipoPessoa, limit = "50", offset = "0" } = req.query;
 
@@ -388,8 +390,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // GET /api/ecommerce/orders/:id - Detalhes de um pedido (admin)
-  app.get("/api/ecommerce/orders/:id", isAuthenticated, async (req, res) => {
+  // GET /api/app/orders/:id - Detalhes de um pedido (admin)
+  app.get("/api/app/orders/:id", isAuthenticated, async (req, res) => {
     try {
       const [orderData] = await db
         .select({
@@ -435,8 +437,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // POST /api/ecommerce/check-document - Verificar se CPF/CNPJ já existe (público)
-  app.post("/api/ecommerce/check-document", async (req, res) => {
+  // POST /api/app/check-document - Verificar se CPF/CNPJ já existe (público)
+  app.post("/api/app/check-document", async (req, res) => {
     try {
       const { documento, tipoPessoa } = req.body;
 
@@ -492,8 +494,44 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // POST /api/ecommerce/orders - Criar pedido (público com validações)
-  app.post("/api/ecommerce/orders", async (req, res) => {
+  // POST /api/app/check-email - Verificar se e-mail já existe (público)
+  app.post("/api/app/check-email", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "E-mail é obrigatório" });
+      }
+
+      // Verificar se já existe cliente com este e-mail
+      const existingClients = await db
+        .select({
+          id: clients.id,
+          nome: clients.nome,
+        })
+        .from(clients)
+        .where(eq(clients.email, email))
+        .limit(1);
+
+      if (existingClients.length > 0) {
+        return res.json({
+          existe: true,
+          mensagem: "Identificamos que já existe um cadastro com este e-mail.",
+        });
+      }
+
+      res.json({
+        existe: false,
+        mensagem: "E-mail disponível para cadastro",
+      });
+    } catch (error: any) {
+      console.error("Erro ao verificar e-mail:", error);
+      res.status(500).json({ error: "Erro ao verificar e-mail" });
+    }
+  });
+
+  // POST /api/app/orders - Criar pedido (público com validações)
+  app.post("/api/app/orders", async (req, res) => {
     try {
       const orderData = req.body;
       
@@ -564,12 +602,25 @@ export function registerEcommerceRoutes(app: Express): void {
           .where(eq(users.email, emailCliente))
           .limit(1);
 
-        // Buscar um admin para associar como criador do cliente
+        // Buscar o admin principal (roger.mmoraes.ti@gmail.com) para associar como criador do cliente
         const [adminUser] = await db
           .select()
           .from(users)
-          .where(eq(users.role, "admin"))
+          .where(
+            and(
+              eq(users.role, "admin"),
+              eq(users.email, "roger.mmoraes.ti@gmail.com")
+            )
+          )
           .limit(1);
+
+        // Se não encontrar o admin específico, buscar qualquer admin
+        const adminId = adminUser?.id || (await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.role, "admin"))
+          .limit(1)
+          .then(result => result[0]?.id));
 
         // Criar novo cliente
         isNovoCliente = true;
@@ -594,7 +645,7 @@ export function registerEcommerceRoutes(app: Express): void {
             tipoCliente: orderData.tipoPessoa,
             carteira: "ECOMMERCE", // Clientes do ecommerce vão para carteira ECOMMERCE
             status: "ativo", // Cliente do ecommerce já entra como ATIVO
-            createdBy: adminUser?.id || null, // Associar ao primeiro admin encontrado
+            createdBy: adminId || null, // Associar ao admin principal
           })
           .returning();
 
@@ -840,8 +891,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   });
 
-  // PUT /api/ecommerce/orders/:id - Atualizar pedido (admin)
-  app.put("/api/ecommerce/orders/:id", isAuthenticated, async (req, res) => {
+  // PUT /api/app/orders/:id - Atualizar pedido (admin)
+  app.put("/api/app/orders/:id", isAuthenticated, async (req, res) => {
     try {
       const data = req.body;
 
@@ -866,7 +917,7 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // Atualizar status do pedido (com envio de email)
   app.put(
-    "/api/ecommerce/orders/:id/status",
+    "/api/app/orders/:id/status",
     isAuthenticated,
     async (req, res) => {
       try {
@@ -914,8 +965,8 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   );
 
-  // DELETE /api/ecommerce/orders/:id - Deletar pedido (admin)
-  app.delete("/api/ecommerce/orders/:id", isAuthenticated, async (req, res) => {
+  // DELETE /api/app/orders/:id - Deletar pedido (admin)
+  app.delete("/api/app/orders/:id", isAuthenticated, async (req, res) => {
     try {
       await db
         .delete(ecommerceOrders)
@@ -930,7 +981,7 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // ==================== SETUP E-COMMERCE (TEMPORÁRIO) ====================
 
-  app.post("/api/ecommerce/setup", isAuthenticated, async (req, res) => {
+  app.post("/api/app/setup", isAuthenticated, async (req, res) => {
     try {
       console.log("🔧 Executando setup e-commerce...");
 
@@ -1025,8 +1076,8 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // ==================== UPLOAD DE DOCUMENTOS ====================
 
-  // POST /api/ecommerce/orders/:id/documents - Upload de documento
-  app.post("/api/ecommerce/orders/:id/documents", async (req, res) => {
+  // POST /api/app/orders/:id/documents - Upload de documento
+  app.post("/api/app/orders/:id/documents", async (req, res) => {
     try {
       // TODO: Implementar upload real de arquivos
       // Por enquanto, simulação
@@ -1093,9 +1144,9 @@ export function registerEcommerceRoutes(app: Express): void {
 
   // ==================== MARCAR PEDIDOS COMO VISUALIZADOS ====================
 
-  // POST /api/ecommerce/customer/orders/:orderId/mark-viewed - Marcar pedido específico como visualizado (cliente)
+  // POST /api/app/customer/orders/:orderId/mark-viewed - Marcar pedido específico como visualizado (cliente)
   app.post(
-    "/api/ecommerce/customer/orders/:orderId/mark-viewed",
+    "/api/app/customer/orders/:orderId/mark-viewed",
     isAuthenticated,
     async (req, res) => {
       try {
@@ -1132,9 +1183,9 @@ export function registerEcommerceRoutes(app: Express): void {
     }
   );
 
-  // POST /api/ecommerce/customer/orders/mark-all-viewed - Marcar todos os pedidos como visualizados (cliente)
+  // POST /api/app/customer/orders/mark-all-viewed - Marcar todos os pedidos como visualizados (cliente)
   app.post(
-    "/api/ecommerce/customer/orders/mark-all-viewed",
+    "/api/app/customer/orders/mark-all-viewed",
     isAuthenticated,
     async (req, res) => {
       try {
@@ -1153,4 +1204,49 @@ export function registerEcommerceRoutes(app: Express): void {
       }
     }
   );
+
+  // GET /api/app/products/:productId/variations - Buscar variações de um produto (público)
+  app.get("/api/app/products/:productId/variations", async (req, res) => {
+    try {
+      const { productId } = req.params;
+
+      // Buscar grupos de variação
+      const groups = await db
+        .select()
+        .from(ecommerceProductVariationGroups)
+        .where(
+          and(
+            eq(ecommerceProductVariationGroups.productId, productId),
+            eq(ecommerceProductVariationGroups.ativo, true)
+          )
+        )
+        .orderBy(asc(ecommerceProductVariationGroups.ordem));
+
+      // Para cada grupo, buscar suas opções ativas
+      const groupsWithOptions = await Promise.all(
+        groups.map(async (group) => {
+          const options = await db
+            .select()
+            .from(ecommerceProductVariationOptions)
+            .where(
+              and(
+                eq(ecommerceProductVariationOptions.groupId, group.id),
+                eq(ecommerceProductVariationOptions.ativo, true)
+              )
+            )
+            .orderBy(asc(ecommerceProductVariationOptions.ordem));
+
+          return {
+            ...group,
+            options,
+          };
+        })
+      );
+
+      res.json(groupsWithOptions);
+    } catch (error: any) {
+      console.error("Erro ao buscar variações do produto:", error);
+      res.status(500).json({ error: "Erro ao buscar variações do produto" });
+    }
+  });
 }

@@ -28,7 +28,7 @@ export default function CheckoutEndereco() {
 
   // Buscar dados do cliente logado
   const { data: customerData } = useQuery<any>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
     enabled: true,
   });
@@ -170,11 +170,11 @@ export default function CheckoutEndereco() {
     }
 
     localStorage.setItem("checkout-endereco", JSON.stringify(enderecoData));
-    setLocation(`/ecommerce/checkout/documentos?tipo=${tipoPessoa}`);
+    setLocation(`/app/checkout/documentos?tipo=${tipoPessoa}`);
   };
 
   const voltar = () => {
-    setLocation(`/ecommerce/checkout/dados?tipo=${tipoPessoa}`);
+    setLocation(`/app/checkout/dados?tipo=${tipoPessoa}`);
   };
 
   return (
@@ -207,28 +207,30 @@ export default function CheckoutEndereco() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <Label htmlFor="cep">CEP</Label>
-                <div className="flex gap-2">
+                <div>
                   <Input
                     id="cep"
                     required
                     value={formData.cep}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        cep: formatCEP(e.target.value),
-                      })
-                    }
+                    onChange={(e) => {
+                      const value = formatCEP(e.target.value);
+                      setFormData({ ...formData, cep: value });
+                      const cepLimpo = value.replace(/\D/g, "");
+                      if (cepLimpo.length === 8) {
+                        buscarCepMutation.mutate(cepLimpo);
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const value = e.target.value;
+                      const cepLimpo = value.replace(/\D/g, "");
+                      if (cepLimpo.length === 8) {
+                        buscarCepMutation.mutate(cepLimpo);
+                      }
+                    }}
                     placeholder="00000-000"
                     maxLength={9}
+                    className="h-12 px-4 font-semibold rounded-xl border-gray-300 focus:border-blue-500"
                   />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={buscarCep}
-                    disabled={buscarCepMutation.isPending}
-                  >
-                    <Search className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
 

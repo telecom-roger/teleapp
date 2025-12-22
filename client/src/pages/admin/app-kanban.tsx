@@ -89,11 +89,11 @@ export default function AdminKanban() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   const { data: stages = [] } = useQuery<Stage[]>({
-    queryKey: ["/api/ecommerce/stages"],
+    queryKey: ["/api/admin/app/stages"],
   });
 
   const { data: orders = [] } = useQuery<Order[]>({
-    queryKey: ["/api/ecommerce/orders"],
+    queryKey: ["/api/admin/app/orders"],
     refetchInterval: 5000, // Atualizar a cada 5 segundos
     refetchOnWindowFocus: true, // Atualizar ao focar na janela
   });
@@ -106,7 +106,7 @@ export default function AdminKanban() {
       orderId: number;
       status: string;
     }) => {
-      const response = await fetch(`/api/ecommerce/orders/${orderId}/status`, {
+      const response = await fetch(`/api/app/orders/${orderId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -115,7 +115,7 @@ export default function AdminKanban() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ecommerce/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/app/orders"] });
       toast({
         title: "Status atualizado",
         description: "O status do pedido foi atualizado com sucesso",

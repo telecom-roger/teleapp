@@ -28,12 +28,12 @@ export default function CustomerLinhasPortabilidade() {
     isLoading: loadingAuth,
     isError,
   } = useQuery<{ client: any }>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   const { data: ordersData, isLoading: loadingOrders } = useQuery<{ orders: any[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     enabled: !!customerData,
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
@@ -79,13 +79,13 @@ export default function CustomerLinhasPortabilidade() {
 
   // Buscar informações do pedido se existir
   const { data: orderDetail } = useQuery<any>({
-    queryKey: [`/api/ecommerce/customer/orders/${pedidoPortabilidade?.id}`],
+    queryKey: [`/api/app/customer/orders/${pedidoPortabilidade?.id}`],
     enabled: !!pedidoPortabilidade?.id,
   });
 
   // Buscar sumário de linhas
   const { data: linesSummary } = useQuery<any>({
-    queryKey: [`/api/ecommerce/order-lines/${pedidoPortabilidade?.id}/summary`],
+    queryKey: [`/api/app/order-lines/${pedidoPortabilidade?.id}/summary`],
     enabled: !!pedidoPortabilidade?.id,
     refetchInterval: 5000,
   });

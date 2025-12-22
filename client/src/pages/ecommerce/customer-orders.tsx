@@ -93,19 +93,19 @@ export default function CustomerOrders() {
     isLoading: loadingAuth,
     isError,
   } = useQuery<{ client: any }>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Proteção de rota
   useEffect(() => {
     if (!loadingAuth && (isError || !customerData?.client)) {
-      setLocation("/ecommerce");
+      setLocation("/app");
     }
   }, [loadingAuth, isError, customerData, setLocation]);
 
   const { data, isLoading } = useQuery<{ orders: Order[] }>({
-    queryKey: ["/api/ecommerce/customer/orders"],
+    queryKey: ["/api/app/customer/orders"],
     enabled: !!customerData?.client,
     refetchInterval: 5000, // Atualizar a cada 5 segundos para pegar novos pedidos
     refetchOnWindowFocus: true,
@@ -114,7 +114,7 @@ export default function CustomerOrders() {
   const orders = data?.orders ?? [];
 
   const { data: orderDetail, isLoading: loadingDetail } = useQuery<Order>({
-    queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
+    queryKey: [`/api/app/customer/orders/${orderId}`],
     enabled: !!orderId,
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
@@ -124,7 +124,7 @@ export default function CustomerOrders() {
     RequestedDocument[]
   >({
     queryKey: [
-      `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
+      `/api/app/customer/orders/${orderId}/requested-documents`,
     ],
     enabled: !!orderId,
     refetchInterval: 1000, // Atualizar a cada 1 segundo para tempo real
@@ -133,7 +133,7 @@ export default function CustomerOrders() {
 
   // Buscar resumo das linhas de portabilidade
   const { data: linesSummary } = useQuery<any>({
-    queryKey: [`/api/ecommerce/order-lines/${orderId}/summary`],
+    queryKey: [`/api/app/order-lines/${orderId}/summary`],
     enabled: !!orderId && orderDetail?.etapa === "aguardando_dados_linhas",
     refetchInterval: 5000,
   });
@@ -153,7 +153,7 @@ export default function CustomerOrders() {
       formData.append("orderId", orderId);
       formData.append("tipo", tipo);
 
-      const res = await fetch("/api/ecommerce/customer/documents/upload", {
+      const res = await fetch("/api/app/customer/documents/upload", {
         method: "POST",
         body: formData,
       });
@@ -168,11 +168,11 @@ export default function CustomerOrders() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
+          `/api/app/customer/orders/${orderId}/requested-documents`,
         ],
       });
       queryClient.invalidateQueries({
-        queryKey: [`/api/ecommerce/customer/orders/${orderId}`],
+        queryKey: [`/api/app/customer/orders/${orderId}`],
       });
       setUploadingDoc(null);
       toast({
@@ -414,7 +414,7 @@ export default function CustomerOrders() {
           <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
             <div className="max-w-4xl mx-auto space-y-6">
               <div className="flex items-center gap-2 sm:gap-4">
-                <Link href="/ecommerce/painel/pedidos">
+                <Link href="/app/painel/pedidos">
                   <Button variant="ghost" size="sm" className="flex-shrink-0">
                     <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
                     <span className="hidden sm:inline">Voltar</span>
@@ -771,7 +771,7 @@ export default function CustomerOrders() {
                                               variant="ghost"
                                               onClick={() =>
                                                 window.open(
-                                                  `/api/ecommerce/documents/${upload.id}`,
+                                                  `/api/app/documents/${upload.id}`,
                                                   "_blank"
                                                 )
                                               }
@@ -796,7 +796,7 @@ export default function CustomerOrders() {
                                                     ) {
                                                       try {
                                                         const res = await fetch(
-                                                          `/api/ecommerce/customer/documents/${upload.id}`,
+                                                          `/api/app/customer/documents/${upload.id}`,
                                                           {
                                                             method: "DELETE",
                                                           }
@@ -805,12 +805,12 @@ export default function CustomerOrders() {
                                                           // Invalidar queries para atualizar em tempo real
                                                           queryClient.invalidateQueries({
                                                             queryKey: [
-                                                              `/api/ecommerce/customer/orders/${orderId}/requested-documents`,
+                                                              `/api/app/customer/orders/${orderId}/requested-documents`,
                                                             ],
                                                           });
                                                           queryClient.invalidateQueries({
                                                             queryKey: [
-                                                              `/api/ecommerce/customer/orders/${orderId}`,
+                                                              `/api/app/customer/orders/${orderId}`,
                                                             ],
                                                           });
                                                           toast({
@@ -989,7 +989,7 @@ export default function CustomerOrders() {
                   return (
                     <Link
                       key={order.id}
-                      href={`/ecommerce/painel/pedidos/${order.id}`}
+                      href={`/app/painel/pedidos/${order.id}`}
                     >
                       <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                         <CardContent className="p-4 sm:p-6">
@@ -1043,7 +1043,7 @@ export default function CustomerOrders() {
                   <p className="text-gray-700 mb-6">
                     Você ainda não realizou nenhum pedido.
                   </p>
-                  <Link href="/ecommerce/planos">
+                  <Link href="/app/planos">
                     <Button>Ver Planos Disponíveis</Button>
                   </Link>
                 </CardContent>

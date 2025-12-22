@@ -60,12 +60,12 @@ export default function AdminCategorias() {
   });
 
   const { data: categorias = [] } = useQuery<EcommerceCategory[]>({
-    queryKey: ["/api/admin/ecommerce/manage/categories"],
+    queryKey: ["/api/admin/app/manage/categories"],
   });
 
   const criarMutation = useMutation({
     mutationFn: async (data: any) => {
-      const res = await fetch("/api/admin/ecommerce/manage/categories", {
+      const res = await fetch("/api/admin/app/manage/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -75,7 +75,7 @@ export default function AdminCategorias() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/categories"],
+        queryKey: ["/api/admin/app/manage/categories"],
       });
       toast({ title: "Categoria criada com sucesso!" });
       setDialogOpen(false);
@@ -85,7 +85,7 @@ export default function AdminCategorias() {
 
   const atualizarMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      const res = await fetch(`/api/admin/ecommerce/manage/categories/${id}`, {
+      const res = await fetch(`/api/admin/app/manage/categories/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -95,7 +95,7 @@ export default function AdminCategorias() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/categories"],
+        queryKey: ["/api/admin/app/manage/categories"],
       });
       toast({ title: "Categoria atualizada com sucesso!" });
       setDialogOpen(false);
@@ -105,7 +105,7 @@ export default function AdminCategorias() {
 
   const deletarMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/admin/ecommerce/manage/categories/${id}`, {
+      const res = await fetch(`/api/admin/app/manage/categories/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) {
@@ -116,7 +116,7 @@ export default function AdminCategorias() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/manage/categories"],
+        queryKey: ["/api/admin/app/manage/categories"],
       });
       toast({ title: "Categoria deletada com sucesso!" });
     },

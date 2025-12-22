@@ -39,7 +39,7 @@ const upload = multer({
 });
 
 /**
- * GET /api/ecommerce/customer/orders
+ * GET /api/app/customer/orders
  * Lista todos os pedidos do cliente logado
  */
 router.get("/orders", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -87,7 +87,7 @@ router.get("/orders", requireRole(["customer"]), async (req: Request, res: Respo
 });
 
 /**
- * GET /api/ecommerce/customer/orders/:orderId
+ * GET /api/app/customer/orders/:orderId
  * Detalhes de um pedido específico (busca por ID ou orderCode)
  */
 router.get("/orders/:orderId", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -138,7 +138,7 @@ router.get("/orders/:orderId", requireRole(["customer"]), async (req: Request, r
 });
 
 /**
- * GET /api/ecommerce/customer/profile
+ * GET /api/app/customer/profile
  * Dados do perfil do cliente
  */
 router.get("/profile", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -163,7 +163,7 @@ router.get("/profile", requireRole(["customer"]), async (req: Request, res: Resp
 });
 
 /**
- * PUT /api/ecommerce/customer/profile
+ * PUT /api/app/customer/profile
  * Atualizar dados do perfil (endereço fica pendente)
  */
 router.put("/profile", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -190,7 +190,7 @@ router.put("/profile", requireRole(["customer"]), async (req: Request, res: Resp
 });
 
 /**
- * POST /api/ecommerce/customer/address-change-request
+ * POST /api/app/customer/address-change-request
  * Solicitar mudança de endereço (fica pendente aprovação)
  */
 router.post("/address-change-request", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -231,7 +231,7 @@ router.post("/address-change-request", requireRole(["customer"]), async (req: Re
 });
 
 /**
- * POST /api/ecommerce/customer/documents/upload
+ * POST /api/app/customer/documents/upload
  * Upload de documentos para um pedido
  */
 router.post(
@@ -314,7 +314,7 @@ router.post(
               anexo: {
                 fileName: file.originalname,
                 fileSize: file.size,
-                downloadUrl: `/api/ecommerce/customer/documents/download/${encodeURIComponent(path.basename(file.path))}`,
+                downloadUrl: `/api/app/customer/documents/download/${encodeURIComponent(path.basename(file.path))}`,
               },
             },
             createdBy: user?.id || null,
@@ -355,7 +355,7 @@ router.post(
 );
 
 /**
- * GET /api/ecommerce/customer/documents/:orderId
+ * GET /api/app/customer/documents/:orderId
  * Lista documentos de um pedido
  */
 router.get("/documents/:orderId", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -387,7 +387,7 @@ router.get("/documents/:orderId", requireRole(["customer"]), async (req: Request
 });
 
 /**
- * GET /api/ecommerce/customer/orders/:orderId/requested-documents
+ * GET /api/app/customer/orders/:orderId/requested-documents
  * Lista documentos solicitados para o pedido (busca por ID ou orderCode)
  */
 router.get("/orders/:orderId/requested-documents", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -450,7 +450,7 @@ router.get("/orders/:orderId/requested-documents", requireRole(["customer"]), as
 });
 
 /**
- * DELETE /api/ecommerce/customer/documents/:documentId
+ * DELETE /api/app/customer/documents/:documentId
  * Remover documento enviado (apenas se ainda não foi aprovado)
  */
 router.delete("/documents/:documentId", requireRole(["customer"]), async (req: Request, res: Response) => {
@@ -541,7 +541,7 @@ router.delete("/documents/:documentId", requireRole(["customer"]), async (req: R
 });
 
 /**
- * GET /api/ecommerce/customer/order-updates
+ * GET /api/app/customer/order-updates
  * Retorna pedidos atualizados nas últimas 24 horas para notificações
  * Apenas pedidos não visualizados (lastViewedAt < updatedAt ou null)
  */
@@ -598,7 +598,7 @@ router.get("/order-updates", requireRole(["customer"]), async (req: Request, res
 });
 
 /**
- * GET /api/ecommerce/customer/documents/download/:filename
+ * GET /api/app/customer/documents/download/:filename
  * Download de documento (permite acesso sem autenticação estrita para timeline)
  */
 router.get("/documents/download/:filename", async (req: Request, res: Response) => {
@@ -620,7 +620,7 @@ router.get("/documents/download/:filename", async (req: Request, res: Response) 
 });
 
 /**
- * GET /api/ecommerce/customer/orders/:orderId/next-upsell
+ * GET /api/app/customer/orders/:orderId/next-upsell
  * Retorna próximo SVA elegível para oferecer ao cliente
  * Regra: lista ordenada, consome próximo não oferecido, limite máximo de ofertas
  * Funciona para clientes logados E não logados (usa sessão)
@@ -762,7 +762,7 @@ router.get("/orders/:orderId/next-upsell", async (req: Request, res: Response) =
 });
 
 /**
- * POST /api/ecommerce/customer/orders/:orderId/upsell-viewed
+ * POST /api/app/customer/orders/:orderId/upsell-viewed
  * Registra que o cliente VISUALIZOU um upsell (sem responder ainda)
  * Funciona para clientes logados E não logados (usa sessão)
  */
@@ -826,7 +826,7 @@ router.post("/orders/:orderId/upsell-viewed", async (req: Request, res: Response
 });
 
 /**
- * POST /api/ecommerce/customer/orders/:orderId/upsell-response
+ * POST /api/app/customer/orders/:orderId/upsell-response
  * Registra resposta do cliente ao upsell (aceitar/recusar)
  * Funciona para clientes logados E não logados (usa sessão)
  */

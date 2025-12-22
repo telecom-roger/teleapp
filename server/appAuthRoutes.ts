@@ -9,7 +9,7 @@ import { requireRole } from "./middleware/auth";
 const router = Router();
 
 /**
- * POST /api/ecommerce/auth/login
+ * POST /api/app/auth/login
  * Login do cliente usando CPF/CNPJ ou email
  */
 router.post("/login", async (req: Request, res: Response, next) => {
@@ -118,7 +118,7 @@ router.post("/login", async (req: Request, res: Response, next) => {
 });
 
 /**
- * GET /api/ecommerce/auth/customer
+ * GET /api/app/auth/customer
  * Retorna dados do cliente logado
  */
 router.get(
@@ -174,7 +174,7 @@ router.get(
 );
 
 /**
- * POST /api/ecommerce/auth/change-password
+ * POST /api/app/auth/change-password
  * Trocar senha do cliente
  */
 router.post(
@@ -234,7 +234,7 @@ router.post(
 );
 
 /**
- * POST /api/ecommerce/auth/logout
+ * POST /api/app/auth/logout
  * Logout do cliente
  */
 router.post("/logout", (req: Request, res: Response) => {

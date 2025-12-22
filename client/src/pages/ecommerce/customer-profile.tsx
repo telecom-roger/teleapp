@@ -54,14 +54,14 @@ export default function CustomerProfile() {
     refetch,
     isError,
   } = useQuery<CustomerData>({
-    queryKey: ["/api/ecommerce/auth/customer"],
+    queryKey: ["/api/app/auth/customer"],
     retry: false,
   });
 
   // Proteção de rota
   useEffect(() => {
     if (!isLoading && (isError || !customerData?.client)) {
-      setLocation("/ecommerce");
+      setLocation("/app");
     }
   }, [isLoading, isError, customerData, setLocation]);
 
@@ -72,7 +72,7 @@ export default function CustomerProfile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { telefone: string; email: string }) => {
-      const res = await fetch("/api/ecommerce/customer/profile", {
+      const res = await fetch("/api/app/customer/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -107,7 +107,7 @@ export default function CustomerProfile() {
       currentPassword: string;
       newPassword: string;
     }) => {
-      const res = await fetch("/api/ecommerce/auth/change-password", {
+      const res = await fetch("/api/app/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

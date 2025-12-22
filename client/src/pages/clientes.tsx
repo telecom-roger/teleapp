@@ -59,6 +59,7 @@ import {
   Share2,
   Check,
   MessageSquare,
+  UserPlus,
 } from "lucide-react";
 import {
   Dialog,
@@ -377,6 +378,83 @@ function BulkUnshareDialog({ selectedClientIds, onOpenChange, onSuccess, open }:
               className="bg-red-600 hover:bg-red-700"
             >
               {bulkUnshareMutation.isPending ? "Removendo..." : "Remover"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AssignAdminDialog({ clientId, clientName, currentAdminId }: { clientId: string; clientName: string; currentAdminId?: string | null }) {
+  const { toast } = useToast();
+  const [open, setOpen] = useState(false);
+  const [selectedAdminId, setSelectedAdminId] = useState(currentAdminId || "");
+  
+  const { data: admins = [] } = useQuery<User[]>({
+    queryKey: ["/api/admins-list"],
+    enabled: open,
+  });
+
+  const assignAdminMutation = useMutation({
+    mutationFn: async (adminId: string) => {
+      await apiRequest("PATCH", `/api/clients/${clientId}/assign-admin`, { adminId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Administrador atribuído com sucesso",
+      });
+      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/clients"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro",
+        description: error.message || "Falha ao atribuir administrador",
+        variant: "destructive",
+      });
+    },
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <DropdownMenuItem onClick={(e) => { e.preventDefault(); setOpen(true); }}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Atribuir Admin
+        </DropdownMenuItem>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Atribuir Administrador</DialogTitle>
+          <DialogDescription>
+            Selecione um administrador para o cliente "{clientName}"
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Select value={selectedAdminId} onValueChange={setSelectedAdminId}>
+            <SelectTrigger data-testid="select-assign-admin">
+              <SelectValue placeholder="Escolha um administrador..." />
+            </SelectTrigger>
+            <SelectContent>
+              {admins.map(admin => (
+                <SelectItem key={admin.id} value={admin.id}>
+                  {admin.firstName && admin.lastName 
+                    ? `${admin.firstName} ${admin.lastName} (${admin.email})` 
+                    : admin.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex gap-3 justify-end">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button 
+              onClick={() => selectedAdminId && assignAdminMutation.mutate(selectedAdminId)}
+              disabled={!selectedAdminId || assignAdminMutation.isPending}
+              data-testid="button-confirm-assign-admin"
+            >
+              {assignAdminMutation.isPending ? "Atribuindo..." : "Atribuir"}
             </Button>
           </div>
         </div>
@@ -972,6 +1050,11 @@ export default function Clientes() {
                                   Editar
                                 </Link>
                               </DropdownMenuItem>
+                              <AssignAdminDialog 
+                                clientId={cliente.id} 
+                                clientName={cliente.nome} 
+                                currentAdminId={cliente.createdBy}
+                              />
                               <ShareClientDialog clientId={cliente.id} clientName={cliente.nome} />
                               <DropdownMenuItem
                                 onClick={() => setDeleteClientId(cliente.id)}

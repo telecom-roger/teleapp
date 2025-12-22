@@ -56,9 +56,9 @@ export function CartSidebar() {
 
   // Buscar todos os produtos para pegar os SVAs
   const { data: todosOsProdutos = [] } = useQuery<any[]>({
-    queryKey: ["/api/ecommerce/public/products"],
+    queryKey: ["/api/app/public/products"],
     queryFn: async () => {
-      const res = await fetch("/api/ecommerce/public/products");
+      const res = await fetch("/api/app/public/products");
       if (!res.ok) throw new Error("Erro ao buscar produtos");
       return res.json();
     },
@@ -74,7 +74,7 @@ export function CartSidebar() {
   // Função para abrir modal de upsell (versão inteligente - mostra apenas 1 SVA)
   const handleIrParaCheckout = () => {
     // Ir direto para checkout - o upsell será carregado lá via API
-    window.location.href = "/ecommerce/checkout";
+    window.location.href = "/app/checkout";
   };
 
   const handleAdicionarSvas = (svaIds: string[]) => {
@@ -86,7 +86,7 @@ export function CartSidebar() {
       }
     });
     // Ir para checkout
-    window.location.href = "/ecommerce/checkout";
+    window.location.href = "/app/checkout";
   };
 
   const total = getTotal();
@@ -420,7 +420,7 @@ export function CartSidebar() {
         isOpen={upsellModalAberto}
         onClose={() => {
           setUpsellModalAberto(false);
-          window.location.href = "/ecommerce/checkout";
+          window.location.href = "/app/checkout";
         }}
         svas={svasParaOferecer}
         textosPersonalizados={textosUpsellAtuais}

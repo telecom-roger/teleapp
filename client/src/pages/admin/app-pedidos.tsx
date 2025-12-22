@@ -239,13 +239,13 @@ export default function AdminEcommercePedidos() {
   const [itensPorPagina, setItensPorPagina] = useState(20);
 
   const { data: stats } = useQuery<EcommerceStats>({
-    queryKey: ["/api/admin/ecommerce/stats"],
+    queryKey: ["/api/admin/app/stats"],
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
 
   const { data: orders } = useQuery<EcommerceOrder[]>({
-    queryKey: ["/api/admin/ecommerce/orders"],
+    queryKey: ["/api/admin/app/orders"],
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
@@ -260,7 +260,7 @@ export default function AdminEcommercePedidos() {
         setSelectedOrder(order);
         setDetailsOpen(true);
         // Remove parameter from URL without reloading
-        window.history.replaceState({}, "", "/admin/ecommerce-pedidos");
+        window.history.replaceState({}, "", "/admin/app-pedidos");
       }
     }
   }, [orders]);
@@ -275,7 +275,7 @@ export default function AdminEcommercePedidos() {
   }, [selectedOrder, detailsOpen]);
 
   const { data: orderDetails } = useQuery<EcommerceOrder>({
-    queryKey: [`/api/admin/ecommerce/orders/${selectedOrder?.id}`],
+    queryKey: [`/api/admin/app/orders/${selectedOrder?.id}`],
     enabled: !!selectedOrder,
     refetchInterval: 1000,
     refetchOnWindowFocus: true,
@@ -295,7 +295,7 @@ export default function AdminEcommercePedidos() {
 
   const { data: requestedDocuments } = useQuery<any[]>({
     queryKey: [
-      `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+      `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
     ],
     enabled: !!selectedOrder,
     refetchInterval: 1000,
@@ -304,7 +304,7 @@ export default function AdminEcommercePedidos() {
 
   const { data: uploadedDocuments } = useQuery<any[]>({
     queryKey: [
-      `/api/admin/ecommerce/orders/${selectedOrder?.id}/uploaded-documents`,
+      `/api/admin/app/orders/${selectedOrder?.id}/uploaded-documents`,
     ],
     enabled: !!selectedOrder,
     refetchInterval: 1000,
@@ -340,7 +340,7 @@ export default function AdminEcommercePedidos() {
       orderCode?: string;
     }) => {
       console.log("[ADMIN] 🔄 Tentando atualizar etapa:", { orderId, etapa, execucaoTipo, observacoes });
-      const res = await fetch(`/api/admin/ecommerce/orders/${orderId}/etapa`, {
+      const res = await fetch(`/api/admin/app/orders/${orderId}/etapa`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ etapa, execucaoTipo, observacoes }),
@@ -360,14 +360,14 @@ export default function AdminEcommercePedidos() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/orders"],
+        queryKey: ["/api/admin/app/orders"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["/api/admin/ecommerce/stats"],
+        queryKey: ["/api/admin/app/stats"],
       });
       if (selectedOrder) {
         queryClient.invalidateQueries({
-          queryKey: [`/api/admin/ecommerce/orders/${selectedOrder.id}`],
+          queryKey: [`/api/admin/app/orders/${selectedOrder.id}`],
         });
       }
       
@@ -401,7 +401,7 @@ export default function AdminEcommercePedidos() {
       documentId: string;
     }) => {
       const res = await fetch(
-        `/api/admin/ecommerce/orders/${orderId}/requested-documents/${documentId}/approve`,
+        `/api/admin/app/orders/${orderId}/requested-documents/${documentId}/approve`,
         { method: "PUT", headers: { "Content-Type": "application/json" } }
       );
       if (!res.ok) throw new Error("Erro ao aprovar documento");
@@ -410,12 +410,12 @@ export default function AdminEcommercePedidos() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       queryClient.refetchQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       toast({
@@ -436,7 +436,7 @@ export default function AdminEcommercePedidos() {
       motivo?: string;
     }) => {
       const res = await fetch(
-        `/api/admin/ecommerce/orders/${orderId}/requested-documents/${documentId}/reject`,
+        `/api/admin/app/orders/${orderId}/requested-documents/${documentId}/reject`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -449,12 +449,12 @@ export default function AdminEcommercePedidos() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       queryClient.refetchQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       toast({
@@ -473,7 +473,7 @@ export default function AdminEcommercePedidos() {
       documentId: string;
     }) => {
       const res = await fetch(
-        `/api/admin/ecommerce/orders/${orderId}/requested-documents/${documentId}`,
+        `/api/admin/app/orders/${orderId}/requested-documents/${documentId}`,
         { method: "DELETE" }
       );
       if (!res.ok) throw new Error("Erro ao remover documento");
@@ -482,12 +482,12 @@ export default function AdminEcommercePedidos() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       queryClient.refetchQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       toast({
@@ -500,7 +500,7 @@ export default function AdminEcommercePedidos() {
   const loadDefaultDocsMutation = useMutation({
     mutationFn: async (orderId: string) => {
       const res = await fetch(
-        `/api/admin/ecommerce/orders/${orderId}/load-default-documents`,
+        `/api/admin/app/orders/${orderId}/load-default-documents`,
         { method: "POST", headers: { "Content-Type": "application/json" } }
       );
       if (!res.ok) {
@@ -512,7 +512,7 @@ export default function AdminEcommercePedidos() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       toast({
@@ -542,7 +542,7 @@ export default function AdminEcommercePedidos() {
       obrigatorio: boolean;
     }) => {
       const res = await fetch(
-        `/api/admin/ecommerce/orders/${orderId}/requested-documents`,
+        `/api/admin/app/orders/${orderId}/requested-documents`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -555,7 +555,7 @@ export default function AdminEcommercePedidos() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [
-          `/api/admin/ecommerce/orders/${selectedOrder?.id}/requested-documents`,
+          `/api/admin/app/orders/${selectedOrder?.id}/requested-documents`,
         ],
       });
       toast({
@@ -1703,7 +1703,7 @@ export default function AdminEcommercePedidos() {
                                       className="h-7 px-2"
                                       onClick={() => {
                                         window.open(
-                                          `/api/ecommerce/documents/${upload.id}`,
+                                          `/api/app/documents/${upload.id}`,
                                           "_blank"
                                         );
                                       }}
