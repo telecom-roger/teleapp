@@ -654,6 +654,13 @@ export default function EcommercePlanos() {
         </Card>
         </div>
 
+        {/* Texto informativo */}
+        <div className="mb-4">
+          <p className="text-xs text-gray-400 text-center">
+            Exibindo planos de acordo com seu perfil e preferências selecionadas
+          </p>
+        </div>
+
         {/* Contador de Resultados e Ordenação */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-3 flex-wrap">
@@ -1079,17 +1086,16 @@ export default function EcommercePlanos() {
 
         {/* CTA Bottom */}
         {!isLoading && produtosOrdenados.length > 0 && (
-          <div className="mt-12 text-center bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white rounded-2xl p-8 shadow-xl">
-            <h3 className="text-2xl font-bold mb-2">
-              Não encontrou o que procura?
+          <div className="mt-12 text-center rounded-2xl p-8 md:p-10 shadow-sm border border-blue-100" style={{ backgroundColor: "#EEF3FF" }}>
+            <h3 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold mb-3 text-gray-900">
+              Ainda com dúvida sobre o melhor plano?
             </h3>
-            <p className="text-white/90 mb-6 text-lg">
-              Temos consultores prontos para ajudar você a escolher o melhor
-              plano
+            <p className="text-sm md:text-[15px] text-gray-600 mb-6 max-w-2xl mx-auto leading-relaxed">
+              Um consultor especializado analisa seu perfil e indica a melhor opção — sem custo.
             </p>
             <Button
               size="lg"
-              className="bg-white text-[#6366F1] hover:bg-slate-100 font-bold h-14 px-8"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold h-12 px-10 rounded-xl shadow-md transition-all border-0"
               asChild
             >
               <a
@@ -1097,7 +1103,7 @@ export default function EcommercePlanos() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Falar com Consultor
+                Falar com um consultor
               </a>
             </Button>
           </div>
