@@ -149,23 +149,11 @@ export function CustomerSidebar() {
   });
 
   const orders = data?.orders || [];
-  
-  // Debug: verificar dados dos pedidos
-  console.log('🔍 [SIDEBAR] Total de pedidos:', orders.length);
-  orders.forEach((order, i) => {
-    console.log(`  Pedido ${i + 1}:`, {
-      orderCode: order.orderCode,
-      tipoContratacao: order.tipoContratacao,
-      etapa: order.etapa
-    });
-  });
 
   // Verificar se existe qualquer pedido de portabilidade (qualquer etapa)
   const temPortabilidade = orders.some(
     (order) => order.tipoContratacao === "portabilidade"
   );
-  
-  console.log('📱 [SIDEBAR] Tem portabilidade?', temPortabilidade);
 
   const menuItems = [
     { href: "/app/painel", icon: Home, label: "Dashboard" },
