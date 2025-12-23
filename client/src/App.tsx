@@ -16,6 +16,8 @@ import { CartProvider } from "@/contexts/CartContext";
 import { CheckoutDddProvider } from "@/contexts/CheckoutDddContext";
 import { EcommerceProtectedRoute } from "@/components/EcommerceProtectedRoute";
 import { EcommerceOrderNotifications } from "@/components/ecommerce-order-notifications";
+import { useSessionTimeout } from "@/hooks/useSessionTimeout";
+import { SessionTimeoutWarning } from "@/components/SessionTimeoutWarning";
 
 // Pages
 import Landing from "@/pages/landing";
@@ -206,6 +208,34 @@ function AppContent() {
   // Check if current route is an e-commerce page (public facing)
   const isEcommercePage = location === "/" || location.startsWith("/app");
 
+  // 🕐 SESSION TIMEOUT: Rotas onde o timeout NÃO deve aplicar
+  const {
+    showWarning,
+    formatTimeRemaining,
+    continueSession,
+  } = useSessionTimeout({
+    enableWarning: true,
+    excludeRoutes: [
+      '/', // Home pública
+      '/app/planos', // Catálogo público
+      '/app/fibra', // Categorias públicas
+      '/app/movel',
+      '/app/tv',
+      '/app/combo',
+      '/login',
+      '/register',
+    ],
+    onTimeout: () => {
+      console.log('🔴 [APP] Sessão expirada - limpando estados globais');
+      // Estados já são limpos pelo hook, apenas log aqui
+    },
+    onWarning: () => {
+      console.log('⚠️ [APP] Callback onWarning acionado!');
+    },
+  });
+
+  console.log('🎯 [APP] showWarning atual:', showWarning);
+
   // 🔒 PROTEÇÃO: Bloquear clientes de acessar áreas administrativas
   React.useEffect(() => {
     if (user && user.role === "customer" && !isEcommercePage) {
@@ -230,6 +260,13 @@ function AppContent() {
     return (
       <div className="flex flex-col h-screen w-full">
         <Router isAuthenticated={isAuthenticated} />
+        
+        {/* Modal de timeout para páginas do e-commerce */}
+        <SessionTimeoutWarning
+          open={showWarning}
+          timeRemaining={formatTimeRemaining()}
+          onContinue={continueSession}
+        />
       </div>
     );
   }
@@ -262,6 +299,13 @@ function AppContent() {
           </main>
         </div>
       </div>
+      
+      {/* Modal de aviso de timeout de sessão */}
+      <SessionTimeoutWarning
+        open={showWarning}
+        timeRemaining={formatTimeRemaining()}
+        onContinue={continueSession}
+      />
     </SidebarProvider>
   );
 }

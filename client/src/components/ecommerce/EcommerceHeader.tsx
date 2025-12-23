@@ -33,10 +33,9 @@ export function EcommerceHeader() {
 
   const navItems = [
     { label: "Planos", href: "/app/planos" },
-    { label: "Comparador", href: "/app/comparador" },
-    { label: "Benefícios", href: "/app#beneficios" },
-    { label: "Depoimentos", href: "/app#depoimentos" },
-    { label: "Contato", href: "/app#contato" },
+    { label: "Como Funciona", href: "/app#como-funciona" },
+    { label: "Pós-Venda", href: "/app#pos-venda" },
+    { label: "Falar com Especialista", href: "/app#contato" },
   ];
 
   const loginUrl = customerData?.client

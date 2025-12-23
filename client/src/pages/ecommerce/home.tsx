@@ -21,6 +21,9 @@ import {
   Briefcase,
   X,
   HelpCircle,
+  FileText,
+  UserCheck,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -215,23 +218,23 @@ export default function EcommerceHome() {
   const beneficios = [
     {
       icon: Shield,
-      title: "Sem Burocracia",
-      description: "Contratação 100% online em poucos minutos",
+      title: "Contratação sem Burocracia",
+      description: "Contrate online e acompanhe tudo pelo sistema",
     },
     {
       icon: Zap,
-      title: "Suporte Rápido",
-      description: "Atendimento ágil quando você precisar",
+      title: "Pós-Venda que Resolve",
+      description: "Você não fica falando com operadora — a gente resolve",
     },
     {
       icon: Award,
-      title: "Planos Personalizados",
-      description: "Encontre o plano ideal para seu perfil",
+      title: "Planos que Fazem Sentido",
+      description: "Recomendados de acordo com seu perfil de uso",
     },
     {
       icon: Users,
-      title: "Melhor Custo-Benefício",
-      description: "Compare e economize com as melhores ofertas",
+      title: "Transparência Total",
+      description: "Compare planos, preços e benefícios sem surpresas",
     },
   ];
 
@@ -239,27 +242,27 @@ export default function EcommerceHome() {
     {
       pergunta: "Como funciona a contratação online?",
       resposta:
-        "É simples! Escolha seu plano, preencha seus dados e pronto. Em poucos minutos você terá acesso ao seu novo plano de telecomunicações.",
+        "A contratação é feita 100% online pela plataforma da Telenext. Você escolhe o plano, informa seus dados e nós cuidamos do processo junto aos nossos parceiros autorizados das operadoras, acompanhando cada etapa até a ativação do serviço.",
     },
     {
       pergunta: "Posso fazer portabilidade do meu número?",
       resposta:
-        "Sim! Oferecemos portabilidade gratuita para todos os planos. Seu número atual será mantido sem custos adicionais.",
+        "Sim. A portabilidade é gratuita e segue as regras das operadoras. Você mantém seu número atual, e a Telenext acompanha todo o processo junto ao parceiro autorizado até a conclusão.",
     },
     {
       pergunta: "Qual a diferença entre os planos PF e PJ?",
       resposta:
-        "Planos PF são para uso pessoal, com preços e benefícios voltados para indivíduos. Planos PJ oferecem recursos empresariais como múltiplas linhas e gestão centralizada.",
+        "Os planos PF são indicados para uso pessoal, com condições voltadas para pessoa física. Os planos PJ são voltados para empresas, permitindo múltiplas linhas, gestão centralizada e condições comerciais específicas para negócios.",
     },
     {
       pergunta: "Existe fidelidade nos planos?",
       resposta:
-        "Depende do plano escolhido. Temos opções com e sem fidelidade. Planos com fidelidade geralmente oferecem descontos maiores.",
+        "Sim, o prazo de fidelidade varia conforme o tipo de plano:\n\nPlanos PJ possuem fidelidade de 24 meses\n\nPlanos PF possuem fidelidade de 12 meses\n\nEssas condições são informadas antes da finalização do pedido.",
     },
     {
       pergunta: "Como funciona a instalação?",
       resposta:
-        "Após a aprovação do seu pedido, nossa equipe técnica entrará em contato para agendar a instalação em até 48 horas.",
+        "Após a aprovação do pedido, a Telenext entra em contato para confirmar os dados e acompanhar o agendamento da instalação, que é realizada por um parceiro autorizado da operadora, conforme disponibilidade técnica e região.",
     },
   ];
 
@@ -675,12 +678,12 @@ export default function EcommerceHome() {
             <div className="max-w-6xl mx-auto">
               <div className="text-center mb-12">
                 <h3
-                  className="text-3xl md:text-4xl font-black mb-3"
+                  className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold mb-3"
                   style={{ color: "#111111" }}
                 >
                   Planos que fazem sentido de verdade
                 </h3>
-                <p className="text-lg" style={{ color: "#555555" }}>
+                <p className="text-sm md:text-[15px] mt-2" style={{ color: "#6B7280" }}>
                   Selecionados por usuários que buscam desempenho e estabilidade
                 </p>
               </div>
@@ -873,14 +876,14 @@ export default function EcommerceHome() {
       </section>
 
       {/* 4️⃣ PLANOS RECOMENDADOS - Cards Clean */}
-      <section className="container mx-auto px-6 py-20 md:py-28">
+      <section className="container mx-auto px-6 py-14 md:py-20">
         {/* Card Horizontal com Gradiente Laranja */}
         <div className="mb-16">
-          <div className="p-8 md:p-10 text-center transition-all duration-300 hover:shadow-xl rounded-2xl shadow-sm bg-gradient-to-br from-orange-500 to-orange-600">
-            <h2 className="text-3xl md:text-4xl font-black mb-3 tracking-tight text-white">
-              O plano certo, na hora certa
+          <div className="p-6 md:p-8 text-center transition-all duration-300 hover:shadow-xl rounded-2xl shadow-sm bg-gradient-to-br from-orange-500 to-orange-600">
+            <h2 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold mb-3 tracking-tight text-white">
+              Planos recomendados com base no seu perfil
             </h2>
-            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed text-white/95">
+            <p className="text-sm md:text-[15px] mt-2 max-w-3xl mx-auto leading-relaxed text-white/95">
               Planos destacados pelo desempenho e relevância para você
             </p>
           </div>
@@ -1008,33 +1011,126 @@ export default function EcommerceHome() {
         </div>
       </section>
 
+      {/* COMO FUNCIONA */}
+      <section
+        id="como-funciona"
+        className="py-14 md:py-20"
+        style={{ backgroundColor: "#F8FAFC" }}
+      >
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2
+              className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight"
+              style={{ color: "#111111" }}
+            >
+              Como funciona a contratação
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: Search,
+                title: "Escolha o plano",
+                description: "Compare os planos disponíveis e selecione a melhor opção para você ou sua empresa.",
+              },
+              {
+                icon: FileText,
+                title: "Informe seus dados",
+                description: "Preencha seus dados com segurança e finalize o pedido pela plataforma.",
+              },
+              {
+                icon: UserCheck,
+                title: "Validação com parceiro autorizado",
+                description: "A Telenext encaminha e acompanha o pedido junto a parceiros autorizados das operadoras.",
+              },
+              {
+                icon: CheckCircle2,
+                title: "Ativação e acompanhamento",
+                description: "Após a aprovação, você recebe atualizações até a ativação do serviço, com suporte da Telenext.",
+              },
+            ].map((etapa, i) => (
+              <Card
+                key={i}
+                className="group hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #E0E0E0",
+                  borderRadius: "16px",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 24px rgba(30,144,255,0.15)";
+                  e.currentTarget.style.borderColor = "#1E90FF";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    "0 2px 8px rgba(0,0,0,0.05)";
+                  e.currentTarget.style.borderColor = "#E0E0E0";
+                }}
+              >
+                <CardContent className="p-6 text-center space-y-4">
+                  <div
+                    className="w-16 h-16 mx-auto flex items-center justify-center group-hover:scale-110 transition-all duration-300"
+                    style={{
+                      backgroundColor: "#1E90FF",
+                      borderRadius: "16px",
+                    }}
+                  >
+                    <etapa.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3
+                    className="text-xl font-black transition-colors"
+                    style={{ color: "#111111" }}
+                  >
+                    {etapa.title}
+                  </h3>
+                  <p style={{ color: "#555555" }}>{etapa.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
+            <a href="/app/planos">
+              <Button
+                size="lg"
+                className="h-12 px-10 rounded-xl bg-blue-600 text-white font-semibold text-base shadow-md hover:bg-blue-700 transition-all duration-200 border-0"
+              >
+                Ver Planos
+              </Button>
+            </a>
+            <a href="#contato">
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 px-10 rounded-xl border-2 border-blue-600 text-blue-600 font-semibold text-base hover:bg-blue-600 hover:text-white transition-all duration-200"
+              >
+                Falar com Especialista
+              </Button>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* 5️⃣ BENEFÍCIOS / DIFERENCIAIS */}
       <section
         id="beneficios"
-        className="py-20 md:py-28"
+        className="py-14 md:py-20"
         style={{ backgroundColor: "#FAFAFA" }}
       >
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge
-              className="mb-6 border-0 px-6 py-2.5 font-black text-sm"
-              style={{
-                backgroundColor: "#1E90FF",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-            >
-              ⚡ Vantagens Exclusivas
-            </Badge>
             <h2
-              className="text-4xl md:text-5xl font-black mb-5 tracking-tight"
+              className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight"
               style={{ color: "#111111" }}
             >
-              Por que escolher a TelePlanos?
+              Por que escolher a Telenext?
             </h2>
             <p
-              className="text-xl max-w-3xl mx-auto leading-relaxed"
-              style={{ color: "#555555" }}
+              className="text-sm md:text-[15px] mt-2 max-w-3xl mx-auto leading-relaxed"
+              style={{ color: "#6B7280" }}
             >
               Oferecemos a melhor experiência em contratação de planos
             </p>
@@ -1086,130 +1182,17 @@ export default function EcommerceHome() {
         </div>
       </section>
 
-      {/* 6️⃣ PROMOÇÕES / OFERTAS */}
-      <section
-        className="py-20 md:py-28"
-        style={{ backgroundColor: "#FFFFFF" }}
-      >
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge
-              className="mb-6 border-0 px-6 py-2.5 font-black text-sm"
-              style={{
-                backgroundColor: "#FF6B35",
-                color: "#FFFFFF",
-                borderRadius: "12px",
-              }}
-            >
-              🎁 Ofertas Especiais
-            </Badge>
-            <h2
-              className="text-4xl md:text-5xl font-black mb-5 tracking-tight"
-              style={{ color: "#111111" }}
-            >
-              Ofertas do Mês
-            </h2>
-            <p
-              className="text-xl max-w-3xl mx-auto leading-relaxed"
-              style={{ color: "#555555" }}
-            >
-              Aproveite descontos exclusivos por tempo limitado
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                desconto: "30%",
-                titulo: "Planos Fibra",
-                desc: "Desconto nos 3 primeiros meses",
-              },
-              {
-                desconto: "R$ 0",
-                titulo: "Instalação Grátis",
-                desc: "Para todos os novos clientes",
-              },
-              {
-                desconto: "2x",
-                titulo: "Velocidade Dobrada",
-                desc: "Nos planos acima de 300 Mbps",
-              },
-            ].map((oferta, i) => (
-              <Card
-                key={i}
-                className="group transition-all duration-300"
-                style={{
-                  backgroundColor: "#FFFFFF",
-                  border: "1px solid #E0E0E0",
-                  borderRadius: "16px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 8px 24px rgba(30,144,255,0.15)";
-                  e.currentTarget.style.borderColor = "#1E90FF";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow =
-                    "0 2px 8px rgba(0,0,0,0.05)";
-                  e.currentTarget.style.borderColor = "#E0E0E0";
-                }}
-              >
-                <CardContent className="p-8 text-center space-y-4">
-                  <div
-                    className="text-5xl font-bold"
-                    style={{ color: "#1E90FF" }}
-                  >
-                    {oferta.desconto}
-                  </div>
-                  <div>
-                    <h3
-                      className="text-2xl font-bold mb-2"
-                      style={{ color: "#111111" }}
-                    >
-                      {oferta.titulo}
-                    </h3>
-                    <p style={{ color: "#555555" }}>{oferta.desc}</p>
-                  </div>
-                  <Button
-                    className="w-full font-semibold h-12 shadow-md transition-all duration-300 border-0"
-                    style={{
-                      backgroundColor: "#FF6B35",
-                      borderRadius: "12px",
-                      color: "#FFFFFF",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#e55b25";
-                      e.currentTarget.style.transform = "scale(1.02)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "#FF6B35";
-                      e.currentTarget.style.transform = "scale(1)";
-                    }}
-                  >
-                    Saiba Mais
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* 8️⃣ FAQ / AJUDA RÁPIDA */}
       <section
-        className="container mx-auto px-4 py-20 md:py-28"
+        className="container mx-auto px-4 py-14 md:py-20"
         style={{ backgroundColor: "#FAFAFA" }}
       >
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-16">
-            <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
-              ❓ Dúvidas Frequentes
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
+            <h2 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight text-gray-900">
               Perguntas Frequentes
             </h2>
-            <p className="text-xl leading-relaxed text-gray-600">
+            <p className="text-sm md:text-[15px] mt-2 leading-relaxed text-gray-600">
               Tire suas dúvidas sobre nossos planos
             </p>
           </div>
@@ -1249,15 +1232,12 @@ export default function EcommerceHome() {
       {/* 7️⃣ DEPOIMENTOS (opcional - simples) */}
       <section
         id="depoimentos"
-        className="py-20 md:py-28"
+        className="py-14 md:py-20"
         style={{ backgroundColor: "#FFFFFF" }}
       >
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
-              ⭐ Avaliações
-            </Badge>
-            <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
+            <h2 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight text-gray-900">
               O que nossos clientes dizem
             </h2>
           </div>
@@ -1309,17 +1289,14 @@ export default function EcommerceHome() {
 
       {/* 9️⃣ CTA FINAL / BANNER DE AÇÃO */}
       <section
-        className="py-20 md:py-28"
+        className="py-14 md:py-20"
         style={{ backgroundColor: "#FFFFFF" }}
       >
         <div className="container mx-auto px-4 text-center">
-          <Badge className="mb-8 border-0 px-6 py-2.5 font-bold text-sm bg-orange-500 text-white rounded-badge">
-            🚀 Comece Agora
-          </Badge>
-          <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tight text-gray-900">
+          <h2 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight text-gray-900 mb-4">
             Pronto para escolher seu plano?
           </h2>
-          <p className="text-xl mb-10 max-w-3xl mx-auto leading-relaxed text-gray-600">
+          <p className="text-sm md:text-[15px] mt-2 mb-10 max-w-3xl mx-auto leading-relaxed text-gray-600">
             Compare planos, economize e contrate online em poucos minutos
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -1348,19 +1325,16 @@ export default function EcommerceHome() {
       {/* CONTATO */}
       <section
         id="contato"
-        className="py-20 md:py-28"
+        className="py-14 md:py-20"
         style={{ backgroundColor: "#FAFAFA", borderTop: "1px solid #E0E0E0" }}
       >
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <Badge className="mb-6 border-0 px-6 py-2.5 font-bold text-sm bg-blue-600 text-white rounded-badge">
-                📞 Fale Conosco
-              </Badge>
-              <h2 className="text-4xl md:text-5xl font-black mb-5 tracking-tight text-gray-900">
+              <h2 className="text-[22px] md:text-[28px] leading-[1.35] md:leading-[1.3] font-semibold tracking-tight text-gray-900">
                 Entre em Contato
               </h2>
-              <p className="text-xl leading-relaxed text-gray-600">
+              <p className="text-sm md:text-[15px] mt-2 leading-relaxed text-gray-600">
                 Estamos aqui para ajudar você
               </p>
             </div>

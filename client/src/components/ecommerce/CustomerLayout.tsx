@@ -67,13 +67,13 @@ export function CustomerHeader() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center gap-4">
             <Link href="/app/painel">
-              <a className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <a className="text-xl font-bold text-blue-600">
                 Portal do Cliente
               </a>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4 ml-auto">
             <span className="text-sm text-gray-600">
               Olá,{" "}
               <span className="font-semibold text-gray-900">
@@ -149,23 +149,11 @@ export function CustomerSidebar() {
   });
 
   const orders = data?.orders || [];
-  
-  // Debug: verificar dados dos pedidos
-  console.log('🔍 [SIDEBAR] Total de pedidos:', orders.length);
-  orders.forEach((order, i) => {
-    console.log(`  Pedido ${i + 1}:`, {
-      orderCode: order.orderCode,
-      tipoContratacao: order.tipoContratacao,
-      etapa: order.etapa
-    });
-  });
 
   // Verificar se existe qualquer pedido de portabilidade (qualquer etapa)
   const temPortabilidade = orders.some(
     (order) => order.tipoContratacao === "portabilidade"
   );
-  
-  console.log('📱 [SIDEBAR] Tem portabilidade?', temPortabilidade);
 
   const menuItems = [
     { href: "/app/painel", icon: Home, label: "Dashboard" },
